@@ -1,20 +1,21 @@
 import { useMemo } from 'react';
-import { DATA, PLAYERS } from '../data';
-import type { Player } from '../data';
+import type { Triumph, Player } from '../data';
 import styles from './Hero.module.css';
 
 interface Props {
   sectionLabel: string;
   hasData: boolean;
+  triumphs: Triumph[];
+  players: readonly Player[];
   progressFor: (p: Player) => Set<string>;
 }
 
-export default function Hero({ sectionLabel, hasData, progressFor }: Props) {
-  const total = DATA.length;
+export default function Hero({ sectionLabel, hasData, triumphs, players, progressFor }: Props) {
+  const total = triumphs.length;
 
   const sorted = useMemo(() => {
-    return [...PLAYERS]
-      .map(p => ({ name: p, done: DATA.filter(d => progressFor(p).has(d.id)).length }))
+    return [...players]
+      .map(p => ({ name: p, done: triumphs.filter(d => progressFor(p).has(d.id)).length }))
       .sort((a, b) => b.done - a.done);
   }, [progressFor]);
 

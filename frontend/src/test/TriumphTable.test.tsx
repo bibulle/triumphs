@@ -10,6 +10,9 @@ const progressFor = (p: typeof PLAYERS[number]) => progress[p];
 function renderTable(overrides: Partial<Parameters<typeof TriumphTable>[0]> = {}) {
   return render(
     <TriumphTable
+      groups={GROUPS}
+      triumphs={DATA}
+      players={PLAYERS}
       collapsed={new Set()}
       onToggleGroup={vi.fn()}
       search=""
