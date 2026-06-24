@@ -1,0 +1,33 @@
+.empty {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 72px 28px;
+  text-align: center;
+  background: var(--surface);
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 20px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold);
+  transform: rotate(45deg);
+}
+
+.title {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 19px;
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.text {
+  color: var(--text-dim);
+  font-size: 13px;
+  margin: 0;
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+}

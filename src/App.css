@@ -1,0 +1,19 @@
+.wrap {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 40px 24px 72px;
+}
+
+.footer {
+  margin-top: 22px;
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: center;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+}
+
+@media (max-width: 640px) {
+  .wrap { padding: 24px 14px 56px; }
+}

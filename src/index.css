@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+
+:root {
+  --bg: #070a0f;
+  --bg-soft: #0b0f16;
+  --surface: #10151d;
+  --surface-2: #161d27;
+  --surface-3: #1d2632;
+  --border: #222c3a;
+  --border-soft: #19212c;
+  --text: #eef2f7;
+  --text-dim: #93a0b2;
+  --text-faint: #5c6878;
+  --gold: #caa256;
+  --gold-bright: #ecca82;
+  --gold-soft: rgba(202, 162, 86, 0.14);
+  --accent: #56b6cf;
+  --accent-soft: rgba(86, 182, 207, 0.12);
+  --c-worlds: oklch(0.74 0.11 235);
+  --c-stories: oklch(0.74 0.11 305);
+  --c-combat: oklch(0.74 0.13 35);
+  --c-teamwork: oklch(0.74 0.11 155);
+  --c-competitions: oklch(0.78 0.12 95);
+  --radius: 4px;
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html[data-theme="light"] {
+  --bg: #e9e6dd;
+  --bg-soft: #e0dcd0;
+  --surface: #f7f5ef;
+  --surface-2: #efece3;
+  --surface-3: #e4e0d4;
+  --border: #d3ccbd;
+  --border-soft: #ddd7c9;
+  --text: #20252b;
+  --text-dim: #586472;
+  --text-faint: #8a92a0;
+  --gold: #9c7526;
+  --gold-bright: #7e5d18;
+  --gold-soft: rgba(156, 117, 38, 0.18);
+  --accent: #2f8aa3;
+  --accent-soft: rgba(47, 138, 163, 0.14);
+  --c-worlds: oklch(0.52 0.13 235);
+  --c-stories: oklch(0.52 0.14 305);
+  --c-combat: oklch(0.55 0.16 35);
+  --c-teamwork: oklch(0.52 0.13 155);
+  --c-competitions: oklch(0.55 0.13 90);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -8%, rgba(202, 162, 86, 0.10), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 92% 4%, rgba(86, 182, 207, 0.07), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+html[data-theme="light"] body {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -8%, rgba(156, 117, 38, 0.10), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 92% 4%, rgba(47, 138, 163, 0.06), transparent 55%),
+    var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
