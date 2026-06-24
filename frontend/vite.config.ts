@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
-const { version } = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf-8'))
+const { version } = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'))
 
 export default defineConfig({
   define: {
