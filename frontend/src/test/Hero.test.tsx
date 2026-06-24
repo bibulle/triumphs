@@ -1,7 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Hero from '../components/Hero';
 import { DATA, PLAYERS, buildInitialProgress } from '../data';
+
+vi.stubGlobal('__APP_VERSION__', '1.2.3')
 
 describe('Hero', () => {
   const progress = buildInitialProgress();
@@ -34,6 +36,11 @@ describe('Hero', () => {
     PLAYERS.forEach(p => {
       expect(screen.queryByText(p)).not.toBeInTheDocument();
     });
+  });
+
+  it('displays the app version in the eyebrow', () => {
+    render(<Hero sectionLabel="Monument of Triumph" hasData={true} triumphs={DATA} players={PLAYERS} progressFor={progressFor} />);
+    expect(screen.getByText('v1.2.3')).toBeInTheDocument();
   });
 
   it('sorts leaderboard by done count descending', () => {

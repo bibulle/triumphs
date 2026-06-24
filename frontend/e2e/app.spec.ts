@@ -27,6 +27,12 @@ test.describe('Page load', () => {
   });
 });
 
+  test('shows the app version in the eyebrow', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('[class*="version"]')).toBeVisible();
+    await expect(page.locator('[class*="version"]')).toHaveText(/^v\d+\.\d+\.\d+$/);
+  });
+
 test.describe('Section tabs', () => {
   test('Monument of Triumph tab is active on load', async ({ page }) => {
     await page.goto('/');
