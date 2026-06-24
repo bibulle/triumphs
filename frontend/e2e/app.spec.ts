@@ -100,12 +100,11 @@ test.describe('Toolbar — collapse / expand', () => {
 
   test('clicking a group row collapses it', async ({ page }) => {
     await page.goto('/');
-    // Count visible item rows before collapse
+    // Wait for items to render before counting
+    await page.locator('[class*="itemRow"]').first().waitFor();
     const before = await page.locator('[class*="itemRow"]').count();
     expect(before).toBeGreaterThan(0);
-    // Collapse first group
     await page.locator('[class*="groupRow"]').first().click();
-    // Should have fewer visible rows
     const after = await page.locator('[class*="itemRow"]').count();
     expect(after).toBeLessThan(before);
   });
@@ -113,6 +112,7 @@ test.describe('Toolbar — collapse / expand', () => {
   test('clicking a collapsed group row expands it', async ({ page }) => {
     await page.goto('/');
     const firstGroupRow = page.locator('[class*="groupRow"]').first();
+    await page.locator('[class*="itemRow"]').first().waitFor();
     const before = await page.locator('[class*="itemRow"]').count();
     await firstGroupRow.click(); // collapse
     await firstGroupRow.click(); // expand
