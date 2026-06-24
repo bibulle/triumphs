@@ -131,7 +131,7 @@ jobs:
         run: |
           cd ${{ env.OPS_PATH }}
           image="bibulle\/${{ env.FRONTEND_APP }}"
-          sed -i "s/image: ${image}:.*/image: ${image}:V${{ env.VERSION }}/g" ${{ env.K8S_FRONTEND_FILE }}
+          [ -f "${{ env.K8S_FRONTEND_FILE }}" ] && sed -i "s/image: ${image}:.*/image: ${image}:V${{ env.VERSION }}/g" ${{ env.K8S_FRONTEND_FILE }}
           status=$(git status -s | wc -l)
           echo "line_modified=$status" >> $GITHUB_OUTPUT
 
@@ -214,7 +214,7 @@ jobs:
         run: |
           cd ${{ env.OPS_PATH }}
           image="bibulle\/${{ env.BACKEND_APP }}"
-          sed -i "s/image: ${image}:.*/image: ${image}:V${{ env.VERSION }}/g" ${{ env.K8S_BACKEND_FILE }}
+          [ -f "${{ env.K8S_BACKEND_FILE }}" ] && sed -i "s/image: ${image}:.*/image: ${image}:V${{ env.VERSION }}/g" ${{ env.K8S_BACKEND_FILE }}
           status=$(git status -s | wc -l)
           echo "line_modified=$status" >> $GITHUB_OUTPUT
 
