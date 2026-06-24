@@ -21,7 +21,10 @@ export default function Hero({ sectionLabel, hasData, triumphs, players, progres
 
   return (
     <div className={styles.hero}>
-      <div className={styles.eyebrow}>Destiny 2 · Tracker de triomphes</div>
+      <div className={styles.eyebrow}>
+        Destiny 2 · Tracker de triomphes
+        <span className={styles.version}>v{__APP_VERSION__}</span>
+      </div>
       <h1 className={styles.h1}>{sectionLabel}</h1>
       <div className={styles.grid}>
         <div className={styles.stat}>

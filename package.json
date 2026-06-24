@@ -7,7 +7,10 @@
     "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
     "test": "npm run test --workspace=frontend && npm run test --workspace=backend",
     "test:e2e": "npm run test:e2e --workspace=frontend",
-    "lint": "npm run lint --workspace=frontend"
+    "lint": "npm run lint --workspace=frontend",
+    "release:patch": "npm version patch --workspaces --include-workspace-root && git push --follow-tags",
+    "release:minor": "npm version minor --workspaces --include-workspace-root && git push --follow-tags",
+    "release:major": "npm version major --workspaces --include-workspace-root && git push --follow-tags"
   },
   "workspaces": [
     "frontend",

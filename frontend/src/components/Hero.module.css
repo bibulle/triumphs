@@ -50,6 +50,15 @@
   margin-bottom: 14px;
 }
 
+.version {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  opacity: 0.6;
+  font-family: var(--font-mono);
+  text-transform: none;
+}
+
 .eyebrow::before {
   content: "";
   width: 9px;
