@@ -1,131 +1,176 @@
 # Destiny 2 — Triumph Tracker
 
-Tableau de suivi partagé des triomphes Destiny 2 pour un groupe de joueurs. Pour chaque triomphe, l'état « fait / à faire » de chaque joueur est affiché en lecture seule (alimenté par le backend, pas saisi manuellement).
+Tableau de suivi partagé des triomphes Destiny 2 pour un groupe de joueurs. Pour chaque triomphe, l'état « fait / à faire » de chaque joueur est affiché en lecture seule.
 
 ## Stack
 
 | Couche | Technologie |
 |---|---|
-| Framework | React 19 + TypeScript |
-| Build | Vite 8 |
+| Frontend | React 19 + TypeScript + Vite 8 |
+| Backend | Express 5 + TypeScript (Node 20) |
+| Base de données | MongoDB (Mongoose) — cache avec TTL |
 | Style | CSS Modules + variables CSS (thèmes sombre/clair) |
 | Tests unitaires | Vitest + Testing Library |
 | Tests E2E | Playwright (Chromium) |
 | Lint | Oxlint |
+| CI/CD | GitHub Actions → Docker → Kubernetes |
+
+## Structure du dépôt
+
+```
+triumphs/
+├── frontend/               # SPA React (Vite)
+│   ├── src/
+│   │   ├── data.ts         # Types, constantes, données mockées (fallback)
+│   │   ├── hooks/useTheme.ts
+│   │   ├── components/     # SectionTabs, Hero, Toolbar, TriumphTable, EmptySection
+│   │   └── test/           # 57 tests unitaires
+│   ├── e2e/app.spec.ts     # 25 tests Playwright
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   ├── vite.config.ts      # Proxy /api → http://localhost:3001
+│   └── package.json
+├── backend/                # API Express
+│   ├── src/
+│   │   ├── data/mock.ts    # 204 triomphes + progression initiale
+│   │   ├── routes/
+│   │   │   ├── triumphs.ts # GET /api/triumphs
+│   │   │   └── progress.ts # GET /api/progress
+│   │   ├── services/
+│   │   │   └── cache.ts    # Cache MongoDB (triumph_catalog, triumph_progress)
+│   │   └── server.ts       # Point d'entrée Express (port 3001)
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml      # Dev local (frontend + backend)
+└── .github/workflows/
+    └── build-and-publish.yml
+```
 
 ## Lancer le projet
 
+### Développement local
+
 ```bash
-npm install
-npm run dev          # http://localhost:5173
+# Terminal 1 — backend
+cd backend && npm install && npm run dev   # http://localhost:3001
+
+# Terminal 2 — frontend
+cd frontend && npm install && npm run dev  # http://localhost:5173
 ```
 
-## Scripts disponibles
+Le frontend proxifie automatiquement `/api/*` vers le backend (voir `vite.config.ts`).
+
+### Avec MongoDB (cache)
+
+```bash
+MONGODB_URL=mongodb+srv://user:pass@cluster.mongodb.net/triumphs \
+  npm run dev --workspace=backend
+```
+
+Sans `MONGODB_URL`, le backend répond directement depuis les données mockées.
+
+### Docker Compose
+
+```bash
+MONGODB_URL=mongodb+srv://... docker compose up
+# Frontend : http://localhost:8080
+# Backend  : http://localhost:3001
+```
+
+## Scripts
+
+### Racine (workspace npm)
 
 | Commande | Description |
 |---|---|
-| `npm run dev` | Serveur de développement (HMR) |
+| `npm run dev` | Lance frontend + backend en parallèle |
+| `npm run build` | Build frontend puis backend |
+| `npm test` | Tests unitaires frontend + backend |
+| `npm run test:e2e` | Tests Playwright (frontend) |
+
+### Frontend (`cd frontend`)
+
+| Commande | Description |
+|---|---|
+| `npm run dev` | Serveur Vite (HMR) |
 | `npm run build` | Build de production |
-| `npm run preview` | Prévisualisation du build (`http://localhost:4173`) |
-| `npm test` | Tests unitaires (run unique) |
-| `npm run test:watch` | Tests unitaires en mode watch |
-| `npm run test:coverage` | Tests unitaires + rapport de couverture |
-| `npm run test:e2e` | Tests end-to-end Playwright |
+| `npm run preview` | Prévisualisation du build |
+| `npm test` | Tests unitaires (57 tests) |
+| `npm run test:coverage` | Tests + rapport de couverture |
+| `npm run test:e2e` | Tests E2E Playwright (25 scénarios) |
 | `npm run lint` | Lint Oxlint |
 
-## Architecture
+### Backend (`cd backend`)
 
-```
-src/
-├── data.ts                  # Données mockées, types, constantes
-├── hooks/
-│   └── useTheme.ts          # Bascule thème sombre/clair (localStorage)
-├── components/
-│   ├── SectionTabs.tsx      # Onglets de section (Monument, Lifetime…)
-│   ├── Hero.tsx             # Compteur + classement des joueurs
-│   ├── Toolbar.tsx          # Recherche, expand/collapse, filtres, thème
-│   ├── TriumphTable.tsx     # Tableau principal (groupes pliables, statuts)
-│   └── EmptySection.tsx     # État « à venir » pour sections sans données
-├── test/
-│   ├── setup.ts             # Configuration Testing Library
-│   ├── data.test.ts         # Tests des données et helpers
-│   ├── useTheme.test.ts     # Tests du hook de thème
-│   ├── SectionTabs.test.tsx
-│   ├── Hero.test.tsx
-│   ├── Toolbar.test.tsx
-│   ├── EmptySection.test.tsx
-│   └── TriumphTable.test.tsx
-└── App.tsx                  # Composant racine, état global UI
-e2e/
-└── app.spec.ts              # Tests end-to-end (25 scénarios Playwright)
-```
+| Commande | Description |
+|---|---|
+| `npm run dev` | Serveur Express avec hot-reload (`tsx watch`) |
+| `npm run build` | Compilation TypeScript → `dist/` |
+| `npm start` | Démarre le serveur compilé |
+| `npm test` | Tests unitaires (17 tests) |
+
+## API Backend
+
+| Endpoint | Description | Cache MongoDB |
+|---|---|---|
+| `GET /api/triumphs` | Liste des 204 triomphes | `triumph_catalog` (TTL 24 h) |
+| `GET /api/progress` | Progression de chaque joueur | `triumph_progress` (TTL 5 min) |
+
+Les collections MongoDB sont préfixées `triumph_` pour cohabiter avec d'autres applications sur le même cluster.
 
 ## Fonctionnalités
 
 - **Onglets de section** : Monument of Triumph, Lifetime, Renegades, Kepler (badge « à venir »)
 - **Hero** : nombre total de triomphes + classement des joueurs trié par progression
-- **Tableau** : 204 triomphes répartis en 17 sous-catégories dans 5 catégories
-  - Colonne titre sticky à gauche, en-têtes joueurs sticky en haut
-  - Groupes pliables/dépliables (chevron + « Tout déplier / replier »)
-  - Color-coding par catégorie (Worlds / Stories / Combat / Teamwork / Competitions)
-  - Pastille de statut ✓ / vide par joueur (lecture seule)
-  - Ligne `allDone` dorée + badge COMPLET quand tous les joueurs ont validé
-- **Recherche** : filtre live FR + EN, coopère avec le pliage et « Masquer terminés »
-- **Thème** : sombre par défaut, clair disponible, persisté en `localStorage`
-- **Responsive** : adapté ≤ 640px
-
-## Données et état
-
-Les données sont actuellement **mockées** dans `src/data.ts` (constante `RAW`, issue du prototype de design). L'état de progression de chaque joueur sera fourni par l'API Bungie côté backend.
-
-### Structure attendue depuis le backend
-
-```ts
-// Pour chaque joueur, un Set d'IDs de triomphes validés
-type Progress = Record<Player, Set<string>>;
-```
-
-Remplacer `buildInitialProgress()` dans `src/data.ts` par un appel API et passer le résultat via props ou un contexte React.
+- **Tableau** : 204 triomphes dans 17 sous-catégories / 5 catégories
+  - En-têtes joueurs sticky, titre sticky, groupes pliables
+  - Color-coding par catégorie
+  - Pastille ✓ par joueur, ligne dorée `allDone` + badge COMPLET
+- **Recherche** : filtre live FR + EN
+- **Thème** : sombre par défaut, persisté en `localStorage`
+- **Responsive** : adapté ≤ 640 px
 
 ## Tests
 
-### Tests unitaires (Vitest + Testing Library)
-
-Couvrent :
-- Intégrité des données (`DATA`, `GROUPS`, `CAT_FR`, `SUB_FR`, `buildInitialProgress`)
-- Hook `useTheme` (valeur initiale, toggle, persistance localStorage)
-- Composant `SectionTabs` (rendu, onglet actif, badge « à venir », callback `onSelect`)
-- Composant `Hero` (titre, compteur, leaderboard trié, mode sans données)
-- Composant `Toolbar` (recherche, labels conditionnels, tous les callbacks)
-- Composant `EmptySection` (label, message)
-- Composant `TriumphTable` (groupes, items, collapse, recherche, hideDone, allDone, statuts)
+### Frontend — Tests unitaires (57 tests)
 
 ```bash
-npm test
-# → 57 tests, 7 fichiers
+cd frontend && npm test
 ```
 
-### Tests E2E (Playwright)
+Couvrent : intégrité des données, hook `useTheme`, et les 5 composants (SectionTabs, Hero, Toolbar, EmptySection, TriumphTable).
 
-Couvrent 25 scénarios dans le navigateur Chromium :
-- Chargement initial (titre, compteur, leaderboard, footer)
-- Navigation entre sections (onglets, état « à venir », retour)
-- Recherche live (match, no-match, clear)
-- Collapse/expand (tout replier, tout déplier, clic sur groupe)
-- Masquer/afficher triomphes terminés
-- Bascule de thème (sombre → clair → sombre, persistance au rechargement)
-- Badges de statut (allDone, curseur non-pointer)
-- Responsive 640px
+### Frontend — Tests E2E Playwright (25 tests)
 
 ```bash
-npm run build && npm run preview &   # serveur de prévisualisation
-npm run test:e2e
+cd frontend && npm run build && npm run test:e2e
 ```
+
+Scénarios : chargement, navigation, recherche, collapse/expand, masquer terminés, thème, badges, responsive 640 px.
+
+### Backend — Tests unitaires (17 tests)
+
+```bash
+cd backend && npm test
+```
+
+Couvrent : intégrité des données mock (`mock.test.ts`), route `/api/triumphs` avec hit/miss de cache, route `/api/progress` avec hit/miss de cache.
+
+## CI/CD
+
+Le workflow `.github/workflows/build-and-publish.yml` :
+
+1. **`test`** : installe les dépendances, lance les tests unitaires frontend + backend, les tests E2E Playwright, puis upload le rapport Playwright comme artefact.
+2. **`build-and-push-frontend`** (needs: test) : build et push l'image Docker `bibulle/triumph-tracker-frontend:VX.Y.Z` vers DockerHub, met à jour le manifeste Kubernetes dans `myKubernetesConfig`.
+3. **`build-and-push-backend`** (needs: test) : idem pour `bibulle/triumph-tracker-backend:VX.Y.Z`.
+
+Secrets nécessaires : `ACTIONS_TOKEN`, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
 
 ## Prochaines étapes
 
 - [ ] Intégration API Bungie (OAuth + endpoints de progression)
+- [ ] Remplacer les données mockées du backend par l'appel Bungie réel
 - [ ] Authentification par joueur
 - [ ] Mise à jour de la progression en temps réel (polling ou WebSocket)
 - [ ] Données pour les sections Lifetime, Renegades, Kepler
-- [ ] Descriptions des triomphes (FR + EN)
+- [ ] Descriptions complètes des triomphes (FR + EN)
