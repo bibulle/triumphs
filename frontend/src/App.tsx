@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-import { SECTIONS, buildInitialProgress } from './data';
+import { PLAYERS } from './data';
+import { useAppData } from './hooks/useAppData';
 import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
 import Toolbar from './components/Toolbar';
@@ -12,15 +13,16 @@ import './App.css';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('monument');
-  const [progress] = useState(() => buildInitialProgress());
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [hideDone, setHideDone] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
 
+  const { groups, triumphs, progress, sections, loading, error } = useAppData();
+
   const currentSection = useMemo(
-    () => SECTIONS.find(s => s.id === activeSection)!,
-    [activeSection]
+    () => sections.find(s => s.id === activeSection)!,
+    [sections, activeSection]
   );
 
   const toggleGroup = useCallback((groupKey: string) => {
@@ -35,12 +37,15 @@ export default function App() {
   const expandAll = useCallback(() => setCollapsed(new Set()), []);
   const collapseAll = useCallback((keys: string[]) => setCollapsed(new Set(keys)), []);
 
-  const progressFor = useCallback((player: Player) => progress[player], [progress]);
+  const progressFor = useCallback((player: Player) => progress[player] ?? new Set<string>(), [progress]);
+
+  if (loading) return <div className="loading">Chargement…</div>;
+  if (error) return <div className="error">Erreur : {error}</div>;
 
   return (
     <div className="wrap">
       <SectionTabs
-        sections={SECTIONS}
+        sections={sections}
         activeId={activeSection}
         onSelect={setActiveSection}
       />
@@ -48,6 +53,8 @@ export default function App() {
       <Hero
         sectionLabel={currentSection.label}
         hasData={currentSection.hasData}
+        triumphs={triumphs}
+        players={PLAYERS}
         progressFor={progressFor}
       />
 
@@ -64,6 +71,9 @@ export default function App() {
             onToggleTheme={toggleTheme}
           />
           <TriumphTable
+            groups={groups}
+            triumphs={triumphs}
+            players={PLAYERS}
             collapsed={collapsed}
             onToggleGroup={toggleGroup}
             search={search}

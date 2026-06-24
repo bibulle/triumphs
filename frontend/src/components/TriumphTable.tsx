@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
-import { GROUPS, PLAYERS, DATA, CAT_FR, SUB_FR } from '../data';
-import type { Player } from '../data';
+import { CAT_FR, SUB_FR } from '../data';
+import type { Group, Triumph, Player } from '../data';
 import styles from './TriumphTable.module.css';
 
 interface Props {
+  groups: Group[];
+  triumphs: Triumph[];
+  players: Player[];
   collapsed: Set<string>;
   onToggleGroup: (key: string) => void;
   search: string;
@@ -19,12 +22,12 @@ const CAT_CLASS: Record<string, string> = {
   Competitions: styles.catCompetitions,
 };
 
-export default function TriumphTable({ collapsed, onToggleGroup, search, hideDone, progressFor }: Props) {
+export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, hideDone, progressFor }: Props) {
   const q = search.trim().toLowerCase();
 
   const totalDone = useMemo(
-    () => Object.fromEntries(PLAYERS.map(p => [p, DATA.filter(d => progressFor(p).has(d.id)).length])),
-    [progressFor]
+    () => Object.fromEntries(players.map(p => [p, triumphs.filter(d => progressFor(p).has(d.id)).length])),
+    [players, triumphs, progressFor]
   );
 
   return (
@@ -33,24 +36,24 @@ export default function TriumphTable({ collapsed, onToggleGroup, search, hideDon
         <thead>
           <tr>
             <th className={`${styles.th} ${styles.colTitle}`}>Triomphe</th>
-            {PLAYERS.map(p => (
+            {players.map(p => (
               <th key={p} className={`${styles.th} ${styles.friendTh}`}>
                 <div className={styles.friendHead}>
                   <span className={styles.fname}>{p}</span>
-                  <span className={styles.fcount}>{totalDone[p]}/{DATA.length}</span>
+                  <span className={styles.fcount}>{totalDone[p]}/{triumphs.length}</span>
                 </div>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {GROUPS.map(group => {
+          {groups.map(group => {
             const isCollapsed = collapsed.has(group.groupKey);
             const catClass = CAT_CLASS[group.cat] ?? '';
 
             const visibleItems = group.items.filter(item => {
               const matchSearch = !q || (item.en + ' ' + item.fr).toLowerCase().includes(q);
-              const allDone = PLAYERS.every(p => progressFor(p).has(item.id));
+              const allDone = players.every(p => progressFor(p).has(item.id));
               if (!matchSearch) return false;
               if (hideDone && allDone) return false;
               return true;
@@ -75,7 +78,7 @@ export default function TriumphTable({ collapsed, onToggleGroup, search, hideDon
                     </span>
                   </div>
                 </td>
-                {PLAYERS.map(p => {
+                {players.map(p => {
                   const done = group.items.filter(i => progressFor(p).has(i.id)).length;
                   const total = group.items.length;
                   const pct = Math.round(done / total * 100);
@@ -92,7 +95,7 @@ export default function TriumphTable({ collapsed, onToggleGroup, search, hideDon
                 })}
               </tr>,
               ...(!isCollapsed ? visibleItems.map(item => {
-                const checks = PLAYERS.map(p => progressFor(p).has(item.id));
+                const checks = players.map(p => progressFor(p).has(item.id));
                 const allDone = checks.every(Boolean);
                 return (
                   <tr
@@ -114,7 +117,7 @@ export default function TriumphTable({ collapsed, onToggleGroup, search, hideDon
                         </div>
                       </div>
                     </td>
-                    {PLAYERS.map((p, i) => (
+                    {players.map((p, i) => (
                       <td key={p} className={`${styles.td} ${styles.friendCell}`}>
                         <span
                           className={`${styles.status} ${checks[i] ? styles.isDone : styles.isTodo}`}
