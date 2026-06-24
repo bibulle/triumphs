@@ -1,6 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'fs';
 
-const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+// Chromium pré-installé dans le container de dev — ignoré en CI
+const DEV_CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const useDevChrome = existsSync(DEV_CHROME);
 
 export default defineConfig({
   testDir: './e2e',
@@ -13,7 +16,7 @@ export default defineConfig({
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
     launchOptions: {
-      executablePath: CHROME,
+      ...(useDevChrome && { executablePath: DEV_CHROME }),
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
     },
   },
