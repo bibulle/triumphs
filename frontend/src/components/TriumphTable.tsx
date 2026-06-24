@@ -6,7 +6,7 @@ import styles from './TriumphTable.module.css';
 interface Props {
   groups: Group[];
   triumphs: Triumph[];
-  players: Player[];
+  players: readonly Player[];
   collapsed: Set<string>;
   onToggleGroup: (key: string) => void;
   search: string;

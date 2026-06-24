@@ -6,7 +6,7 @@ interface Props {
   sectionLabel: string;
   hasData: boolean;
   triumphs: Triumph[];
-  players: Player[];
+  players: readonly Player[];
   progressFor: (p: Player) => Set<string>;
 }
 
