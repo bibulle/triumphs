@@ -193,6 +193,11 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
   const level0 = nodes.filter(n => n.level === 0)
   console.log(`[bungie] catalog built: ${triumphs.length} total records, ${nodes.length} nodes`)
   console.log('[bungie] level-0 nodes:')
-  level0.forEach(n => console.log(`  [${n.sectionId}] nameEn="${n.nameEn}" nameFr="${n.nameFr}" namePt="${n.namePt}" icon="${n.icon ?? '(none)'}" descEn="${n.descEn?.slice(0, 80)}"`) )
+  level0.forEach((n, i) => {
+    const rawNode = nodesEn[String(SECTION_ROOTS[i]?.hash)]
+    const rawIcon = rawNode?.displayProperties.icon ?? '(missing)'
+    const hasIcon = rawNode?.displayProperties.hasIcon
+    console.log(`  [${n.sectionId}] nameEn="${n.nameEn}" icon="${n.icon ?? '(none)'}" rawIcon="${rawIcon}" hasIcon=${hasIcon} descEn="${n.descEn?.slice(0, 60)}"`)
+  })
   return { version, triumphs, nodes }
 }
