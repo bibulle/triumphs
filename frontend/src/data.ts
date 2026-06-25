@@ -13,6 +13,35 @@ export interface Triumph {
   descEn: string;
   descFr: string;
   descPt?: string;
+  icon?: string;
+  titleEn?: string;
+  titleFr?: string;
+  titlePt?: string;
+}
+
+export interface NodeMeta {
+  hash: number;
+  level: 0 | 1 | 2;
+  sectionId: string;
+  catKey?: string;
+  groupKey?: string;
+  nameEn: string;
+  nameFr: string;
+  namePt?: string;
+  descEn: string;
+  descFr: string;
+  descPt?: string;
+  icon?: string;
+}
+
+export interface ObjectiveProgress {
+  current: number;
+  completionValue: number;
+}
+
+export interface RecordProgress {
+  completed: boolean;
+  objectives: ObjectiveProgress[];
 }
 
 export interface Group {

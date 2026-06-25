@@ -14,12 +14,17 @@ const mockPlayers = [
   { name: 'Vincent', tag: 'tarrade#1427' },
   { name: 'Guiz', tag: 'Guizmo-1999#7396' },
 ]
-const mockProgress = { Bibullus: ['t0'], Vincent: [], Guiz: [] }
+const mockProgress = {
+  Bibullus: { t0: { completed: true, objectives: [] } },
+  Vincent: {},
+  Guiz: {},
+}
 
 beforeEach(() => {
   vi.spyOn(api, 'fetchTriumphs').mockResolvedValue(mockTriumphs)
   vi.spyOn(api, 'fetchProgress').mockResolvedValue(mockProgress)
   vi.spyOn(api, 'fetchPlayers').mockResolvedValue(mockPlayers)
+  vi.spyOn(api, 'fetchNodes').mockResolvedValue([])
 })
 afterEach(() => {
   vi.restoreAllMocks()
@@ -45,12 +50,19 @@ describe('useAppData', () => {
     expect(result.current.players).toEqual(['Bibullus', 'Vincent', 'Guiz'])
   })
 
-  it('converts progress arrays to Sets', async () => {
+  it('converts progress to Sets of completed IDs', async () => {
     const { result } = renderHook(() => useAppData())
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.progress.Bibullus).toBeInstanceOf(Set)
     expect(result.current.progress.Bibullus.has('t0')).toBe(true)
     expect(result.current.progress.Vincent.size).toBe(0)
+  })
+
+  it('exposes progressDetail with objective data', async () => {
+    const { result } = renderHook(() => useAppData())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.progressDetail.Bibullus?.t0?.completed).toBe(true)
+    expect(result.current.progressDetail.Bibullus?.t0?.objectives).toEqual([])
   })
 
   it('groups are sorted by cat then sub order', async () => {

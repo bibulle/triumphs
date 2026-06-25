@@ -6,6 +6,7 @@ import express, { Request, Response, NextFunction } from 'express'
 import { connectMongo } from './services/cache.js'
 import { warmup } from './services/warmup.js'
 import triumphsRouter from './routes/triumphs.js'
+import nodesRouter from './routes/nodes.js'
 import progressRouter from './routes/progress.js'
 import playersRouter from './routes/players.js'
 
@@ -34,6 +35,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 })
 
 app.use('/api/triumphs', triumphsRouter)
+app.use('/api/nodes', nodesRouter)
 app.use('/api/progress', progressRouter)
 app.use('/api/players', playersRouter)
 

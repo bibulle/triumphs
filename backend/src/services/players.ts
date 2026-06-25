@@ -1,3 +1,5 @@
+import type { PlayerProgress } from '../data/mock.js'
+
 const BASE_URL = 'https://www.bungie.net'
 
 export interface PlayerConfig {
@@ -48,7 +50,6 @@ export async function resolvePlayer(config: PlayerConfig): Promise<ResolvedPlaye
   const results = json.Response
   if (!results?.length) throw new Error(`Player not found: ${config.tag}`)
 
-  // Prefer the crossSave override membership type when set
   const primary =
     results.find(r => r.crossSaveOverride && r.membershipType === r.crossSaveOverride)
     ?? results[0]
@@ -57,7 +58,7 @@ export async function resolvePlayer(config: PlayerConfig): Promise<ResolvedPlaye
   return { ...config, membershipType: primary.membershipType, membershipId: primary.membershipId }
 }
 
-export async function fetchPlayerCompletedRecords(player: ResolvedPlayer): Promise<string[]> {
+export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<PlayerProgress> {
   const res = await fetch(
     `${BASE_URL}/Platform/Destiny2/${player.membershipType}/Profile/${player.membershipId}/?components=900`,
     { headers: { 'X-API-Key': process.env.BUNGIE_API_KEY! } }
@@ -66,25 +67,57 @@ export async function fetchPlayerCompletedRecords(player: ResolvedPlayer): Promi
 
   const json = await res.json() as {
     Response: {
-      profileRecords?: { data?: { records?: Record<string, { state: number }> } }
-      characterRecords?: { data?: Record<string, { records?: Record<string, { state: number }> }> }
+      profileRecords?: {
+        data?: {
+          records?: Record<string, {
+            state: number
+            objectives?: Array<{ progress: number; completionValue: number }>
+          }>
+        }
+      }
+      characterRecords?: {
+        data?: Record<string, {
+          records?: Record<string, {
+            state: number
+            objectives?: Array<{ progress: number; completionValue: number }>
+          }>
+        }>
+      }
     }
   }
 
-  const completed = new Set<string>()
+  const progress: PlayerProgress = {}
 
-  // Profile-level records (most triumphs live here)
-  for (const [hash, rec] of Object.entries(json.Response.profileRecords?.data?.records ?? {})) {
-    if ((rec.state & 4) === 0) completed.add(hash)
+  const mergeRecord = (hash: string, rec: {
+    state: number
+    objectives?: Array<{ progress: number; completionValue: number }>
+  }) => {
+    const completed = (rec.state & 4) === 0
+    const objectives = (rec.objectives ?? []).map(o => ({
+      current: o.progress ?? 0,
+      completionValue: o.completionValue,
+    }))
+    if (!progress[hash] || completed) {
+      progress[hash] = { completed, objectives }
+    }
   }
 
-  // Character-level records (some raid / activity triumphs are per-character)
+  for (const [hash, rec] of Object.entries(json.Response.profileRecords?.data?.records ?? {})) {
+    mergeRecord(hash, rec)
+  }
   for (const charData of Object.values(json.Response.characterRecords?.data ?? {})) {
     for (const [hash, rec] of Object.entries(charData.records ?? {})) {
-      if ((rec.state & 4) === 0) completed.add(hash)
+      mergeRecord(hash, rec)
     }
   }
 
-  console.log(`[players] ${player.name}: ${completed.size} completed records`)
-  return [...completed]
+  const completedCount = Object.values(progress).filter(r => r.completed).length
+  console.log(`[players] ${player.name}: ${completedCount} completed records, ${Object.keys(progress).length} total tracked`)
+  return progress
+}
+
+// Backward-compat: list of completed record IDs only
+export async function fetchPlayerCompletedRecords(player: ResolvedPlayer): Promise<string[]> {
+  const progress = await fetchPlayerProgress(player)
+  return Object.entries(progress).filter(([, r]) => r.completed).map(([id]) => id)
 }

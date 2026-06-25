@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
-import { fetchTriumphs, fetchProgress, fetchPlayers } from '../api'
+import { fetchTriumphs, fetchProgress, fetchPlayers, fetchNodes } from '../api'
 import { CAT_FR, SUB_FR, SECTIONS } from '../data'
-import type { Triumph, Group, Player } from '../data'
+import type { Triumph, Group, Player, NodeMeta, RecordProgress } from '../data'
 
 export type AppData = {
   groups: Group[]
   triumphs: Triumph[]
   players: Player[]
   progress: Record<string, Set<string>>
+  progressDetail: Record<string, Record<string, RecordProgress>>
+  nodes: NodeMeta[]
   sections: typeof SECTIONS
   loading: boolean
   error: string | null
@@ -18,6 +20,8 @@ export function useAppData(): AppData {
   const [groups, setGroups] = useState<Group[]>([])
   const [players, setPlayers] = useState<Player[]>([])
   const [progress, setProgress] = useState<Record<string, Set<string>>>({})
+  const [progressDetail, setProgressDetail] = useState<Record<string, Record<string, RecordProgress>>>({})
+  const [nodes, setNodes] = useState<NodeMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,10 +30,11 @@ export function useAppData(): AppData {
 
     async function load() {
       try {
-        const [rawTriumphs, rawProgress, rawPlayers] = await Promise.all([
+        const [rawTriumphs, rawProgress, rawPlayers, rawNodes] = await Promise.all([
           fetchTriumphs(),
           fetchProgress(),
           fetchPlayers(),
+          fetchNodes(),
         ])
         if (cancelled) return
 
@@ -50,14 +55,24 @@ export function useAppData(): AppData {
         })
 
         const playerNames = rawPlayers.map(p => p.name)
+
+        // Derive Set<string> of completed IDs for quick lookup
         const prog = Object.fromEntries(
-          playerNames.map(name => [name, new Set<string>(rawProgress[name] ?? [])])
+          playerNames.map(name => {
+            const playerRecs = rawProgress[name] ?? {}
+            const completed = new Set<string>(
+              Object.entries(playerRecs).filter(([, r]) => r.completed).map(([id]) => id)
+            )
+            return [name, completed]
+          })
         )
 
         setTriumphs(rawTriumphs)
         setGroups([...groupMap.values()])
         setPlayers(playerNames)
         setProgress(prog)
+        setProgressDetail(rawProgress)
+        setNodes(rawNodes)
         setError(null)
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Erreur de chargement')
@@ -70,5 +85,5 @@ export function useAppData(): AppData {
     return () => { cancelled = true }
   }, [])
 
-  return { groups, triumphs, players, progress, sections: SECTIONS, loading, error }
+  return { groups, triumphs, players, progress, progressDetail, nodes, sections: SECTIONS, loading, error }
 }
