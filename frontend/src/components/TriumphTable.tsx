@@ -91,8 +91,14 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
             const groupAllDone = players.length > 0 &&
               group.items.every(item => players.every(p => progressFor(p).has(item.id)));
 
-            const primaryLabel = useFr ? `${group.catFr} · ${group.subFr}` : `${group.cat} · ${group.sub}`;
-            const secondaryLabel = useFr ? `${group.cat} · ${group.sub}` : `${group.catFr} · ${group.subFr}`;
+            const sameNameEn = group.cat === group.sub;
+            const sameNameFr = group.catFr === group.subFr;
+            const primaryLabel = useFr
+              ? (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`)
+              : (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`);
+            const secondaryLabel = useFr
+              ? (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`)
+              : (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`);
 
             return [
               <tr
