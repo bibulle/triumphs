@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '../../.env') })
 import express, { Request, Response, NextFunction } from 'express'
 import { connectMongo } from './services/cache.js'
+import { warmup } from './services/warmup.js'
 import triumphsRouter from './routes/triumphs.js'
 import progressRouter from './routes/progress.js'
 import playersRouter from './routes/players.js'
@@ -48,7 +49,10 @@ console.log(`[STARTUP] PLAYERS:        ${process.env.PLAYERS ?? 'NOT SET (using 
 
 if (process.env.MONGODB_URL) {
   connectMongo(process.env.MONGODB_URL)
-    .then(() => console.log('[STARTUP] MongoDB connected'))
+    .then(() => {
+      console.log('[STARTUP] MongoDB connected')
+      return warmup()
+    })
     .catch((err) => console.error('[STARTUP] MongoDB unavailable, using mock only:', err.message))
 }
 
