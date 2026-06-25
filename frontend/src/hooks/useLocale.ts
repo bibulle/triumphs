@@ -9,7 +9,7 @@ function readLocale(): Locale {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === 'fr' || saved === 'en' || saved === 'pt') return saved
   } catch { /* SSR / private mode */ }
-  return 'fr'
+  return 'pt'
 }
 
 export function useLocaleState() {
