@@ -176,7 +176,7 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                       const objectives = detail?.objectives ?? [];
                       const current = objectives.reduce((s, o) => s + o.current, 0);
                       const total = objectives.reduce((s, o) => s + o.completionValue, 0);
-                      const hasProgress = !done && total > 0 && current > 0;
+                      const hasProgress = !done && total > 0;
                       return (
                         <td key={p} className={`${styles.td} ${styles.friendCell}`}>
                           {done ? (
