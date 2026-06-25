@@ -62,14 +62,24 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     fetchDefinitions<RecordDefinition>(paths.fr.DestinyRecordDefinition),
   ])
 
-  // Log top-level candidate nodes (many presentationNode children = likely a root)
-  const topCandidates = Object.values(nodesEn)
-    .filter(n => (n.children?.presentationNodes?.length ?? 0) >= 3)
-    .sort((a, b) => (b.children?.presentationNodes?.length ?? 0) - (a.children?.presentationNodes?.length ?? 0))
-    .slice(0, 20)
-  console.log('[bungie] Top presentation nodes by children count:')
-  topCandidates.forEach(n => {
-    console.log(`[bungie]   "${n.displayProperties.name}" hash=${n.hash} presentationNodes=${n.children?.presentationNodes?.length}`)
+  // Build parent map: childHash → parentNode
+  const parentOf = new Map<number, PresentationNode>()
+  for (const node of Object.values(nodesEn)) {
+    for (const { presentationNodeHash } of node.children?.presentationNodes ?? []) {
+      parentOf.set(presentationNodeHash, node)
+    }
+  }
+
+  // Find nodes with no parent (roots) that have presentationNode children
+  const roots = Object.values(nodesEn).filter(n =>
+    !parentOf.has(n.hash) && (n.children?.presentationNodes?.length ?? 0) > 0
+  )
+  console.log('[bungie] Root nodes (no parent, has presentationNode children):')
+  roots.forEach(n => {
+    const childNames = (n.children?.presentationNodes ?? [])
+      .map(c => nodesEn[c.presentationNodeHash]?.displayProperties.name ?? '?')
+      .join(', ')
+    console.log(`[bungie]   "${n.displayProperties.name}" hash=${n.hash} children=[${childNames}]`)
   })
 
   const monument = Object.values(nodesEn).find(
