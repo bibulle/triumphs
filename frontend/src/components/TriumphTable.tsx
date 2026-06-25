@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Group, Triumph, Player } from '../data';
+import type { Group, Triumph, Player, FilterState } from '../data';
 import type { Locale } from '../i18n';
 import { useLocale } from '../i18n';
 import styles from './TriumphTable.module.css';
@@ -11,7 +11,7 @@ interface Props {
   collapsed: Set<string>;
   onToggleGroup: (key: string) => void;
   search: string;
-  hideDone: boolean;
+  filter: FilterState;
   progressFor: (p: Player) => Set<string>;
   locale?: Locale;
 }
@@ -24,7 +24,7 @@ const CAT_CLASS: Record<string, string> = {
   Competitions: styles.catCompetitions,
 };
 
-export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, hideDone, progressFor }: Props) {
+export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, filter, progressFor }: Props) {
   const { t, locale } = useLocale();
   const q = search.trim().toLowerCase();
   const useFr = locale === 'fr';
@@ -57,9 +57,17 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
 
             const visibleItems = group.items.filter(item => {
               const matchSearch = !q || (item.en + ' ' + item.fr).toLowerCase().includes(q);
-              const allDone = players.every(p => progressFor(p).has(item.id));
               if (!matchSearch) return false;
-              if (hideDone && allDone) return false;
+              const doneCount = players.filter(p => progressFor(p).has(item.id)).length;
+              const n = players.length;
+              if (filter.status === 'none' && doneCount !== 0) return false;
+              if (filter.status === 'partial' && (doneCount === 0 || doneCount === n)) return false;
+              if (filter.status === 'done' && doneCount !== n) return false;
+              if (filter.missing.size > 0) {
+                for (const mp of filter.missing) {
+                  if (progressFor(mp).has(item.id)) return false;
+                }
+              }
               return true;
             });
 

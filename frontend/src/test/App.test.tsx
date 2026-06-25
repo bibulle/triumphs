@@ -65,14 +65,17 @@ describe('App', () => {
     await waitFor(() => expect(screen.getByText('Le Monument')).toBeInTheDocument())
   })
 
-  it('"Masquer terminés" hides allDone triumph rows', async () => {
+  it('"Filtrer" > "Terminés" hides non-allDone rows and shows only allDone', async () => {
     render(<App />)
-    // Expand first group to make triumphs visible
     await waitFor(() => screen.getByRole('button', { name: 'Tout déplier' }))
     await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }))
     await waitFor(() => screen.getByText('Le Monument'))
-    await userEvent.click(screen.getByRole('button', { name: 'Masquer terminés' }))
-    expect(screen.queryByText('Le Monument')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Filtrer/i }))
+    await userEvent.click(screen.getByRole('button', { name: /Terminés/i }))
+    // 'Conqueror' is not allDone → should be hidden
+    expect(screen.queryByText('Conquérant')).not.toBeInTheDocument()
+    // 'Le Monument' is allDone → visible
+    expect(screen.getByText('Le Monument')).toBeInTheDocument()
   })
 
   it('shows error message when API fails', async () => {

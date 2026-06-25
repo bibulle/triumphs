@@ -318,6 +318,19 @@ RAW.forEach(([cat, sub, items]) => {
 
 export type Player = string;
 
+export type FilterStatus = 'all' | 'none' | 'partial' | 'done';
+
+export interface FilterState {
+  status: FilterStatus;
+  missing: Set<Player>;
+}
+
+export const DEFAULT_FILTER: FilterState = { status: 'all', missing: new Set() };
+
+export function isFilterActive(f: FilterState): boolean {
+  return f.status !== 'all' || f.missing.size > 0;
+}
+
 export const SECTIONS: Section[] = [
   { id: 'triumphs', label: 'Triomphes',        hasData: true },
   { id: 'titles',   label: 'Titres',           hasData: true },

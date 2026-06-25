@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TriumphTable from '../components/TriumphTable';
-import { GROUPS, DATA } from '../data';
+import { GROUPS, DATA, DEFAULT_FILTER } from '../data';
+import type { FilterState } from '../data';
 
 const MOCK_PLAYERS = ['Bibullus', 'Vincent', 'Guiz']
 const progress: Record<string, Set<string>> = {
@@ -21,7 +22,7 @@ function renderTable(overrides: Partial<Parameters<typeof TriumphTable>[0]> = {}
       collapsed={new Set()}
       onToggleGroup={vi.fn()}
       search=""
-      hideDone={false}
+      filter={DEFAULT_FILTER}
       progressFor={progressFor}
       {...overrides}
     />
@@ -36,7 +37,6 @@ describe('TriumphTable', () => {
 
   it('renders a group row for each group', () => {
     renderTable();
-    // Spot-check: group label span contains "Panoramas"
     const groupLabels = screen.getAllByText(/Panoramas/);
     expect(groupLabels.length).toBeGreaterThan(0);
   });
@@ -49,7 +49,6 @@ describe('TriumphTable', () => {
   it('hides item rows when their group is collapsed', () => {
     const firstGroup = GROUPS[0];
     renderTable({ collapsed: new Set([firstGroup.groupKey]) });
-    // Items of the first group should not be visible
     const firstItem = firstGroup.items[0];
     expect(screen.queryByText(firstItem.fr)).not.toBeInTheDocument();
   });
@@ -63,7 +62,6 @@ describe('TriumphTable', () => {
   it('calls onToggleGroup when a group row is clicked', async () => {
     const onToggleGroup = vi.fn();
     renderTable({ onToggleGroup });
-    // Click the first group row via its chevron (unique in group header context)
     const chevrons = screen.getAllByText('▾');
     await userEvent.click(chevrons[0]);
     expect(onToggleGroup).toHaveBeenCalledWith(GROUPS[0].groupKey);
@@ -76,26 +74,22 @@ describe('TriumphTable', () => {
   });
 
   it('hides triumphs that do not match search query', () => {
-    // Use a query that matches nothing
     renderTable({ search: 'zzz_no_match_zzz' });
-    // None of the DATA items should render
     DATA.forEach(d => {
       expect(screen.queryByText(d.fr)).not.toBeInTheDocument();
     });
   });
 
-  it('hides allDone rows when hideDone is true', () => {
-    // DATA[0] is the demo allDone triumph (first item of first group)
-    renderTable({ hideDone: true });
-    const allDoneItem = DATA[0];
-    expect(screen.queryByText(allDoneItem.fr)).not.toBeInTheDocument();
+  it('hides non-allDone rows when filter.status is "done"', () => {
+    const doneFilter: FilterState = { status: 'done', missing: new Set() };
+    renderTable({ filter: doneFilter });
+    // DATA[0] is allDone (all players have it), DATA[1] is not
+    expect(screen.queryByText(DATA[1].fr)).not.toBeInTheDocument();
   });
 
   it('shows done/todo status badges for each player on each item', () => {
     renderTable();
-    // STATUS badges are aria-labeled — count them
     const badges = screen.getAllByRole('img');
-    // Each visible item × number of players
     const visibleItems = GROUPS.flatMap(g => g.items).length;
     expect(badges.length).toBe(visibleItems * MOCK_PLAYERS.length);
   });
@@ -107,7 +101,6 @@ describe('TriumphTable', () => {
 
   it('shows per-player done/total counts in the header', () => {
     renderTable();
-    // Bibullus header should show their count
     const bibDone = DATA.filter(d => progress.Bibullus.has(d.id)).length;
     expect(screen.getByText(`${bibDone}/${DATA.length}`)).toBeInTheDocument();
   });
@@ -145,7 +138,6 @@ describe('TriumphTable — status badges', () => {
 describe('TriumphTable — within group context', () => {
   it('shows the English sub-category name in group rows', () => {
     renderTable();
-    // "Vistas" is the EN sub for Worlds|Vistas
     const groupLabelContainers = screen.getAllByText(/Vistas/);
     expect(groupLabelContainers.length).toBeGreaterThan(0);
   });
@@ -157,14 +149,13 @@ describe('TriumphTable — within group context', () => {
   });
 });
 
-describe('TriumphTable — group allDone and hide behavior', () => {
-  it('hides the group row when all its items are done and hideDone is true', () => {
+describe('TriumphTable — group allDone and filter behavior', () => {
+  it('hides the group row when all its items are done and filter is "done" (inverted: only done visible)', () => {
     const firstGroup = GROUPS[0];
-    const allDoneProgress: Record<string, Set<string>> = {
-      Bibullus: new Set(firstGroup.items.map(i => i.id)),
-      Vincent: new Set(firstGroup.items.map(i => i.id)),
-      Guiz: new Set(firstGroup.items.map(i => i.id)),
-    };
+    // With filter=done, only items where ALL players completed show. If we use a progress
+    // where nobody completed anything, the group should disappear.
+    const emptyProgress = { Bibullus: new Set<string>(), Vincent: new Set<string>(), Guiz: new Set<string>() };
+    const doneFilter: FilterState = { status: 'done', missing: new Set() };
     const { container } = render(
       <TriumphTable
         groups={[firstGroup]}
@@ -173,21 +164,22 @@ describe('TriumphTable — group allDone and hide behavior', () => {
         collapsed={new Set()}
         onToggleGroup={vi.fn()}
         search=""
-        hideDone={true}
-        progressFor={p => allDoneProgress[p] ?? new Set()}
+        filter={doneFilter}
+        progressFor={p => emptyProgress[p as keyof typeof emptyProgress] ?? new Set()}
       />
     );
     expect(container.querySelector('[class*="groupRow"]')).toBeNull();
   });
 
-  it('shows the group row when some items are not done even with hideDone', () => {
+  it('shows the group row when some items pass the filter', () => {
     const firstGroup = GROUPS[0];
-    // Only first item done for all — remaining items still visible
-    const partialProgress: Record<string, Set<string>> = {
+    // All players have item[0] done → with filter=done, that item is visible → group shows
+    const allDoneFirstItem: Record<string, Set<string>> = {
       Bibullus: new Set([firstGroup.items[0].id]),
       Vincent: new Set([firstGroup.items[0].id]),
       Guiz: new Set([firstGroup.items[0].id]),
     };
+    const doneFilter: FilterState = { status: 'done', missing: new Set() };
     const { container } = render(
       <TriumphTable
         groups={[firstGroup]}
@@ -196,8 +188,8 @@ describe('TriumphTable — group allDone and hide behavior', () => {
         collapsed={new Set()}
         onToggleGroup={vi.fn()}
         search=""
-        hideDone={true}
-        progressFor={p => partialProgress[p] ?? new Set()}
+        filter={doneFilter}
+        progressFor={p => allDoneFirstItem[p] ?? new Set()}
       />
     );
     expect(container.querySelector('[class*="groupRow"]')).not.toBeNull();
@@ -218,7 +210,7 @@ describe('TriumphTable — group allDone and hide behavior', () => {
         collapsed={new Set()}
         onToggleGroup={vi.fn()}
         search=""
-        hideDone={false}
+        filter={DEFAULT_FILTER}
         progressFor={p => allDoneProgress[p] ?? new Set()}
       />
     );
