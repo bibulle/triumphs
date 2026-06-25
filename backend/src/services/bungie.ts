@@ -215,5 +215,33 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     const hasIcon = rawNode?.displayProperties.hasIcon
     console.log(`  [${n.sectionId}] groupKey="${n.groupKey}" nameEn="${n.nameEn}" icon="${n.icon ?? '(none)'}" rawIcon="${rawIcon}" hasIcon=${hasIcon}`)
   })
+
+  // Guardian Ranks deep dive
+  const ranksRootHash = SECTION_ROOTS.find(r => r.id === 'ranks')!.hash
+  const ranksRoot = nodesEn[String(ranksRootHash)]
+  console.log('[bungie] ranks root raw keys:', ranksRoot ? Object.keys(ranksRoot).join(', ') : '(not found)')
+  console.log('[bungie] ranks root children count:', ranksRoot?.children?.presentationNodes?.length ?? 0)
+  ranksRoot?.children?.presentationNodes?.forEach(({ presentationNodeHash: h }) => {
+    const n = nodesEn[String(h)]
+    if (!n) return
+    const rawNode = n
+    console.log(`[bungie] ranks L1 hash=${h} name="${n.displayProperties.name}" keys=${Object.keys(n).join(',')} children_nodes=${n.children?.presentationNodes?.length ?? 0} children_records=${n.children?.records?.length ?? 0}`)
+    console.log(`  raw node extra keys:`, Object.keys(rawNode).filter(k => !['hash','displayProperties','children'].includes(k)).join(', ') || '(none)')
+    // Show first record full raw data
+    const firstRecordHash = n.children?.records?.[0]?.recordHash
+    if (firstRecordHash) {
+      const rec = recordsEn[String(firstRecordHash)]
+      console.log(`  first record hash=${firstRecordHash} keys=${Object.keys(rec ?? {}).join(', ')}`)
+      console.log(`  first record:`, JSON.stringify(rec).slice(0, 400))
+    }
+    // Show first child node full raw data
+    const firstChildHash = n.children?.presentationNodes?.[0]?.presentationNodeHash
+    if (firstChildHash) {
+      const child = nodesEn[String(firstChildHash)]
+      console.log(`  first child hash=${firstChildHash} name="${child?.displayProperties.name}" keys=${Object.keys(child ?? {}).join(', ')}`)
+      console.log(`  first child:`, JSON.stringify(child).slice(0, 400))
+    }
+  })
+
   return { version, triumphs, nodes }
 }
