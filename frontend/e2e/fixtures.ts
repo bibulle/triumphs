@@ -1,5 +1,5 @@
 import { test as base, type Page } from '@playwright/test';
-import { TRIUMPHS, getMockProgress } from '../../backend/src/data/mock';
+import { TRIUMPHS, getMockProgress, PLAYERS, PLAYER_TAG } from '../../backend/src/data/mock';
 
 async function mockApi(page: Page) {
   await page.route('/api/triumphs', route =>
@@ -7,6 +7,14 @@ async function mockApi(page: Page) {
   );
   await page.route('/api/progress', route =>
     route.fulfill({ contentType: 'application/json', body: JSON.stringify(getMockProgress()) })
+  );
+  await page.route('/api/players', route =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(
+        PLAYERS.map(name => ({ name, tag: PLAYER_TAG[name as keyof typeof PLAYER_TAG] }))
+      ),
+    })
   );
 }
 

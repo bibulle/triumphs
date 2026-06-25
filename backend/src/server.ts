@@ -6,6 +6,7 @@ import express, { Request, Response, NextFunction } from 'express'
 import { connectMongo } from './services/cache.js'
 import triumphsRouter from './routes/triumphs.js'
 import progressRouter from './routes/progress.js'
+import playersRouter from './routes/players.js'
 
 // Catch-all for unhandled async rejections / uncaught exceptions so the process
 // logs something useful before crashing (or staying alive with a bad state).
@@ -33,6 +34,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use('/api/triumphs', triumphsRouter)
 app.use('/api/progress', progressRouter)
+app.use('/api/players', playersRouter)
 
 // Unhandled error middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
@@ -42,6 +44,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 console.log(`[STARTUP] BUNGIE_API_KEY: ${process.env.BUNGIE_API_KEY ? 'set' : 'NOT SET'}`)
 console.log(`[STARTUP] MONGODB_URL:    ${process.env.MONGODB_URL ? 'set' : 'NOT SET'}`)
+console.log(`[STARTUP] PLAYERS:        ${process.env.PLAYERS ?? 'NOT SET (using mock players)'}`)
 
 if (process.env.MONGODB_URL) {
   connectMongo(process.env.MONGODB_URL)

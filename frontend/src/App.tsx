@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo } from 'react';
-import { PLAYERS } from './data';
 import { useAppData } from './hooks/useAppData';
 import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
@@ -18,7 +17,7 @@ export default function App() {
   const [hideDone, setHideDone] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
 
-  const { groups, triumphs, progress, sections, loading, error } = useAppData();
+  const { groups, triumphs, players, progress, sections, loading, error } = useAppData();
 
   const currentSection = useMemo(
     () => sections.find(s => s.id === activeSection)!,
@@ -64,7 +63,7 @@ export default function App() {
         sectionLabel={currentSection.label}
         hasData={currentSection.hasData}
         triumphs={sectionTriumphs}
-        players={PLAYERS}
+        players={players}
         progressFor={progressFor}
       />
 
@@ -83,7 +82,7 @@ export default function App() {
           <TriumphTable
             groups={sectionGroups}
             triumphs={sectionTriumphs}
-            players={PLAYERS}
+            players={players}
             collapsed={collapsed}
             onToggleGroup={toggleGroup}
             search={search}

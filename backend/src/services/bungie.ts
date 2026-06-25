@@ -59,7 +59,6 @@ function walkNode(
   cat: string, catFr: string,
   sub: string, subFr: string,
   triumphs: Triumph[],
-  idx: { v: number },
   depth: number
 ): void {
   const nodeEn = nodesEn[nodeHash]
@@ -77,7 +76,7 @@ function walkNode(
     const effectiveSub = sub || name
     const effectiveSubFr = subFr || nameFr
     triumphs.push({
-      id: `t${idx.v++}`,
+      id: String(recordHash),
       section,
       cat: effectiveCat,
       catFr: effectiveCatFr,
@@ -98,11 +97,11 @@ function walkNode(
     const childNameFr = childFr?.displayProperties.name ?? childName
 
     if (depth === 0) {
-      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, childName, childNameFr, '', '', triumphs, idx, 1)
+      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, childName, childNameFr, '', '', triumphs, 1)
     } else if (depth === 1) {
-      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, cat, catFr, childName, childNameFr, triumphs, idx, 2)
+      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, cat, catFr, childName, childNameFr, triumphs, 2)
     } else {
-      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, cat, catFr, sub, subFr, triumphs, idx, depth + 1)
+      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, cat, catFr, sub, subFr, triumphs, depth + 1)
     }
   }
 }
@@ -126,11 +125,10 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
   ])
 
   const triumphs: Triumph[] = []
-  const idx = { v: 0 }
 
   for (const { id: section, hash } of SECTION_ROOTS) {
     const before = triumphs.length
-    walkNode(hash, nodesEn, nodesFr, recordsEn, recordsFr, section, '', '', '', '', triumphs, idx, 0)
+    walkNode(hash, nodesEn, nodesFr, recordsEn, recordsFr, section, '', '', '', '', triumphs, 0)
     console.log(`[bungie] section "${section}": ${triumphs.length - before} records`)
   }
 
