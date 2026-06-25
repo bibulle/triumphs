@@ -69,8 +69,10 @@ test.describe('Toolbar — search', () => {
 
   test('filtering by "Le Monument" shows that triumph', async ({ page }) => {
     await page.goto('/');
+    // Expand first to make items visible, then filter
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
+    await page.locator('[class*="itemRow"]').first().waitFor();
     await page.getByPlaceholder(/Pesquisar/i).fill('Le Monument');
-    // At least one item row should remain visible after filtering
     await expect(page.locator('[class*="itemRow"]').first()).toBeVisible();
   });
 
@@ -82,6 +84,8 @@ test.describe('Toolbar — search', () => {
 
   test('clearing search restores item rows', async ({ page }) => {
     await page.goto('/');
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
+    await page.locator('[class*="itemRow"]').first().waitFor();
     await page.getByPlaceholder(/Pesquisar/i).fill('zzz_no_match_zzz');
     await page.getByPlaceholder(/Pesquisar/i).fill('');
     await expect(page.locator('[class*="itemRow"]').first()).toBeVisible();
@@ -91,43 +95,41 @@ test.describe('Toolbar — search', () => {
 test.describe('Toolbar — collapse / expand', () => {
   test('"Recolher tudo" hides all triumph rows', async ({ page }) => {
     await page.goto('/');
+    // Expand first, then collapse
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
+    await page.locator('[class*="itemRow"]').first().waitFor();
     await page.getByRole('button', { name: 'Recolher tudo' }).click();
     await expect(page.locator('[class*="itemRow"]')).toHaveCount(0);
   });
 
-  test('"Expandir tudo" after collapse shows triumphs again', async ({ page }) => {
+  test('"Expandir tudo" opens the first group', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Recolher tudo' }).click();
     await page.getByRole('button', { name: 'Expandir tudo' }).click();
     await expect(page.locator('[class*="itemRow"]').first()).toBeVisible();
   });
 
-  test('clicking a group row collapses it', async ({ page }) => {
+  test('clicking a group row expands it (accordion)', async ({ page }) => {
     await page.goto('/');
-    // Wait for items to render before counting
-    await page.locator('[class*="itemRow"]').first().waitFor();
-    const before = await page.locator('[class*="itemRow"]').count();
-    expect(before).toBeGreaterThan(0);
+    // All groups start collapsed — click first to expand
     await page.locator('[class*="groupRow"]').first().click();
-    const after = await page.locator('[class*="itemRow"]').count();
-    expect(after).toBeLessThan(before);
+    await expect(page.locator('[class*="itemRow"]').first()).toBeVisible();
   });
 
-  test('clicking a collapsed group row expands it', async ({ page }) => {
+  test('clicking an expanded group row collapses it', async ({ page }) => {
     await page.goto('/');
     const firstGroupRow = page.locator('[class*="groupRow"]').first();
-    await page.locator('[class*="itemRow"]').first().waitFor();
-    const before = await page.locator('[class*="itemRow"]').count();
-    await firstGroupRow.click(); // collapse
     await firstGroupRow.click(); // expand
-    const after = await page.locator('[class*="itemRow"]').count();
-    expect(after).toBe(before);
+    await page.locator('[class*="itemRow"]').first().waitFor();
+    await firstGroupRow.click(); // collapse
+    await expect(page.locator('[class*="itemRow"]')).toHaveCount(0);
   });
 });
 
 test.describe('Toolbar — hide done', () => {
   test('"Ocultar concluídos" hides allDone rows', async ({ page }) => {
     await page.goto('/');
+    // Expand first group to make rows visible
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
     await expect(page.locator('[class*="allDone"]').first()).toBeVisible();
     await page.getByRole('button', { name: 'Ocultar concluídos' }).click();
     await expect(page.locator('[class*="allDone"]')).toHaveCount(0);
@@ -135,6 +137,8 @@ test.describe('Toolbar — hide done', () => {
 
   test('"Mostrar concluídos" restores allDone rows', async ({ page }) => {
     await page.goto('/');
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
+    await page.locator('[class*="allDone"]').first().waitFor();
     await page.getByRole('button', { name: 'Ocultar concluídos' }).click();
     await page.getByRole('button', { name: 'Mostrar concluídos' }).click();
     await expect(page.locator('[class*="allDone"]').first()).toBeVisible();
@@ -176,6 +180,7 @@ test.describe('Theme toggle', () => {
 test.describe('Status badges', () => {
   test('first triumph row is marked allDone (demo)', async ({ page }) => {
     await page.goto('/');
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
     const allDoneRow = page.locator('[class*="allDone"]').first();
     await expect(allDoneRow).toBeVisible();
     await expect(allDoneRow.getByText('COMPLETO')).toBeVisible();

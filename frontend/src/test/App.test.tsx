@@ -48,23 +48,28 @@ describe('App', () => {
     expect(screen.getByText('1 triomphes')).toBeInTheDocument()
   })
 
-  it('"Tout replier" collapses only groups of the active section', async () => {
+  it('"Tout replier" collapses all groups', async () => {
     render(<App />)
+    // Groups are collapsed by default — expand first, then collapse
+    await waitFor(() => screen.getByRole('button', { name: 'Tout déplier' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }))
     await waitFor(() => screen.getByText('Le Monument'))
     await userEvent.click(screen.getByRole('button', { name: 'Tout replier' }))
     expect(screen.queryByText('Le Monument')).not.toBeInTheDocument()
   })
 
-  it('"Tout déplier" restores triumphs after collapse', async () => {
+  it('"Tout déplier" opens the first group', async () => {
     render(<App />)
-    await waitFor(() => screen.getByText('Le Monument'))
-    await userEvent.click(screen.getByRole('button', { name: 'Tout replier' }))
+    await waitFor(() => screen.getByRole('button', { name: 'Tout déplier' }))
     await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }))
-    expect(screen.getByText('Le Monument')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Le Monument')).toBeInTheDocument())
   })
 
   it('"Masquer terminés" hides allDone triumph rows', async () => {
     render(<App />)
+    // Expand first group to make triumphs visible
+    await waitFor(() => screen.getByRole('button', { name: 'Tout déplier' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }))
     await waitFor(() => screen.getByText('Le Monument'))
     await userEvent.click(screen.getByRole('button', { name: 'Masquer terminés' }))
     expect(screen.queryByText('Le Monument')).not.toBeInTheDocument()
