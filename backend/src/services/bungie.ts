@@ -22,15 +22,21 @@ function apiHeaders(): HeadersInit {
 }
 
 async function bungieGet(path: string): Promise<unknown> {
+  console.log(`[bungie] GET ${path}`)
   const res = await fetch(`${BASE_URL}${path}`, { headers: apiHeaders() })
   if (!res.ok) throw new Error(`Bungie API ${res.status}: ${path}`)
   return res.json()
 }
 
 async function fetchDefinitions<T>(path: string): Promise<Record<string, T>> {
-  const res = await fetch(`${BASE_URL}${path}`)
+  const url = `${BASE_URL}${path}`
+  console.log(`[bungie] downloading definitions: ${url}`)
+  const start = Date.now()
+  const res = await fetch(url)
   if (!res.ok) throw new Error(`Bungie definitions ${res.status}: ${path}`)
-  return res.json() as Promise<Record<string, T>>
+  const data = await res.json() as Record<string, T>
+  console.log(`[bungie] downloaded ${Object.keys(data).length} entries in ${Date.now() - start}ms`)
+  return data
 }
 
 export async function fetchManifestVersion(): Promise<string> {
@@ -59,7 +65,11 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
   const monument = Object.values(nodesEn).find(
     n => n.displayProperties.name === MONUMENT_NAME_EN
   )
-  if (!monument) throw new Error(`"${MONUMENT_NAME_EN}" node not found in Bungie manifest`)
+  if (!monument) {
+    console.error(`[bungie] "${MONUMENT_NAME_EN}" node not found. Available top-level nodes: ${Object.values(nodesEn).slice(0, 5).map(n => n.displayProperties.name).join(', ')}…`)
+    throw new Error(`"${MONUMENT_NAME_EN}" node not found in Bungie manifest`)
+  }
+  console.log(`[bungie] found Monument node, walking tree…`)
 
   const triumphs: Triumph[] = []
   let idx = 0
@@ -100,5 +110,6 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     }
   }
 
+  console.log(`[bungie] catalog built: ${triumphs.length} triumphs across ${new Set(triumphs.map(t => t.cat)).size} categories`)
   return { version, triumphs }
 }
