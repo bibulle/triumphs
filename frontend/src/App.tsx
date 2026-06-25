@@ -73,7 +73,6 @@ function AppInner() {
           sections={sections}
           activeId={activeSection}
           onSelect={setTab}
-          nodes={nodes}
         />
         <LangPicker />
       </div>
