@@ -41,11 +41,24 @@
   flex-shrink: 0;
 }
 
+.icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
 .active { color: var(--gold-bright); }
 
 .active .dot {
   opacity: 1;
   box-shadow: 0 0 8px var(--gold-soft);
+}
+
+.active .icon {
+  opacity: 1;
 }
 
 .active::after {

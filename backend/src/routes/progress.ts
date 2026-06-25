@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express'
 import { getMockProgress } from '../data/mock.js'
+import type { PlayerProgress } from '../data/mock.js'
 import { getCachedProgress, setCachedProgress } from '../services/cache.js'
-import { parsePlayersEnv, resolvePlayer, fetchPlayerCompletedRecords } from '../services/players.js'
+import { parsePlayersEnv, resolvePlayer, fetchPlayerProgress } from '../services/players.js'
 
 const router = Router()
 const PROGRESS_KEY = 'progress'
@@ -16,7 +17,7 @@ router.get('/', async (_req: Request, res: Response) => {
       }
     }
 
-    let progress: Record<string, string[]>
+    let progress: Record<string, PlayerProgress>
 
     const players = parsePlayersEnv()
     if (players.length > 0 && process.env.BUNGIE_API_KEY) {
@@ -24,15 +25,15 @@ router.get('/', async (_req: Request, res: Response) => {
       const results = await Promise.allSettled(
         players.map(async p => {
           const resolved = await resolvePlayer(p)
-          const ids = await fetchPlayerCompletedRecords(resolved)
-          return { name: p.name, ids }
+          const playerProgress = await fetchPlayerProgress(resolved)
+          return { name: p.name, playerProgress }
         })
       )
       progress = Object.fromEntries(
         results.map((r, i) => {
-          if (r.status === 'fulfilled') return [r.value.name, r.value.ids]
+          if (r.status === 'fulfilled') return [r.value.name, r.value.playerProgress]
           console.warn(`[progress] failed for ${players[i].name}:`, (r.reason as Error).message)
-          return [players[i].name, []]
+          return [players[i].name, {}]
         })
       )
     } else {

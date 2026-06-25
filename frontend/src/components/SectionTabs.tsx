@@ -10,6 +10,7 @@ interface Props {
 
 export default function SectionTabs({ sections, activeId, onSelect }: Props) {
   const { t } = useLocale();
+
   return (
     <nav className={styles.sections}>
       {sections.map(sec => (

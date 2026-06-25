@@ -5,19 +5,13 @@ import {
   getProgressCacheAge,
 } from './cache.js'
 import { fetchManifestVersion, fetchTriumphCatalog } from './bungie.js'
-import { parsePlayersEnv, resolvePlayer, fetchPlayerCompletedRecords } from './players.js'
+import { parsePlayersEnv, resolvePlayer, fetchPlayerProgress } from './players.js'
 import { getMockProgress } from '../data/mock.js'
-import type { Triumph } from '../data/mock.js'
+import type { PlayerProgress } from '../data/mock.js'
+import { validCache, CATALOG_KEY, MANIFEST_CHECK_KEY } from '../routes/triumphs.js'
 
-const CATALOG_KEY = 'triumphs'
-const MANIFEST_CHECK_KEY = 'last_check'
 const PROGRESS_KEY = 'progress'
 const DEV_SKIP_SECONDS = 20
-
-type CatalogCache = { version: string; triumphs: Triumph[] }
-function validCache(c: unknown): c is CatalogCache {
-  return !!c && typeof c === 'object' && Array.isArray((c as CatalogCache).triumphs)
-}
 
 async function warmupCatalog(): Promise<void> {
   if (!process.env.BUNGIE_API_KEY || !process.env.MONGODB_URL) {
@@ -43,10 +37,10 @@ async function warmupCatalog(): Promise<void> {
     }
 
     console.log('[warmup] catalog: fetching full catalog from Bungie…')
-    const { version, triumphs } = await fetchTriumphCatalog()
-    await setCachedCatalog(CATALOG_KEY, { version, triumphs } satisfies CatalogCache)
+    const catalog = await fetchTriumphCatalog()
+    await setCachedCatalog(CATALOG_KEY, catalog)
     await setManifestCheck(MANIFEST_CHECK_KEY)
-    console.log(`[warmup] catalog: stored ${triumphs.length} triumphs (version ${version})`)
+    console.log(`[warmup] catalog: stored ${catalog.triumphs.length} triumphs, ${catalog.nodes.length} nodes (version ${catalog.version})`)
   } catch (err) {
     console.error('[warmup] catalog error:', (err as Error).message)
   }
@@ -66,22 +60,22 @@ async function warmupProgress(): Promise<void> {
 
   try {
     const players = parsePlayersEnv()
-    let progress: Record<string, string[]>
+    let progress: Record<string, PlayerProgress>
 
     if (players.length > 0 && process.env.BUNGIE_API_KEY) {
       console.log(`[warmup] progress: fetching real progress for ${players.length} players…`)
       const results = await Promise.allSettled(
         players.map(async p => {
           const resolved = await resolvePlayer(p)
-          const ids = await fetchPlayerCompletedRecords(resolved)
-          return { name: p.name, ids }
+          const playerProgress = await fetchPlayerProgress(resolved)
+          return { name: p.name, playerProgress }
         })
       )
       progress = Object.fromEntries(
         results.map((r, i) => {
-          if (r.status === 'fulfilled') return [r.value.name, r.value.ids]
+          if (r.status === 'fulfilled') return [r.value.name, r.value.playerProgress]
           console.warn(`[warmup] progress: failed for ${players[i].name}:`, (r.reason as Error).message)
-          return [players[i].name, []]
+          return [players[i].name, {}]
         })
       )
     } else {
@@ -90,7 +84,7 @@ async function warmupProgress(): Promise<void> {
     }
 
     await setCachedProgress(PROGRESS_KEY, progress)
-    const counts = Object.entries(progress).map(([n, ids]) => `${n}:${ids.length}`).join(', ')
+    const counts = Object.entries(progress).map(([n, p]) => `${n}:${Object.values(p).filter(r => r.completed).length}`).join(', ')
     console.log(`[warmup] progress: stored (${counts})`)
   } catch (err) {
     console.error('[warmup] progress error:', (err as Error).message)

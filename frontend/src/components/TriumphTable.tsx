@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
-import type { Group, Triumph, Player, FilterState } from '../data';
+import type { Group, Triumph, Player, FilterState, NodeMeta, RecordProgress } from '../data';
 import type { Locale } from '../i18n';
 import { useLocale } from '../i18n';
 import styles from './TriumphTable.module.css';
+
+const BUNGIE_CDN = 'https://www.bungie.net';
 
 interface Props {
   groups: Group[];
@@ -13,7 +15,9 @@ interface Props {
   search: string;
   filter: FilterState;
   progressFor: (p: Player) => Set<string>;
+  progressDetailFor?: (p: Player) => Record<string, RecordProgress>;
   locale?: Locale;
+  nodes?: NodeMeta[];
 }
 
 const CAT_CLASS: Record<string, string> = {
@@ -24,10 +28,28 @@ const CAT_CLASS: Record<string, string> = {
   Competitions: styles.catCompetitions,
 };
 
-export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, filter, progressFor }: Props) {
+export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, filter, progressFor, progressDetailFor, nodes = [] }: Props) {
   const { t, locale } = useLocale();
   const q = search.trim().toLowerCase();
   const useFr = locale === 'fr';
+
+  const rankIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    nodes.filter(n => n.level === 1 && n.rankIndex !== undefined).forEach(n => map.set(n.catKey!, n.rankIndex!));
+    return map;
+  }, [nodes]);
+
+  const catIconMap = useMemo(() => {
+    const map = new Map<string, string>();
+    nodes.filter(n => n.level === 1 && n.icon).forEach(n => map.set(n.catKey!, `${BUNGIE_CDN}${n.icon}`));
+    return map;
+  }, [nodes]);
+
+  const groupIconMap = useMemo(() => {
+    const map = new Map<string, string>();
+    nodes.filter(n => n.level === 2 && n.icon).forEach(n => map.set(n.groupKey!, `${BUNGIE_CDN}${n.icon}`));
+    return map;
+  }, [nodes]);
 
   const totalDone = useMemo(
     () => Object.fromEntries(players.map(p => [p, triumphs.filter(d => progressFor(p).has(d.id)).length])),
@@ -76,8 +98,16 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
             const groupAllDone = players.length > 0 &&
               group.items.every(item => players.every(p => progressFor(p).has(item.id)));
 
-            const primaryLabel = useFr ? `${group.catFr} · ${group.subFr}` : `${group.cat} · ${group.sub}`;
-            const secondaryLabel = useFr ? `${group.cat} · ${group.sub}` : `${group.catFr} · ${group.subFr}`;
+            const sameNameEn = group.cat === group.sub;
+            const sameNameFr = group.catFr === group.subFr;
+            const rankIndex = rankIndexMap.get(`${group.section}|${group.cat}`);
+            const rankPrefix = rankIndex !== undefined ? `${rankIndex + 1} · ` : '';
+            const primaryLabel = rankPrefix + (useFr
+              ? (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`)
+              : (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`));
+            const secondaryLabel = useFr
+              ? (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`)
+              : (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`);
 
             return [
               <tr
@@ -88,10 +118,9 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                 <td className={`${styles.td} ${styles.colTitle} ${styles.groupTitleCell}`}>
                   <div className={styles.groupHead}>
                     <span className={styles.chev}>▾</span>
-                    <span className={styles.groupLabel}>
-                      {primaryLabel}
-                      <span className={styles.groupLabelEn}>{secondaryLabel}</span>
-                    </span>
+                    {(() => { const icon = groupIconMap.get(group.groupKey) ?? catIconMap.get(`${group.section}|${group.cat}`); return icon ? <img src={icon} className={styles.catIcon} aria-hidden="true" alt="" /> : null; })()}
+                    <span className={styles.groupLabel}>{primaryLabel}</span>
+                    {secondaryLabel !== primaryLabel && <span className={styles.groupLabelEn}>{secondaryLabel}</span>}
                   </div>
                 </td>
                 {players.map(p => {
@@ -125,26 +154,55 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                       <div className={styles.titleCell}>
                         <span className={`${styles.bullet} ${allDone ? styles.bulletDone : ''}`} />
                         <div className={styles.titleText}>
-                          <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
-                            {primaryName}
-                            {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
-                          </span>
-                          <span className={styles.titleEn}>{secondaryName}</span>
-                          {!item.descFr && !item.descEn && (
-                            <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
-                          )}
+                          <div className={styles.titleRow}>
+                            <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
+                              {primaryName}
+                              {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
+                            </span>
+                            {secondaryName && secondaryName !== primaryName && (
+                              <span className={styles.titleEn}>{secondaryName}</span>
+                            )}
+                          </div>
+                          {(item.descFr || item.descEn)
+                            ? <span className={styles.desc}>{useFr ? (item.descFr || item.descEn) : (item.descEn || item.descFr)}</span>
+                            : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
+                          }
                         </div>
                       </div>
                     </td>
-                    {players.map((p, i) => (
-                      <td key={p} className={`${styles.td} ${styles.friendCell}`}>
-                        <span
-                          className={`${styles.status} ${checks[i] ? styles.isDone : styles.isTodo}`}
-                          role="img"
-                          aria-label={`${p} — ${primaryName} : ${checks[i] ? t.done : t.todo}`}
-                        />
-                      </td>
-                    ))}
+                    {players.map((p, i) => {
+                      const detail = progressDetailFor?.(p)?.[item.id];
+                      const objectives = detail?.objectives ?? [];
+                      const current = objectives.reduce((s, o) => s + o.current, 0);
+                      const total = objectives.reduce((s, o) => s + o.completionValue, 0);
+                      const allObjMet = total > 0 && current >= total;
+                      const done = checks[i] || !!detail?.completed || allObjMet;
+                      const hasProgress = !done && total > 0;
+                      return (
+                        <td key={p} className={`${styles.td} ${styles.friendCell}`}>
+                          {done ? (
+                            <span
+                              className={`${styles.status} ${styles.isDone}`}
+                              role="img"
+                              aria-label={`${p} — ${primaryName} : ${t.done}`}
+                            />
+                          ) : hasProgress ? (
+                            <span className={styles.progress} aria-label={`${p} — ${primaryName} : ${current}/${total}`}>
+                              <span className={styles.progressText}>{current}/{total}</span>
+                              <span className={styles.progressBar}>
+                                <span className={styles.progressFill} style={{ width: `${Math.round(current / total * 100)}%` }} />
+                              </span>
+                            </span>
+                          ) : (
+                            <span
+                              className={`${styles.status} ${styles.isTodo}`}
+                              role="img"
+                              aria-label={`${p} — ${primaryName} : ${t.todo}`}
+                            />
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               }) : [])

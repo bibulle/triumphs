@@ -12,7 +12,39 @@ export interface Triumph {
   descEn: string;
   descFr: string;
   descPt?: string;
+  icon?: string;
+  titleEn?: string;
+  titleFr?: string;
+  titlePt?: string;
 }
+
+export interface NodeMeta {
+  hash: number;
+  level: 0 | 1 | 2;
+  sectionId: string;
+  catKey?: string;
+  groupKey?: string;
+  nameEn: string;
+  nameFr: string;
+  namePt?: string;
+  descEn: string;
+  descFr: string;
+  descPt?: string;
+  icon?: string;
+  rankIndex?: number;
+}
+
+export interface ObjectiveProgress {
+  current: number;
+  completionValue: number;
+}
+
+export interface RecordProgress {
+  completed: boolean;
+  objectives: ObjectiveProgress[];
+}
+
+export type PlayerProgress = Record<string, RecordProgress>;
 
 export const PLAYERS = ['Bibullus', 'Vincent', 'Guiz'] as const;
 export type Player = (typeof PLAYERS)[number];
@@ -319,12 +351,14 @@ const DONE_BY_BIBULLUS = new Set(
   )
 );
 
-export function getMockProgress(): Record<Player, string[]> {
+export function getMockProgress(): Record<Player, Record<string, { completed: boolean; objectives: [] }>> {
   // Demo: first triumph completed by all (to visualise allDone state)
   const firstId = TRIUMPHS[0].id;
+  const toRecord = (ids: string[]) =>
+    Object.fromEntries(ids.map(id => [id, { completed: true, objectives: [] as [] }]));
   return {
-    Bibullus: [...DONE_BY_BIBULLUS, firstId],
-    Vincent: [firstId],
-    Guiz: [firstId],
+    Bibullus: toRecord([...DONE_BY_BIBULLUS, firstId]),
+    Vincent: toRecord([firstId]),
+    Guiz: toRecord([firstId]),
   };
 }

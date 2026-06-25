@@ -62,7 +62,7 @@ describe('getMockProgress', () => {
     const progress = getMockProgress()
     PLAYERS.forEach(p => {
       expect(progress[p]).toBeDefined()
-      expect(Array.isArray(progress[p])).toBe(true)
+      expect(typeof progress[p]).toBe('object')
     })
   })
 
@@ -70,7 +70,7 @@ describe('getMockProgress', () => {
     const validIds = new Set(TRIUMPHS.map(t => t.id))
     const progress = getMockProgress()
     PLAYERS.forEach(p => {
-      progress[p].forEach(id => {
+      Object.keys(progress[p]).forEach(id => {
         expect(validIds.has(id)).toBe(true)
       })
     })

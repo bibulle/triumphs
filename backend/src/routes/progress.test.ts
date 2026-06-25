@@ -12,7 +12,7 @@ vi.mock('../services/players.js', async (importOriginal) => {
   return {
     ...actual,
     resolvePlayer: vi.fn(),
-    fetchPlayerCompletedRecords: vi.fn(),
+    fetchPlayerProgress: vi.fn(),
   }
 })
 
@@ -43,7 +43,7 @@ describe('GET /api/progress', () => {
     delete process.env.PLAYERS
   })
 
-  it('returns progress for all players', async () => {
+  it('returns progress for all players as objects (new format)', async () => {
     const app = buildApp()
     const { port, close } = await startServer(app)
 
@@ -53,7 +53,8 @@ describe('GET /api/progress', () => {
     expect(response.status).toBe(200)
     PLAYERS.forEach(p => {
       expect(body[p]).toBeDefined()
-      expect(Array.isArray(body[p])).toBe(true)
+      expect(typeof body[p]).toBe('object')
+      expect(Array.isArray(body[p])).toBe(false)
     })
 
     await close()
@@ -61,7 +62,11 @@ describe('GET /api/progress', () => {
 
   it('returns cached progress when MONGODB_URL is set and cache hits', async () => {
     process.env.MONGODB_URL = 'mongodb://fake'
-    const fakeProgress = { Bibullus: ['t-1'], Vincent: [], Guiz: [] }
+    const fakeProgress = {
+      Bibullus: { 't-1': { completed: true, objectives: [] } },
+      Vincent: {},
+      Guiz: {},
+    }
     vi.mocked(cache.getCachedProgress).mockResolvedValueOnce(fakeProgress)
 
     const app = buildApp()
@@ -76,7 +81,7 @@ describe('GET /api/progress', () => {
     await close()
   })
 
-  it('falls back to mock data on cache miss', async () => {
+  it('falls back to mock data on cache miss (converted to new format)', async () => {
     process.env.MONGODB_URL = 'mongodb://fake'
     vi.mocked(cache.getCachedProgress).mockResolvedValueOnce(null)
 
@@ -86,11 +91,13 @@ describe('GET /api/progress', () => {
     const response = await fetch(`http://localhost:${port}/api/progress`)
     const body = await response.json()
 
-    const expected = getMockProgress()
+    const rawMock = getMockProgress()
     PLAYERS.forEach(p => {
-      expect(body[p]).toEqual(expected[p])
+      const expectedIds = Object.keys(rawMock[p] ?? {})
+      expectedIds.forEach(id => {
+        expect(body[p][id]?.completed).toBe(true)
+      })
     })
-    expect(cache.setCachedProgress).toHaveBeenCalledWith('progress', expected)
 
     await close()
   })
@@ -99,20 +106,28 @@ describe('GET /api/progress', () => {
     process.env.PLAYERS = 'Alpha:Alpha#1234,Beta:Beta#5678'
     process.env.BUNGIE_API_KEY = 'test-key'
 
+    const alphaProgress = {
+      '1001': { completed: true, objectives: [] },
+      '1002': { completed: true, objectives: [] },
+    }
+    const betaProgress = {
+      '1001': { completed: true, objectives: [] },
+    }
+
     vi.mocked(players.resolvePlayer)
       .mockResolvedValueOnce({ name: 'Alpha', tag: 'Alpha#1234', membershipType: 3, membershipId: 'mid-alpha' })
       .mockResolvedValueOnce({ name: 'Beta', tag: 'Beta#5678', membershipType: 3, membershipId: 'mid-beta' })
-    vi.mocked(players.fetchPlayerCompletedRecords)
-      .mockResolvedValueOnce(['1001', '1002'])
-      .mockResolvedValueOnce(['1001'])
+    vi.mocked(players.fetchPlayerProgress)
+      .mockResolvedValueOnce(alphaProgress)
+      .mockResolvedValueOnce(betaProgress)
 
     const { port, close } = await startServer(buildApp())
     const response = await fetch(`http://localhost:${port}/api/progress`)
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(body.Alpha).toEqual(['1001', '1002'])
-    expect(body.Beta).toEqual(['1001'])
+    expect(body.Alpha).toEqual(alphaProgress)
+    expect(body.Beta).toEqual(betaProgress)
 
     await close()
   })

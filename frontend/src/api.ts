@@ -1,4 +1,4 @@
-import type { Triumph } from './data'
+import type { Triumph, NodeMeta, RecordProgress } from './data'
 
 export interface PlayerInfo {
   name: string
@@ -17,7 +17,13 @@ export async function fetchTriumphs(): Promise<Triumph[]> {
   return res.json()
 }
 
-export async function fetchProgress(): Promise<Record<string, string[]>> {
+export async function fetchNodes(): Promise<NodeMeta[]> {
+  const res = await fetch('/api/nodes')
+  if (!res.ok) throw new Error(`fetchNodes: ${res.status}`)
+  return res.json()
+}
+
+export async function fetchProgress(): Promise<Record<string, Record<string, RecordProgress>>> {
   const res = await fetch('/api/progress')
   if (!res.ok) throw new Error(`fetchProgress: ${res.status}`)
   return res.json()

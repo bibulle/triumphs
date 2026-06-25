@@ -17,12 +17,21 @@ const mockPlayers = [
   { name: 'Vincent', tag: 'tarrade#1427' },
 ]
 // t0 done for all (allDone demo), t1 done only for Bibullus
-const mockProgress = { Bibullus: ['t0', 't1'], Vincent: ['t0'] }
+const mockProgress = {
+  Bibullus: {
+    t0: { completed: true, objectives: [] },
+    t1: { completed: true, objectives: [] },
+  },
+  Vincent: {
+    t0: { completed: true, objectives: [] },
+  },
+}
 
 beforeEach(() => {
   vi.spyOn(api, 'fetchTriumphs').mockResolvedValue(mockTriumphs)
   vi.spyOn(api, 'fetchPlayers').mockResolvedValue(mockPlayers)
   vi.spyOn(api, 'fetchProgress').mockResolvedValue(mockProgress)
+  vi.spyOn(api, 'fetchNodes').mockResolvedValue([])
 })
 afterEach(() => {
   vi.restoreAllMocks()
