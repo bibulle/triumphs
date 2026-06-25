@@ -69,12 +69,18 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     console.error(`[bungie] "${MONUMENT_NAME_EN}" node not found. Available top-level nodes: ${Object.values(nodesEn).slice(0, 5).map(n => n.displayProperties.name).join(', ')}…`)
     throw new Error(`"${MONUMENT_NAME_EN}" node not found in Bungie manifest`)
   }
-  console.log(`[bungie] found Monument node, walking tree…`)
+  const catNodes = monument.children?.presentationNodes ?? []
+  console.log(`[bungie] Monument node hash=${monument.hash}, children.presentationNodes=${catNodes.length}`)
+  if (catNodes.length === 0) {
+    console.log(`[bungie] Monument node raw children keys: ${Object.keys(monument.children ?? {}).join(', ')}`)
+  } else {
+    console.log(`[bungie] First category hash: ${catNodes[0].presentationNodeHash}`)
+  }
 
   const triumphs: Triumph[] = []
   let idx = 0
 
-  for (const { presentationNodeHash: catHash } of monument.children?.presentationNodes ?? []) {
+  for (const { presentationNodeHash: catHash } of catNodes) {
     const catEn = nodesEn[catHash]
     const catFrNode = nodesFr[catHash]
     if (!catEn) continue
