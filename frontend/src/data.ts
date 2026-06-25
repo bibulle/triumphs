@@ -1,5 +1,6 @@
 export interface Triumph {
   id: string;
+  section?: string;
   cat: string;
   catFr?: string;
   sub: string;
@@ -13,6 +14,7 @@ export interface Triumph {
 }
 
 export interface Group {
+  section: string;
   cat: string;
   catFr: string;
   sub: string;
@@ -301,14 +303,15 @@ export const DATA: Triumph[] = [];
 export const GROUPS: Group[] = [];
 
 RAW.forEach(([cat, sub, items]) => {
-  const groupKey = `${cat}|${sub}`;
+  const catSubKey = `${cat}|${sub}`;
+  const groupKey = `triumphs|${cat}|${sub}`;
   const groupItems: Triumph[] = [];
   items.forEach(([en, fr, done]) => {
-    const item: Triumph = { id: `t${_id++}`, cat, sub, groupKey, en, fr, done, descEn: "", descFr: "" };
+    const item: Triumph = { id: `t${_id++}`, section: 'triumphs', cat, sub, groupKey, en, fr, done, descEn: "", descFr: "" };
     DATA.push(item);
     groupItems.push(item);
   });
-  GROUPS.push({ cat, catFr: CAT_FR[cat] ?? cat, sub, subFr: SUB_FR[groupKey] ?? sub, groupKey, items: groupItems });
+  GROUPS.push({ section: 'triumphs', cat, catFr: CAT_FR[cat] ?? cat, sub, subFr: SUB_FR[catSubKey] ?? sub, groupKey, items: groupItems });
 });
 
 export const PLAYERS = ["Bibullus", "Vincent", "Guiz"] as const;
@@ -321,10 +324,9 @@ export const PLAYER_TAG: Record<Player, string> = {
 };
 
 export const SECTIONS: Section[] = [
-  { id: "monument",  label: "Monument of Triumph", hasData: true },
-  { id: "lifetime",  label: "Lifetime",            hasData: false },
-  { id: "renegades", label: "Renegades",           hasData: false },
-  { id: "kepler",    label: "Kepler",              hasData: false },
+  { id: 'triumphs', label: 'Triomphes',        hasData: true },
+  { id: 'titles',   label: 'Titres',           hasData: true },
+  { id: 'ranks',    label: 'Rangs de Gardien', hasData: true },
 ];
 
 export function buildInitialProgress(): Record<Player, Set<string>> {

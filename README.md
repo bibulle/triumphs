@@ -24,8 +24,8 @@ triumphs/
 │   │   ├── data.ts         # Types, constantes, données mockées (fallback)
 │   │   ├── hooks/useTheme.ts
 │   │   ├── components/     # SectionTabs, Hero, Toolbar, TriumphTable, EmptySection
-│   │   └── test/           # 57 tests unitaires
-│   ├── e2e/app.spec.ts     # 25 tests Playwright
+│   │   └── test/           # 67 tests unitaires
+│   ├── e2e/app.spec.ts     # 26 tests Playwright
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   ├── vite.config.ts      # Proxy /api → http://localhost:3001
@@ -144,9 +144,9 @@ Variables d'environnement :
 
 ## Fonctionnalités
 
-- **Onglets de section** : Monument of Triumph, Lifetime, Renegades, Kepler (badge « à venir »)
+- **Onglets de section** : Triomphes, Titres, Rangs de Gardien (données dynamiques via API Bungie)
 - **Hero** : nombre total de triomphes + classement des joueurs trié par progression
-- **Tableau** : 204 triomphes dans 17 sous-catégories / 5 catégories
+- **Tableau** : triomphes par sous-catégories / catégories (catalogue chargé depuis Bungie)
   - En-têtes joueurs sticky, titre sticky, groupes pliables
   - Color-coding par catégorie
   - Pastille ✓ par joueur, ligne dorée `allDone` + badge COMPLET
@@ -198,4 +198,4 @@ Secrets nécessaires : `ACTIONS_TOKEN`, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
 - [ ] Résolution du `membershipId` de chaque joueur via `SearchDestinyPlayer`
 - [ ] Authentification par joueur (OAuth Bungie) pour les comptes privés
 - [ ] Mise à jour de la progression en temps réel (polling ou WebSocket)
-- [ ] Données pour les sections Lifetime, Renegades, Kepler
+- [ ] Filtrage configurable des sections affichées

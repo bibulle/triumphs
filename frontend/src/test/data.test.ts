@@ -21,9 +21,9 @@ describe('DATA', () => {
     });
   });
 
-  it('groupKey matches cat|sub', () => {
+  it('groupKey matches section|cat|sub', () => {
     DATA.forEach(d => {
-      expect(d.groupKey).toBe(`${d.cat}|${d.sub}`);
+      expect(d.groupKey).toBe(`${d.section}|${d.cat}|${d.sub}`);
     });
   });
 });
@@ -49,8 +49,8 @@ describe('CAT_FR / SUB_FR', () => {
     cats.forEach(cat => expect(CAT_FR[cat]).toBeTruthy());
   });
 
-  it('has a French label for every groupKey present in DATA', () => {
-    const keys = new Set(DATA.map(d => d.groupKey));
+  it('has a French label for every cat|sub present in DATA', () => {
+    const keys = new Set(DATA.map(d => `${d.cat}|${d.sub}`));
     keys.forEach(key => expect(SUB_FR[key]).toBeTruthy());
   });
 });

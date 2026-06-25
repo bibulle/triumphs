@@ -18,9 +18,9 @@ describe('TRIUMPHS', () => {
     })
   })
 
-  it('groupKey matches cat|sub', () => {
+  it('groupKey matches section|cat|sub', () => {
     TRIUMPHS.forEach(t => {
-      expect(t.groupKey).toBe(`${t.cat}|${t.sub}`)
+      expect(t.groupKey).toBe(`${t.section}|${t.cat}|${t.sub}`)
     })
   })
 })
@@ -49,8 +49,8 @@ describe('CAT_FR / SUB_FR', () => {
     })
   })
 
-  it('every triumph groupKey has a French sub-label', () => {
-    const keys = new Set(TRIUMPHS.map(t => t.groupKey))
+  it('every triumph cat|sub has a French sub-label', () => {
+    const keys = new Set(TRIUMPHS.map(t => `${t.cat}|${t.sub}`))
     keys.forEach(key => {
       expect(SUB_FR[key]).toBeTruthy()
     })

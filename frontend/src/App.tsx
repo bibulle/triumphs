@@ -12,7 +12,7 @@ import type { Player } from './data';
 import './App.css';
 
 export default function App() {
-  const [activeSection, setActiveSection] = useState('monument');
+  const [activeSection, setActiveSection] = useState('triumphs');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [hideDone, setHideDone] = useState(false);
@@ -23,6 +23,16 @@ export default function App() {
   const currentSection = useMemo(
     () => sections.find(s => s.id === activeSection)!,
     [sections, activeSection]
+  );
+
+  const sectionGroups = useMemo(
+    () => groups.filter(g => g.section === activeSection),
+    [groups, activeSection]
+  );
+
+  const sectionTriumphs = useMemo(
+    () => triumphs.filter(t => (t.section ?? 'triumphs') === activeSection),
+    [triumphs, activeSection]
   );
 
   const toggleGroup = useCallback((groupKey: string) => {
@@ -53,7 +63,7 @@ export default function App() {
       <Hero
         sectionLabel={currentSection.label}
         hasData={currentSection.hasData}
-        triumphs={triumphs}
+        triumphs={sectionTriumphs}
         players={PLAYERS}
         progressFor={progressFor}
       />
@@ -71,8 +81,8 @@ export default function App() {
             onToggleTheme={toggleTheme}
           />
           <TriumphTable
-            groups={groups}
-            triumphs={triumphs}
+            groups={sectionGroups}
+            triumphs={sectionTriumphs}
             players={PLAYERS}
             collapsed={collapsed}
             onToggleGroup={toggleGroup}
