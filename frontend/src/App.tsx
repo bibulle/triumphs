@@ -44,7 +44,10 @@ export default function App() {
   }, []);
 
   const expandAll = useCallback(() => setCollapsed(new Set()), []);
-  const collapseAll = useCallback((keys: string[]) => setCollapsed(new Set(keys)), []);
+  const collapseAll = useCallback(
+    () => setCollapsed(new Set(sectionGroups.map(g => g.groupKey))),
+    [sectionGroups]
+  );
 
   const progressFor = useCallback((player: Player) => progress[player] ?? new Set<string>(), [progress]);
 

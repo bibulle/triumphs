@@ -1,4 +1,3 @@
-import { GROUPS } from '../data';
 import styles from './Toolbar.module.css';
 
 interface Props {
@@ -7,7 +6,7 @@ interface Props {
   hideDone: boolean;
   onToggleDone: () => void;
   onExpandAll: () => void;
-  onCollapseAll: (keys: string[]) => void;
+  onCollapseAll: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
 }
@@ -26,9 +25,7 @@ export default function Toolbar({
         onChange={e => onSearch(e.target.value)}
       />
       <button className={styles.btn} onClick={onExpandAll}>Tout déplier</button>
-      <button className={styles.btn} onClick={() => onCollapseAll(GROUPS.map(g => g.groupKey))}>
-        Tout replier
-      </button>
+      <button className={styles.btn} onClick={onCollapseAll}>Tout replier</button>
       <button className={styles.btn} onClick={onToggleDone}>
         {hideDone ? 'Afficher terminés' : 'Masquer terminés'}
       </button>
