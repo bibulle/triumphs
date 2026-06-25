@@ -177,6 +177,7 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                       const total = objectives.reduce((s, o) => s + o.completionValue, 0);
                       const allObjMet = total > 0 && current >= total;
                       const done = checks[i] || !!detail?.completed || allObjMet;
+                      if (group.cat === 'Elite') console.log(`[debug] ${p} | ${item.en} (${item.id}) | inSet=${checks[i]} completed=${detail?.completed} objectives=`, detail?.objectives, `| done=${done}`);
                       const hasProgress = !done && total > 0;
                       return (
                         <td key={p} className={`${styles.td} ${styles.friendCell}`}>
