@@ -4,7 +4,7 @@
   "version": "0.0.2",
   "type": "module",
   "scripts": {
-    "dev": "tsx --env-file=../.env watch src/server.ts",
+    "dev": "NODE_OPTIONS=--env-file=../.env tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest run",
