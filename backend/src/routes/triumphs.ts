@@ -10,6 +10,10 @@ const MANIFEST_CHECK_KEY = 'last_check'
 
 type CatalogCache = { version: string; triumphs: Triumph[] }
 
+function validCache(cached: unknown): cached is CatalogCache {
+  return !!cached && typeof cached === 'object' && Array.isArray((cached as CatalogCache).triumphs)
+}
+
 router.get('/', async (_req: Request, res: Response) => {
   const apiKey = process.env.BUNGIE_API_KEY
   const hasDb = !!process.env.MONGODB_URL
@@ -19,8 +23,8 @@ router.get('/', async (_req: Request, res: Response) => {
       // Fast path: 30-min window still valid → serve cache as-is
       const windowValid = await getManifestCheck(MANIFEST_CHECK_KEY)
       if (windowValid) {
-        const cached = await getCachedCatalog<CatalogCache>(CATALOG_KEY)
-        if (cached) {
+        const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
+        if (validCache(cached)) {
           res.json(cached.triumphs)
           return
         }
@@ -28,9 +32,9 @@ router.get('/', async (_req: Request, res: Response) => {
 
       // Window expired → lightweight version check
       const latestVersion = await fetchManifestVersion()
-      const cached = await getCachedCatalog<CatalogCache>(CATALOG_KEY)
+      const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
 
-      if (cached && cached.version === latestVersion) {
+      if (validCache(cached) && cached.version === latestVersion) {
         // Catalog still current — just renew the 30-min window
         await setManifestCheck(MANIFEST_CHECK_KEY)
         res.json(cached.triumphs)
@@ -46,16 +50,16 @@ router.get('/', async (_req: Request, res: Response) => {
       return
     } catch (err) {
       console.warn('Bungie API error, falling back to cache/mock:', (err as Error).message)
-      const cached = await getCachedCatalog<CatalogCache>(CATALOG_KEY)
-      if (cached) {
+      const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
+      if (validCache(cached)) {
         res.json(cached.triumphs)
         return
       }
     }
   } else if (hasDb) {
     // MongoDB but no API key → try cache, else mock
-    const cached = await getCachedCatalog<CatalogCache>(CATALOG_KEY)
-    if (cached) {
+    const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
+    if (validCache(cached)) {
       res.json(cached.triumphs)
       return
     }
