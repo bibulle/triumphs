@@ -188,6 +188,7 @@ test.describe('Status badges', () => {
 
   test('status badges are not interactive (no pointer cursor)', async ({ page }) => {
     await page.goto('/');
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
     const badge = page.locator('[class*="status"]').first();
     const cursor = await badge.evaluate(el => getComputedStyle(el).cursor);
     expect(cursor).not.toBe('pointer');
