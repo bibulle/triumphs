@@ -151,23 +151,23 @@ test.describe('Theme toggle', () => {
 
   test('clicking theme button switches to light mode', async ({ page }) => {
     await page.goto('/');
-    await page.locator('button', { hasText: /Sombre/i }).click();
+    await page.getByRole('button', { name: 'Changer de thème' }).click();
     const dataTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
     expect(dataTheme).toBe('light');
-    await expect(page.locator('button', { hasText: /Clair/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Changer de thème' })).toBeVisible();
   });
 
   test('toggling twice returns to dark mode', async ({ page }) => {
     await page.goto('/');
-    await page.locator('button', { hasText: /Sombre/i }).click();
-    await page.locator('button', { hasText: /Clair/i }).click();
+    await page.getByRole('button', { name: 'Changer de thème' }).click();
+    await page.getByRole('button', { name: 'Changer de thème' }).click();
     const dataTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
     expect(dataTheme).toBeNull();
   });
 
   test('theme preference is persisted across page reloads', async ({ page }) => {
     await page.goto('/');
-    await page.locator('button', { hasText: /Sombre/i }).click();
+    await page.getByRole('button', { name: 'Changer de thème' }).click();
     await page.reload();
     const dataTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
     expect(dataTheme).toBe('light');
