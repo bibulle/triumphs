@@ -318,6 +318,36 @@
 
 .friendCell { text-align: center; }
 
+.progress {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.progressText {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+.progressBar {
+  width: 32px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+}
+
 /* allDone row */
 .allDone td { background: var(--gold-soft) !important; }
 .allDone:hover td { background: var(--gold-soft) !important; }

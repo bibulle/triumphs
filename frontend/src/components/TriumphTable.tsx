@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Group, Triumph, Player, FilterState, NodeMeta } from '../data';
+import type { Group, Triumph, Player, FilterState, NodeMeta, RecordProgress } from '../data';
 import type { Locale } from '../i18n';
 import { useLocale } from '../i18n';
 import styles from './TriumphTable.module.css';
@@ -15,6 +15,7 @@ interface Props {
   search: string;
   filter: FilterState;
   progressFor: (p: Player) => Set<string>;
+  progressDetailFor?: (p: Player) => Record<string, RecordProgress>;
   locale?: Locale;
   nodes?: NodeMeta[];
 }
@@ -27,7 +28,7 @@ const CAT_CLASS: Record<string, string> = {
   Competitions: styles.catCompetitions,
 };
 
-export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, filter, progressFor, nodes = [] }: Props) {
+export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, filter, progressFor, progressDetailFor, nodes = [] }: Props) {
   const { t, locale } = useLocale();
   const q = search.trim().toLowerCase();
   const useFr = locale === 'fr';
@@ -169,15 +170,38 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                         </div>
                       </div>
                     </td>
-                    {players.map((p, i) => (
-                      <td key={p} className={`${styles.td} ${styles.friendCell}`}>
-                        <span
-                          className={`${styles.status} ${checks[i] ? styles.isDone : styles.isTodo}`}
-                          role="img"
-                          aria-label={`${p} — ${primaryName} : ${checks[i] ? t.done : t.todo}`}
-                        />
-                      </td>
-                    ))}
+                    {players.map((p, i) => {
+                      const done = checks[i];
+                      const detail = progressDetailFor?.(p)?.[item.id];
+                      const objectives = detail?.objectives ?? [];
+                      const current = objectives.reduce((s, o) => s + o.current, 0);
+                      const total = objectives.reduce((s, o) => s + o.completionValue, 0);
+                      const hasProgress = !done && total > 0 && current > 0;
+                      return (
+                        <td key={p} className={`${styles.td} ${styles.friendCell}`}>
+                          {done ? (
+                            <span
+                              className={`${styles.status} ${styles.isDone}`}
+                              role="img"
+                              aria-label={`${p} — ${primaryName} : ${t.done}`}
+                            />
+                          ) : hasProgress ? (
+                            <span className={styles.progress} aria-label={`${p} — ${primaryName} : ${current}/${total}`}>
+                              <span className={styles.progressText}>{current}/{total}</span>
+                              <span className={styles.progressBar}>
+                                <span className={styles.progressFill} style={{ width: `${Math.round(current / total * 100)}%` }} />
+                              </span>
+                            </span>
+                          ) : (
+                            <span
+                              className={`${styles.status} ${styles.isTodo}`}
+                              role="img"
+                              aria-label={`${p} — ${primaryName} : ${t.todo}`}
+                            />
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               }) : [])

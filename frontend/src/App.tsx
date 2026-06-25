@@ -24,7 +24,7 @@ function AppInner() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { t, locale } = useLocale();
 
-  const { groups, triumphs, players, progress, nodes, sections, loading, error } = useAppData();
+  const { groups, triumphs, players, progress, progressDetail, nodes, sections, loading, error } = useAppData();
 
   const currentSection = useMemo(
     () => sections.find(s => s.id === activeSection)!,
@@ -60,6 +60,7 @@ function AppInner() {
   }, [openFirst, activeSection, sectionGroups]);
 
   const progressFor = useCallback((player: Player) => progress[player] ?? new Set<string>(), [progress]);
+  const progressDetailFor = useCallback((player: Player) => progressDetail[player] ?? {}, [progressDetail]);
 
   if (loading) return <div className="loading">{t.loading}</div>;
   if (error) return <div className="error">{t.error} : {error}</div>;
@@ -107,6 +108,7 @@ function AppInner() {
             search={search}
             filter={filter}
             progressFor={progressFor}
+            progressDetailFor={progressDetailFor}
             locale={locale}
             nodes={nodes}
           />
