@@ -69,7 +69,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      actions_token: ${{ secrets.ACTIONS_TOKEN }}
       dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub_password: ${{ secrets.DOCKERHUB_TOKEN }}
 
@@ -79,16 +78,7 @@ jobs:
         with:
           path: ${{ env.APP_PATH }}
 
-      - name: Checkout gitops
-        uses: actions/checkout@v4
-        if: ${{ env.actions_token != '' }}
-        with:
-          repository: bibulle/myKubernetesConfig
-          token: ${{ env.actions_token }}
-          path: ${{ env.OPS_PATH }}
-
       - name: Read package.json
-        id: read_package_json
         run: |
           echo "PACKAGE_JSON=$(jq -c . < ${{ env.APP_PATH }}/frontend/package.json)" >> $GITHUB_ENV
 
@@ -125,26 +115,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Update k8s frontend yaml
-        id: update_yml
-        if: ${{ env.actions_token != '' }}
-        run: |
-          cd ${{ env.OPS_PATH }}
-          image="bibulle\/${{ env.FRONTEND_APP }}"
-          [ -f "${{ env.K8S_FRONTEND_FILE }}" ] && sed -i "s/image: ${image}:.*/image: ${image}:V${{ env.VERSION }}/g" ${{ env.K8S_FRONTEND_FILE }}
-          status=$(git status -s | wc -l)
-          echo "line_modified=$status" >> $GITHUB_OUTPUT
-
-      - name: Commit k8s yaml
-        if: ${{ env.actions_token != '' && steps.update_yml.outputs.line_modified != '0' }}
-        run: |
-          cd ${{ env.OPS_PATH }}
-          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git config --global user.name "${GITHUB_ACTOR}"
-          git add .
-          git commit -am "Update version of ${{ env.FRONTEND_APP }} (${{ env.VERSION }})"
-          git push
-
   # ── Build & Push Backend Docker ─────────────────────────────────────────────
   build-and-push-backend:
     name: Build backend Docker image
@@ -152,7 +122,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      actions_token: ${{ secrets.ACTIONS_TOKEN }}
       dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub_password: ${{ secrets.DOCKERHUB_TOKEN }}
 
@@ -162,16 +131,7 @@ jobs:
         with:
           path: ${{ env.APP_PATH }}
 
-      - name: Checkout gitops
-        uses: actions/checkout@v4
-        if: ${{ env.actions_token != '' }}
-        with:
-          repository: bibulle/myKubernetesConfig
-          token: ${{ env.actions_token }}
-          path: ${{ env.OPS_PATH }}
-
       - name: Read package.json
-        id: read_package_json
         run: |
           echo "PACKAGE_JSON=$(jq -c . < ${{ env.APP_PATH }}/backend/package.json)" >> $GITHUB_ENV
 
@@ -208,22 +168,52 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Update k8s backend yaml
-        id: update_yml
+  # ── Update k8s manifests ─────────────────────────────────────────────────────
+  update-k8s:
+    name: Update k8s manifests
+    needs: [build-and-push-frontend, build-and-push-backend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    env:
+      actions_token: ${{ secrets.ACTIONS_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.APP_PATH }}
+
+      - name: Checkout gitops
+        if: ${{ env.actions_token != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: bibulle/myKubernetesConfig
+          token: ${{ env.actions_token }}
+          path: ${{ env.OPS_PATH }}
+
+      - name: Read version from package.json
+        run: |
+          echo "VERSION=$(jq -r .version < ${{ env.APP_PATH }}/frontend/package.json)" >> $GITHUB_ENV
+
+      - name: Update k8s yaml files
+        id: update_k8s
         if: ${{ env.actions_token != '' }}
         run: |
           cd ${{ env.OPS_PATH }}
-          image="bibulle\/${{ env.BACKEND_APP }}"
-          [ -f "${{ env.K8S_BACKEND_FILE }}" ] && sed -i "s/image: ${image}:.*/image: ${image}:V${{ env.VERSION }}/g" ${{ env.K8S_BACKEND_FILE }}
+          frontend_image="bibulle\/${{ env.FRONTEND_APP }}"
+          backend_image="bibulle\/${{ env.BACKEND_APP }}"
+          [ -f "${{ env.K8S_FRONTEND_FILE }}" ] && sed -i "s/image: ${frontend_image}:.*/image: ${frontend_image}:V${{ env.VERSION }}/g" ${{ env.K8S_FRONTEND_FILE }}
+          [ -f "${{ env.K8S_BACKEND_FILE }}" ]  && sed -i "s/image: ${backend_image}:.*/image: ${backend_image}:V${{ env.VERSION }}/g"  ${{ env.K8S_BACKEND_FILE }}
           status=$(git status -s | wc -l)
-          echo "line_modified=$status" >> $GITHUB_OUTPUT
+          echo "lines_modified=$status" >> $GITHUB_OUTPUT
 
       - name: Commit k8s yaml
-        if: ${{ env.actions_token != '' && steps.update_yml.outputs.line_modified != '0' }}
+        if: ${{ env.actions_token != '' && steps.update_k8s.outputs.lines_modified != '0' }}
         run: |
           cd ${{ env.OPS_PATH }}
           git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git config --global user.name "${GITHUB_ACTOR}"
           git add .
-          git commit -am "Update version of ${{ env.BACKEND_APP }} (${{ env.VERSION }})"
+          git commit -m "Update triumph-tracker images to V${{ env.VERSION }}"
           git push
