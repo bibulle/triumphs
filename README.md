@@ -24,7 +24,7 @@ triumphs/
 │   │   ├── data.ts         # Types, constantes, données mockées (fallback)
 │   │   ├── hooks/useTheme.ts
 │   │   ├── components/     # SectionTabs, Hero, Toolbar, TriumphTable, EmptySection
-│   │   └── test/           # 67 tests unitaires
+│   │   └── test/           # 76 tests unitaires
 │   ├── e2e/app.spec.ts     # 26 tests Playwright
 │   ├── Dockerfile
 │   ├── nginx.conf
@@ -114,7 +114,7 @@ MONGODB_URL=mongodb+srv://... docker compose up
 | `npm run dev` | Serveur Express avec hot-reload (`tsx watch`) |
 | `npm run build` | Compilation TypeScript → `dist/` |
 | `npm start` | Démarre le serveur compilé |
-| `npm test` | Tests unitaires (25 tests) |
+| `npm test` | Tests unitaires (28 tests) |
 
 ## API Backend
 
@@ -145,18 +145,19 @@ Variables d'environnement :
 ## Fonctionnalités
 
 - **Onglets de section** : Triomphes, Titres, Rangs de Gardien (données dynamiques via API Bungie)
-- **Hero** : nombre total de triomphes + classement des joueurs trié par progression
+- **Hero** : nombre de triomphes de la section active + classement des joueurs trié par progression
 - **Tableau** : triomphes par sous-catégories / catégories (catalogue chargé depuis Bungie)
-  - En-têtes joueurs sticky, titre sticky, groupes pliables
+  - En-têtes joueurs sticky, titre sticky, groupes pliables par section active
   - Color-coding par catégorie
   - Pastille ✓ par joueur, ligne dorée `allDone` + badge COMPLET
+  - Groupe marqué et masqué quand tous ses triomphes sont terminés ("Masquer terminés")
 - **Recherche** : filtre live FR + EN
 - **Thème** : sombre par défaut, persisté en `localStorage`
 - **Responsive** : adapté ≤ 640 px
 
 ## Tests
 
-### Frontend — Tests unitaires (67 tests)
+### Frontend — Tests unitaires (76 tests)
 
 ```bash
 cd frontend && npm test
@@ -173,7 +174,7 @@ cd frontend && npm run build && npm run test:e2e
 Scénarios : chargement, navigation, recherche, collapse/expand, masquer terminés, thème, badges, responsive 640 px, version affichée.  
 Les tests mockent `/api/triumphs` et `/api/progress` via `page.route()` (fixture automatique dans `e2e/fixtures.ts`).
 
-### Backend — Tests unitaires (25 tests)
+### Backend — Tests unitaires (28 tests)
 
 ```bash
 cd backend && npm test
