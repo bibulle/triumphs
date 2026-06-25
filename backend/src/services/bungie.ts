@@ -53,8 +53,10 @@ function walkNode(
   nodeHash: number,
   nodesEn: Record<string, PresentationNode>,
   nodesFr: Record<string, PresentationNode>,
+  nodesPt: Record<string, PresentationNode>,
   recordsEn: Record<string, RecordDefinition>,
   recordsFr: Record<string, RecordDefinition>,
+  recordsPt: Record<string, RecordDefinition>,
   section: string,
   cat: string, catFr: string,
   sub: string, subFr: string,
@@ -70,6 +72,7 @@ function walkNode(
   for (const { recordHash } of nodeEn.children?.records ?? []) {
     const recEn = recordsEn[recordHash]
     const recFr = recordsFr[recordHash]
+    const recPt = recordsPt[recordHash]
     if (!recEn) continue
     const effectiveCat = cat || name
     const effectiveCatFr = catFr || nameFr
@@ -85,8 +88,10 @@ function walkNode(
       groupKey: `${section}|${effectiveCat}|${effectiveSub}`,
       en: recEn.displayProperties.name,
       fr: recFr?.displayProperties.name ?? recEn.displayProperties.name,
+      pt: recPt?.displayProperties.name,
       descEn: recEn.displayProperties.description,
       descFr: recFr?.displayProperties.description ?? recEn.displayProperties.description,
+      descPt: recPt?.displayProperties.description,
     })
   }
 
@@ -97,11 +102,11 @@ function walkNode(
     const childNameFr = childFr?.displayProperties.name ?? childName
 
     if (depth === 0) {
-      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, childName, childNameFr, '', '', triumphs, 1)
+      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, childName, childNameFr, '', '', triumphs, 1)
     } else if (depth === 1) {
-      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, cat, catFr, childName, childNameFr, triumphs, 2)
+      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, childName, childNameFr, triumphs, 2)
     } else {
-      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, cat, catFr, sub, subFr, triumphs, depth + 1)
+      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, depth + 1)
     }
   }
 }
@@ -117,18 +122,20 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
   const version = r.version
   const paths = r.jsonWorldComponentContentPaths
 
-  const [nodesEn, nodesFr, recordsEn, recordsFr] = await Promise.all([
+  const [nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt] = await Promise.all([
     fetchDefinitions<PresentationNode>(paths.en.DestinyPresentationNodeDefinition),
     fetchDefinitions<PresentationNode>(paths.fr.DestinyPresentationNodeDefinition),
+    fetchDefinitions<PresentationNode>(paths['pt-br'].DestinyPresentationNodeDefinition),
     fetchDefinitions<RecordDefinition>(paths.en.DestinyRecordDefinition),
     fetchDefinitions<RecordDefinition>(paths.fr.DestinyRecordDefinition),
+    fetchDefinitions<RecordDefinition>(paths['pt-br'].DestinyRecordDefinition),
   ])
 
   const triumphs: Triumph[] = []
 
   for (const { id: section, hash } of SECTION_ROOTS) {
     const before = triumphs.length
-    walkNode(hash, nodesEn, nodesFr, recordsEn, recordsFr, section, '', '', '', '', triumphs, 0)
+    walkNode(hash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, '', '', '', '', triumphs, 0)
     console.log(`[bungie] section "${section}": ${triumphs.length - before} records`)
   }
 

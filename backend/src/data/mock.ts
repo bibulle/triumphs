@@ -8,8 +8,10 @@ export interface Triumph {
   groupKey: string;
   en: string;
   fr: string;
+  pt?: string;
   descEn: string;
   descFr: string;
+  descPt?: string;
 }
 
 export const PLAYERS = ['Bibullus', 'Vincent', 'Guiz'] as const;

@@ -105,7 +105,7 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
               ...(!isCollapsed ? visibleItems.map(item => {
                 const checks = players.map(p => progressFor(p).has(item.id));
                 const allDone = checks.every(Boolean);
-                const primaryName = useFr ? item.fr : item.en;
+                const primaryName = useFr ? item.fr : (locale === 'pt' ? (item.pt ?? item.en) : item.en);
                 const secondaryName = useFr ? item.en : item.fr;
                 return (
                   <tr
