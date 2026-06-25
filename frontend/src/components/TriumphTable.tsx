@@ -110,10 +110,8 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                   <div className={styles.groupHead}>
                     <span className={styles.chev}>▾</span>
                     {(() => { const icon = groupIconMap.get(group.groupKey) ?? catIconMap.get(`${group.section}|${group.cat}`); return icon ? <img src={icon} className={styles.catIcon} aria-hidden="true" alt="" /> : null; })()}
-                    <span className={styles.groupLabel}>
-                      {primaryLabel}
-                      {secondaryLabel !== primaryLabel && <span className={styles.groupLabelEn}>{secondaryLabel}</span>}
-                    </span>
+                    <span className={styles.groupLabel}>{primaryLabel}</span>
+                    {secondaryLabel !== primaryLabel && <span className={styles.groupLabelEn}>{secondaryLabel}</span>}
                   </div>
                 </td>
                 {players.map(p => {
