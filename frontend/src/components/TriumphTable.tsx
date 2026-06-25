@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { CAT_FR, SUB_FR } from '../data';
 import type { Group, Triumph, Player } from '../data';
 import styles from './TriumphTable.module.css';
 

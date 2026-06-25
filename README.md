@@ -32,12 +32,13 @@ triumphs/
 │   └── package.json
 ├── backend/                # API Express
 │   ├── src/
-│   │   ├── data/mock.ts    # 204 triomphes + progression initiale
+│   │   ├── data/mock.ts    # 204 triomphes + progression initiale (fallback)
 │   │   ├── routes/
 │   │   │   ├── triumphs.ts # GET /api/triumphs
 │   │   │   └── progress.ts # GET /api/progress
 │   │   ├── services/
-│   │   │   └── cache.ts    # Cache MongoDB (triumph_catalog, triumph_progress)
+│   │   │   ├── bungie.ts   # Client API Bungie (catalogue dynamique)
+│   │   │   └── cache.ts    # Cache MongoDB (catalog, progress, manifest_check)
 │   │   └── server.ts       # Point d'entrée Express (port 3001)
 │   ├── Dockerfile
 │   └── package.json
@@ -60,14 +61,20 @@ cd frontend && npm install && npm run dev  # http://localhost:5173
 
 Le frontend proxifie automatiquement `/api/*` vers le backend (voir `vite.config.ts`).
 
-### Avec MongoDB (cache)
+### Avec API Bungie + MongoDB (recommandé)
 
 ```bash
 MONGODB_URL=mongodb+srv://user:pass@cluster.mongodb.net/triumphs \
+BUNGIE_API_KEY=your_key_here \
   npm run dev --workspace=backend
 ```
 
-Sans `MONGODB_URL`, le backend répond directement depuis les données mockées.
+Avec les deux variables, le backend :
+1. Interroge l'API Bungie toutes les 30 min au maximum (vérification légère de la version du manifest)
+2. Re-télécharge les définitions uniquement si le manifest a changé (patch Bungie du mardi)
+3. Sert le catalogue depuis MongoDB entre les mises à jour
+
+Sans `BUNGIE_API_KEY` ou sans `MONGODB_URL`, le backend répond depuis les données mockées (`data/mock.ts`).
 
 ### Docker Compose
 
@@ -85,8 +92,8 @@ MONGODB_URL=mongodb+srv://... docker compose up
 |---|---|
 | `npm run dev` | Lance frontend + backend en parallèle |
 | `npm run build` | Build frontend puis backend |
-| `npm test` | Tests unitaires frontend + backend |
-| `npm run test:e2e` | Tests Playwright (frontend) |
+| `npm test` | Tests unitaires frontend (67) + backend (25) |
+| `npm run test:e2e` | Tests Playwright (26 scénarios) |
 
 ### Frontend (`cd frontend`)
 
@@ -95,9 +102,9 @@ MONGODB_URL=mongodb+srv://... docker compose up
 | `npm run dev` | Serveur Vite (HMR) |
 | `npm run build` | Build de production |
 | `npm run preview` | Prévisualisation du build |
-| `npm test` | Tests unitaires (57 tests) |
+| `npm test` | Tests unitaires (67 tests) |
 | `npm run test:coverage` | Tests + rapport de couverture |
-| `npm run test:e2e` | Tests E2E Playwright (25 scénarios) |
+| `npm run test:e2e` | Tests E2E Playwright (26 scénarios) |
 | `npm run lint` | Lint Oxlint |
 
 ### Backend (`cd backend`)
@@ -107,16 +114,33 @@ MONGODB_URL=mongodb+srv://... docker compose up
 | `npm run dev` | Serveur Express avec hot-reload (`tsx watch`) |
 | `npm run build` | Compilation TypeScript → `dist/` |
 | `npm start` | Démarre le serveur compilé |
-| `npm test` | Tests unitaires (17 tests) |
+| `npm test` | Tests unitaires (25 tests) |
 
 ## API Backend
 
 | Endpoint | Description | Cache MongoDB |
 |---|---|---|
-| `GET /api/triumphs` | Liste des 204 triomphes | `triumph_catalog` (TTL 24 h) |
+| `GET /api/triumphs` | Catalogue des triomphes (Bungie API ou mock) | `triumph_catalog` (sans TTL, invalidé sur nouvelle version) |
 | `GET /api/progress` | Progression de chaque joueur | `triumph_progress` (TTL 5 min) |
 
 Les collections MongoDB sont préfixées `triumph_` pour cohabiter avec d'autres applications sur le même cluster.
+
+### Stratégie de cache du catalogue
+
+Quand `BUNGIE_API_KEY` et `MONGODB_URL` sont définis :
+
+1. `manifest_check` (TTL 30 min) — flag indiquant que la version a été vérifiée récemment
+2. Si le flag est présent → sert `triumph_catalog` sans appel réseau
+3. Sinon → `GET /Platform/Destiny2/Manifest/` (léger) pour comparer les versions
+4. Version inchangée → renouvelle le flag, sert le cache
+5. Nouvelle version → re-télécharge les 4 fichiers de définitions EN/FR (~plusieurs Mo), reconstruit le catalogue, met à jour le cache
+
+Variables d'environnement :
+
+| Variable | Requis | Description |
+|---|---|---|
+| `BUNGIE_API_KEY` | Recommandé | Clé API obtenue sur bungie.net/en/Application |
+| `MONGODB_URL` | Recommandé | URL MongoDB Atlas ou autre |
 
 ## Fonctionnalités
 
@@ -132,45 +156,46 @@ Les collections MongoDB sont préfixées `triumph_` pour cohabiter avec d'autres
 
 ## Tests
 
-### Frontend — Tests unitaires (57 tests)
+### Frontend — Tests unitaires (67 tests)
 
 ```bash
 cd frontend && npm test
 ```
 
-Couvrent : intégrité des données, hook `useTheme`, et les 5 composants (SectionTabs, Hero, Toolbar, EmptySection, TriumphTable).
+Couvrent : intégrité des données, hooks (`useTheme`, `useAppData`), les 5 composants (SectionTabs, Hero, Toolbar, EmptySection, TriumphTable), service `api.ts`.
 
-### Frontend — Tests E2E Playwright (25 tests)
+### Frontend — Tests E2E Playwright (26 tests)
 
 ```bash
 cd frontend && npm run build && npm run test:e2e
 ```
 
-Scénarios : chargement, navigation, recherche, collapse/expand, masquer terminés, thème, badges, responsive 640 px.
+Scénarios : chargement, navigation, recherche, collapse/expand, masquer terminés, thème, badges, responsive 640 px, version affichée.  
+Les tests mockent `/api/triumphs` et `/api/progress` via `page.route()` (fixture automatique dans `e2e/fixtures.ts`).
 
-### Backend — Tests unitaires (17 tests)
+### Backend — Tests unitaires (25 tests)
 
 ```bash
 cd backend && npm test
 ```
 
-Couvrent : intégrité des données mock (`mock.test.ts`), route `/api/triumphs` avec hit/miss de cache, route `/api/progress` avec hit/miss de cache.
+Couvrent : intégrité des données mock (`mock.test.ts`), service Bungie (`bungie.test.ts`) avec fetch mocké, route `/api/triumphs` avec toutes les branches (window cache, version check, re-fetch, fallback), route `/api/progress`.
 
 ## CI/CD
 
 Le workflow `.github/workflows/build-and-publish.yml` :
 
 1. **`test`** : installe les dépendances, lance les tests unitaires frontend + backend, les tests E2E Playwright, puis upload le rapport Playwright comme artefact.
-2. **`build-and-push-frontend`** (needs: test) : build et push l'image Docker `bibulle/triumph-tracker-frontend:VX.Y.Z` vers DockerHub, met à jour le manifeste Kubernetes dans `myKubernetesConfig`.
+2. **`build-and-push-frontend`** (needs: test) : build et push l'image Docker `bibulle/triumph-tracker-frontend:VX.Y.Z` vers DockerHub.
 3. **`build-and-push-backend`** (needs: test) : idem pour `bibulle/triumph-tracker-backend:VX.Y.Z`.
+4. **`update-k8s`** (needs: frontend + backend) : met à jour les deux manifestes Kubernetes dans `myKubernetesConfig` en un seul commit atomique (évite les conflits de push concurrent).
 
 Secrets nécessaires : `ACTIONS_TOKEN`, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
 
 ## Prochaines étapes
 
-- [ ] Intégration API Bungie (OAuth + endpoints de progression)
-- [ ] Remplacer les données mockées du backend par l'appel Bungie réel
-- [ ] Authentification par joueur
+- [ ] Connexion API Bungie pour la progression réelle des joueurs (`GET /Destiny2/{membershipType}/Profile/{membershipId}/?components=900`)
+- [ ] Résolution du `membershipId` de chaque joueur via `SearchDestinyPlayer`
+- [ ] Authentification par joueur (OAuth Bungie) pour les comptes privés
 - [ ] Mise à jour de la progression en temps réel (polling ou WebSocket)
 - [ ] Données pour les sections Lifetime, Renegades, Kepler
-- [ ] Descriptions complètes des triomphes (FR + EN)
