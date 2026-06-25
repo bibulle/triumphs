@@ -24,7 +24,7 @@ function AppInner() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { t, locale } = useLocale();
 
-  const { groups, triumphs, players, progress, sections, loading, error } = useAppData();
+  const { groups, triumphs, players, progress, nodes, sections, loading, error } = useAppData();
 
   const currentSection = useMemo(
     () => sections.find(s => s.id === activeSection)!,
@@ -73,6 +73,7 @@ function AppInner() {
           sections={sections}
           activeId={activeSection}
           onSelect={setTab}
+          nodes={nodes}
         />
         <LangPicker />
       </div>
