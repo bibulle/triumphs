@@ -1,18 +1,22 @@
 export interface Triumph {
   id: string;
   cat: string;
+  catFr?: string;
   sub: string;
+  subFr?: string;
   groupKey: string;
   en: string;
   fr: string;
-  done: boolean;
+  done?: boolean;
   descEn: string;
   descFr: string;
 }
 
 export interface Group {
   cat: string;
+  catFr: string;
   sub: string;
+  subFr: string;
   groupKey: string;
   items: Triumph[];
 }
@@ -304,7 +308,7 @@ RAW.forEach(([cat, sub, items]) => {
     DATA.push(item);
     groupItems.push(item);
   });
-  GROUPS.push({ cat, sub, groupKey, items: groupItems });
+  GROUPS.push({ cat, catFr: CAT_FR[cat] ?? cat, sub, subFr: SUB_FR[groupKey] ?? sub, groupKey, items: groupItems });
 });
 
 export const PLAYERS = ["Bibullus", "Vincent", "Guiz"] as const;
