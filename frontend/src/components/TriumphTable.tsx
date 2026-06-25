@@ -32,6 +32,12 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
   const q = search.trim().toLowerCase();
   const useFr = locale === 'fr';
 
+  const catIconMap = useMemo(() => {
+    const map = new Map<string, string>();
+    nodes.filter(n => n.level === 1 && n.icon).forEach(n => map.set(n.catKey!, `${BUNGIE_CDN}${n.icon}`));
+    return map;
+  }, [nodes]);
+
   const groupIconMap = useMemo(() => {
     const map = new Map<string, string>();
     nodes.filter(n => n.level === 2 && n.icon).forEach(n => map.set(n.groupKey!, `${BUNGIE_CDN}${n.icon}`));
@@ -97,10 +103,10 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                 <td className={`${styles.td} ${styles.colTitle} ${styles.groupTitleCell}`}>
                   <div className={styles.groupHead}>
                     <span className={styles.chev}>▾</span>
-                    {(() => { const icon = groupIconMap.get(group.groupKey); return icon ? <img src={icon} className={styles.catIcon} aria-hidden="true" alt="" /> : null; })()}
+                    {(() => { const icon = groupIconMap.get(group.groupKey) ?? catIconMap.get(`${group.section}|${group.cat}`); return icon ? <img src={icon} className={styles.catIcon} aria-hidden="true" alt="" /> : null; })()}
                     <span className={styles.groupLabel}>
                       {primaryLabel}
-                      <span className={styles.groupLabelEn}>{secondaryLabel}</span>
+                      {secondaryLabel !== primaryLabel && <span className={styles.groupLabelEn}>{secondaryLabel}</span>}
                     </span>
                   </div>
                 </td>
