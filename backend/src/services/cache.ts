@@ -31,11 +31,13 @@ function makeModel(collection: string, ttlSeconds: number): Model<CacheDoc> {
     : mongoose.model<CacheDoc>(modelName, schema)
 }
 
-const CATALOG_TTL = 24 * 60 * 60  // 24 h
+const CATALOG_TTL = 24 * 60 * 60  // 24 h (invalidated manually on version change)
 const PROGRESS_TTL = 5 * 60       // 5 min
+const MANIFEST_CHECK_TTL = 30 * 60 // 30 min
 
 let catalogModel: Model<CacheDoc> | null = null
 let progressModel: Model<CacheDoc> | null = null
+let manifestCheckModel: Model<CacheDoc> | null = null
 
 function getCatalogModel(): Model<CacheDoc> {
   if (!catalogModel) catalogModel = makeModel('triumph_catalog', CATALOG_TTL)
@@ -45,6 +47,11 @@ function getCatalogModel(): Model<CacheDoc> {
 function getProgressModel(): Model<CacheDoc> {
   if (!progressModel) progressModel = makeModel('triumph_progress', PROGRESS_TTL)
   return progressModel
+}
+
+function getManifestCheckModel(): Model<CacheDoc> {
+  if (!manifestCheckModel) manifestCheckModel = makeModel('manifest_check', MANIFEST_CHECK_TTL)
+  return manifestCheckModel
 }
 
 export async function getCachedCatalog<T>(key: string): Promise<T | null> {
@@ -69,6 +76,19 @@ export async function setCachedProgress<T>(key: string, data: T): Promise<void> 
   await getProgressModel().findOneAndUpdate(
     { key },
     { key, data, createdAt: new Date() },
+    { upsert: true }
+  )
+}
+
+export async function getManifestCheck(key: string): Promise<boolean> {
+  const doc = await getManifestCheckModel().findOne({ key })
+  return doc !== null
+}
+
+export async function setManifestCheck(key: string): Promise<void> {
+  await getManifestCheckModel().findOneAndUpdate(
+    { key },
+    { key, data: true, createdAt: new Date() },
     { upsert: true }
   )
 }

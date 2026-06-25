@@ -1,7 +1,9 @@
 export interface Triumph {
   id: string;
   cat: string;
+  catFr: string;
   sub: string;
+  subFr: string;
   groupKey: string;
   en: string;
   fr: string;
@@ -292,7 +294,9 @@ export const TRIUMPHS: Triumph[] = RAW.flatMap(([cat, sub, items]) =>
   items.map(([en, fr]) => ({
     id: `t${_id++}`,
     cat,
+    catFr: CAT_FR[cat] ?? cat,
     sub,
+    subFr: SUB_FR[`${cat}|${sub}`] ?? sub,
     groupKey: `${cat}|${sub}`,
     en,
     fr,

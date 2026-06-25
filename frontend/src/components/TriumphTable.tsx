@@ -73,7 +73,7 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                   <div className={styles.groupHead}>
                     <span className={styles.chev}>▾</span>
                     <span className={styles.groupLabel}>
-                      {CAT_FR[group.cat]} · {SUB_FR[group.groupKey]}
+                      {group.catFr} · {group.subFr}
                       <span className={styles.groupLabelEn}>{group.cat} · {group.sub}</span>
                     </span>
                   </div>

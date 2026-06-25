@@ -32,23 +32,23 @@ export function useAppData(): AppData {
         ])
         if (cancelled) return
 
-        // Build groups from triumphs array
+        // Build groups from triumphs array — insertion order preserved (API order)
         const groupMap = new Map<string, Group>()
         rawTriumphs.forEach(t => {
           if (!groupMap.has(t.groupKey)) {
-            groupMap.set(t.groupKey, { cat: t.cat, sub: t.sub, groupKey: t.groupKey, items: [] })
+            groupMap.set(t.groupKey, {
+              cat: t.cat,
+              catFr: t.catFr ?? CAT_FR[t.cat] ?? t.cat,
+              sub: t.sub,
+              subFr: t.subFr ?? SUB_FR[t.groupKey] ?? t.sub,
+              groupKey: t.groupKey,
+              items: [],
+            })
           }
           groupMap.get(t.groupKey)!.items.push(t)
         })
 
-        // Preserve original category order using CAT_FR key order
-        const catOrder = Object.keys(CAT_FR)
-        const subOrder = Object.keys(SUB_FR)
-        const sortedGroups = [...groupMap.values()].sort((a, b) => {
-          const catDiff = catOrder.indexOf(a.cat) - catOrder.indexOf(b.cat)
-          if (catDiff !== 0) return catDiff
-          return subOrder.indexOf(a.groupKey) - subOrder.indexOf(b.groupKey)
-        })
+        const sortedGroups = [...groupMap.values()]
 
         const prog = Object.fromEntries(
           PLAYERS.map(p => [p, new Set<string>(rawProgress[p] ?? [])])
