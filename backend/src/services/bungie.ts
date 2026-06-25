@@ -61,7 +61,7 @@ export async function fetchManifestVersion(): Promise<string> {
 }
 
 function extractIcon(dp: DisplayProperties): string | undefined {
-  return dp.hasIcon && dp.icon ? dp.icon : undefined
+  return dp.icon || undefined
 }
 
 function walkNode(
@@ -191,13 +191,21 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
   }
 
   const level0 = nodes.filter(n => n.level === 0)
+  const level1 = nodes.filter(n => n.level === 1)
   console.log(`[bungie] catalog built: ${triumphs.length} total records, ${nodes.length} nodes`)
   console.log('[bungie] level-0 nodes:')
   level0.forEach((n, i) => {
     const rawNode = nodesEn[String(SECTION_ROOTS[i]?.hash)]
     const rawIcon = rawNode?.displayProperties.icon ?? '(missing)'
     const hasIcon = rawNode?.displayProperties.hasIcon
-    console.log(`  [${n.sectionId}] nameEn="${n.nameEn}" icon="${n.icon ?? '(none)'}" rawIcon="${rawIcon}" hasIcon=${hasIcon} descEn="${n.descEn?.slice(0, 60)}"`)
+    console.log(`  [${n.sectionId}] nameEn="${n.nameEn}" icon="${n.icon ?? '(none)'}" rawIcon="${rawIcon}" hasIcon=${hasIcon}`)
+  })
+  console.log('[bungie] level-1 nodes (first 10):')
+  level1.slice(0, 10).forEach(n => {
+    const rawNode = nodesEn[String(n.hash)]
+    const rawIcon = rawNode?.displayProperties.icon ?? '(missing)'
+    const hasIcon = rawNode?.displayProperties.hasIcon
+    console.log(`  [${n.sectionId}] catKey="${n.catKey}" nameEn="${n.nameEn}" icon="${n.icon ?? '(none)'}" rawIcon="${rawIcon}" hasIcon=${hasIcon}`)
   })
   return { version, triumphs, nodes }
 }
