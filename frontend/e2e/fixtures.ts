@@ -5,6 +5,9 @@ async function mockApi(page: Page) {
   await page.route('/api/triumphs', route =>
     route.fulfill({ contentType: 'application/json', body: JSON.stringify(TRIUMPHS) })
   );
+  await page.route('/api/nodes', route =>
+    route.fulfill({ contentType: 'application/json', body: '[]' })
+  );
   await page.route('/api/progress', route =>
     route.fulfill({ contentType: 'application/json', body: JSON.stringify(getMockProgress()) })
   );
