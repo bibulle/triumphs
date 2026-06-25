@@ -90,16 +90,14 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
 
   const mergeRecord = (hash: string, rec: {
     state: number
-    objectives?: Array<{ progress: number; completionValue: number }>
+    objectives?: Array<{ progress: number; completionValue: number; complete?: boolean }>
   }) => {
-    if (hash === '620611848') {
-      console.log(`[debug] record 620611848 state=${rec.state} (binary: ${rec.state.toString(2)}) objectives=`, JSON.stringify(rec.objectives))
-    }
-    const completed = (rec.state & 4) === 0
     const objectives = (rec.objectives ?? []).map(o => ({
-      current: o.progress ?? 0,
+      current: o.complete ? o.completionValue : (o.progress ?? 0),
       completionValue: o.completionValue,
     }))
+    const allObjComplete = objectives.length > 0 && objectives.every(o => o.current >= o.completionValue)
+    const completed = (rec.state & 4) === 0 || allObjComplete
     if (!progress[hash] || completed) {
       progress[hash] = { completed, objectives }
     }
