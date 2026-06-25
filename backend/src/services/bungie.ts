@@ -104,7 +104,6 @@ function walkNode(
     }
     if (depth === 1) {
       meta.catKey = `${section}|${cat}`
-      if (section === 'ranks') meta.rankIndex = nodeEn.index
     }
     if (depth === 2) meta.groupKey = `${section}|${cat}|${sub}`
     nodes.push(meta)
@@ -193,6 +192,8 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     walkNode(hash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, '', '', '', '', triumphs, nodes, 0)
     console.log(`[bungie] section "${section}": ${triumphs.length - before} records`)
   }
+
+  nodes.filter(n => n.sectionId === 'ranks' && n.level === 1).forEach((n, i) => { n.rankIndex = i })
 
   const level0 = nodes.filter(n => n.level === 0)
   const level1 = nodes.filter(n => n.level === 1)
