@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { fetchTriumphs, fetchProgress } from '../api'
-import { CAT_FR, SUB_FR, PLAYERS, SECTIONS } from '../data'
+import { fetchTriumphs, fetchProgress, fetchPlayers } from '../api'
+import { CAT_FR, SUB_FR, SECTIONS } from '../data'
 import type { Triumph, Group, Player } from '../data'
 
 export type AppData = {
   groups: Group[]
   triumphs: Triumph[]
-  progress: Record<Player, Set<string>>
+  players: Player[]
+  progress: Record<string, Set<string>>
   sections: typeof SECTIONS
   loading: boolean
   error: string | null
@@ -15,9 +16,8 @@ export type AppData = {
 export function useAppData(): AppData {
   const [triumphs, setTriumphs] = useState<Triumph[]>([])
   const [groups, setGroups] = useState<Group[]>([])
-  const [progress, setProgress] = useState<Record<Player, Set<string>>>(() =>
-    Object.fromEntries(PLAYERS.map(p => [p, new Set<string>()])) as Record<Player, Set<string>>
-  )
+  const [players, setPlayers] = useState<Player[]>([])
+  const [progress, setProgress] = useState<Record<string, Set<string>>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,13 +26,13 @@ export function useAppData(): AppData {
 
     async function load() {
       try {
-        const [rawTriumphs, rawProgress] = await Promise.all([
+        const [rawTriumphs, rawProgress, rawPlayers] = await Promise.all([
           fetchTriumphs(),
           fetchProgress(),
+          fetchPlayers(),
         ])
         if (cancelled) return
 
-        // Build groups from triumphs array — insertion order preserved (API order)
         const groupMap = new Map<string, Group>()
         rawTriumphs.forEach(t => {
           if (!groupMap.has(t.groupKey)) {
@@ -49,14 +49,14 @@ export function useAppData(): AppData {
           groupMap.get(t.groupKey)!.items.push(t)
         })
 
-        const sortedGroups = [...groupMap.values()]
-
+        const playerNames = rawPlayers.map(p => p.name)
         const prog = Object.fromEntries(
-          PLAYERS.map(p => [p, new Set<string>(rawProgress[p] ?? [])])
-        ) as Record<Player, Set<string>>
+          playerNames.map(name => [name, new Set<string>(rawProgress[name] ?? [])])
+        )
 
         setTriumphs(rawTriumphs)
-        setGroups(sortedGroups)
+        setGroups([...groupMap.values()])
+        setPlayers(playerNames)
         setProgress(prog)
         setError(null)
       } catch (err) {
@@ -70,5 +70,5 @@ export function useAppData(): AppData {
     return () => { cancelled = true }
   }, [])
 
-  return { groups, triumphs, progress, sections: SECTIONS, loading, error }
+  return { groups, triumphs, players, progress, sections: SECTIONS, loading, error }
 }

@@ -112,6 +112,7 @@ describe('fetchTriumphCatalog', () => {
     const { triumphs } = await fetchTriumphCatalog()
     expect(triumphs).toHaveLength(1)
     const t = triumphs[0]
+    expect(t.id).toBe('1001')
     expect(t.section).toBe('triumphs')
     expect(t.cat).toBe('Worlds')
     expect(t.catFr).toBe('Mondes')

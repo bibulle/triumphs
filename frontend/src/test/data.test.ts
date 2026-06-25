@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  DATA, GROUPS, PLAYERS, CAT_FR, SUB_FR,
-  buildInitialProgress,
-} from '../data';
+import { DATA, GROUPS, CAT_FR, SUB_FR } from '../data';
 
 describe('DATA', () => {
   it('has 204 triumphs', () => {
@@ -55,36 +52,3 @@ describe('CAT_FR / SUB_FR', () => {
   });
 });
 
-describe('buildInitialProgress', () => {
-  it('returns an entry for each player', () => {
-    const p = buildInitialProgress();
-    PLAYERS.forEach(name => expect(p[name]).toBeInstanceOf(Set));
-  });
-
-  it('Bibullus starts with triumphs marked done:true', () => {
-    const p = buildInitialProgress();
-    const doneTruths = DATA.filter(d => d.done).map(d => d.id);
-    doneTruths.forEach(id => expect(p.Bibullus.has(id)).toBe(true));
-  });
-
-  it('the first triumph is done for all players (demo allDone)', () => {
-    const p = buildInitialProgress();
-    PLAYERS.forEach(name => expect(p[name].has(DATA[0].id)).toBe(true));
-  });
-
-  it('Vincent and Guiz only have the demo triumph initially', () => {
-    const p = buildInitialProgress();
-    // They should only have the first triumph (added for demo)
-    // unless DATA[0].done is true (Bibullus path), but for Vincent/Guiz
-    // the Set should only contain DATA[0].id
-    ['Vincent', 'Guiz'].forEach(name => {
-      const set = p[name as 'Vincent' | 'Guiz'];
-      expect(set.has(DATA[0].id)).toBe(true);
-      DATA.slice(1).forEach(d => {
-        // none of the non-first triumphs should be in their set
-        // (the raw done flag only applies to Bibullus)
-        expect(set.has(d.id)).toBe(false);
-      });
-    });
-  });
-});

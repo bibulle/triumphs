@@ -9,11 +9,17 @@ const mockTriumphs: Triumph[] = [
   { id: 't1', section: 'triumphs', cat: 'Worlds', catFr: 'Mondes', sub: 'Vistas', subFr: 'Panoramas', groupKey: 'triumphs|Worlds|Vistas', en: 'C', fr: 'D', descEn: '', descFr: '' },
   { id: 't2', section: 'triumphs', cat: 'Stories', catFr: 'Histoires', sub: 'Campaigns', subFr: 'Campagnes', groupKey: 'triumphs|Stories|Campaigns', en: 'E', fr: 'F', descEn: '', descFr: '' },
 ]
+const mockPlayers = [
+  { name: 'Bibullus', tag: 'Bibullus#2986' },
+  { name: 'Vincent', tag: 'tarrade#1427' },
+  { name: 'Guiz', tag: 'Guizmo-1999#7396' },
+]
 const mockProgress = { Bibullus: ['t0'], Vincent: [], Guiz: [] }
 
 beforeEach(() => {
   vi.spyOn(api, 'fetchTriumphs').mockResolvedValue(mockTriumphs)
   vi.spyOn(api, 'fetchProgress').mockResolvedValue(mockProgress)
+  vi.spyOn(api, 'fetchPlayers').mockResolvedValue(mockPlayers)
 })
 afterEach(() => {
   vi.restoreAllMocks()
@@ -31,6 +37,12 @@ describe('useAppData', () => {
     expect(result.current.triumphs).toHaveLength(mockTriumphs.length)
     expect(result.current.groups.length).toBeGreaterThan(0)
     expect(result.current.error).toBeNull()
+  })
+
+  it('loads players from api', async () => {
+    const { result } = renderHook(() => useAppData())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.players).toEqual(['Bibullus', 'Vincent', 'Guiz'])
   })
 
   it('converts progress arrays to Sets', async () => {

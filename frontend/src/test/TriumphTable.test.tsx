@@ -2,17 +2,22 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TriumphTable from '../components/TriumphTable';
-import { buildInitialProgress, PLAYERS, GROUPS, DATA } from '../data';
+import { GROUPS, DATA } from '../data';
 
-const progress = buildInitialProgress();
-const progressFor = (p: typeof PLAYERS[number]) => progress[p];
+const MOCK_PLAYERS = ['Bibullus', 'Vincent', 'Guiz']
+const progress: Record<string, Set<string>> = {
+  Bibullus: new Set([...DATA.filter(d => d.done).map(d => d.id), DATA[0].id]),
+  Vincent: new Set([DATA[0].id]),
+  Guiz: new Set([DATA[0].id]),
+}
+const progressFor = (p: string) => progress[p] ?? new Set<string>()
 
 function renderTable(overrides: Partial<Parameters<typeof TriumphTable>[0]> = {}) {
   return render(
     <TriumphTable
       groups={GROUPS}
       triumphs={DATA}
-      players={PLAYERS}
+      players={MOCK_PLAYERS}
       collapsed={new Set()}
       onToggleGroup={vi.fn()}
       search=""
@@ -26,7 +31,7 @@ function renderTable(overrides: Partial<Parameters<typeof TriumphTable>[0]> = {}
 describe('TriumphTable', () => {
   it('renders a column header for each player', () => {
     renderTable();
-    PLAYERS.forEach(p => expect(screen.getAllByText(p).length).toBeGreaterThan(0));
+    MOCK_PLAYERS.forEach(p => expect(screen.getAllByText(p).length).toBeGreaterThan(0));
   });
 
   it('renders a group row for each group', () => {
@@ -92,7 +97,7 @@ describe('TriumphTable', () => {
     const badges = screen.getAllByRole('img');
     // Each visible item × number of players
     const visibleItems = GROUPS.flatMap(g => g.items).length;
-    expect(badges.length).toBe(visibleItems * PLAYERS.length);
+    expect(badges.length).toBe(visibleItems * MOCK_PLAYERS.length);
   });
 
   it('shows a "COMPLET" badge on the first triumph (demo allDone)', () => {
@@ -110,7 +115,7 @@ describe('TriumphTable', () => {
   it('renders all group fraction counts for the Worlds|Vistas group', () => {
     renderTable();
     const worldsVistas = GROUPS[0];
-    PLAYERS.forEach(p => {
+    MOCK_PLAYERS.forEach(p => {
       const done = worldsVistas.items.filter(i => progress[p].has(i.id)).length;
       const total = worldsVistas.items.length;
       const fracs = screen.getAllByText(`${done}/${total}`);

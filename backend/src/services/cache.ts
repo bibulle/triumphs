@@ -80,6 +80,12 @@ export async function setCachedProgress<T>(key: string, data: T): Promise<void> 
   )
 }
 
+export async function getProgressCacheAge(key: string): Promise<number | null> {
+  const doc = await getProgressModel().findOne({ key })
+  if (!doc) return null
+  return (Date.now() - doc.createdAt.getTime()) / 1000
+}
+
 export async function getManifestCheck(key: string): Promise<boolean> {
   const doc = await getManifestCheckModel().findOne({ key })
   return doc !== null

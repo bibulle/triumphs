@@ -314,31 +314,10 @@ RAW.forEach(([cat, sub, items]) => {
   GROUPS.push({ section: 'triumphs', cat, catFr: CAT_FR[cat] ?? cat, sub, subFr: SUB_FR[catSubKey] ?? sub, groupKey, items: groupItems });
 });
 
-export const PLAYERS = ["Bibullus", "Vincent", "Guiz"] as const;
-export type Player = typeof PLAYERS[number];
-
-export const PLAYER_TAG: Record<Player, string> = {
-  Bibullus: "Bibullus#2986",
-  Vincent: "tarrade#1427",
-  Guiz: "Guizmo-1999#7396",
-};
+export type Player = string;
 
 export const SECTIONS: Section[] = [
   { id: 'triumphs', label: 'Triomphes',        hasData: true },
   { id: 'titles',   label: 'Titres',           hasData: true },
   { id: 'ranks',    label: 'Rangs de Gardien', hasData: true },
 ];
-
-export function buildInitialProgress(): Record<Player, Set<string>> {
-  const result = {} as Record<Player, Set<string>>;
-  PLAYERS.forEach(p => {
-    if (p === "Bibullus") {
-      result[p] = new Set(DATA.filter(d => d.done).map(d => d.id));
-    } else {
-      result[p] = new Set();
-    }
-  });
-  // Demo: mark first triumph as done by all players to visualize allDone state
-  PLAYERS.forEach(p => result[p].add(DATA[0].id));
-  return result;
-}

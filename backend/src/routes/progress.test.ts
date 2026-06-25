@@ -7,9 +7,19 @@ vi.mock('../services/cache.js', () => ({
   setCachedProgress: vi.fn().mockResolvedValue(undefined),
 }))
 
+vi.mock('../services/players.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/players.js')>()
+  return {
+    ...actual,
+    resolvePlayer: vi.fn(),
+    fetchPlayerCompletedRecords: vi.fn(),
+  }
+})
+
 import progressRouter from './progress.js'
 import { PLAYERS, getMockProgress } from '../data/mock.js'
 import * as cache from '../services/cache.js'
+import * as players from '../services/players.js'
 
 function buildApp(): Express {
   const app = express()
@@ -29,6 +39,8 @@ describe('GET /api/progress', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     delete process.env.MONGODB_URL
+    delete process.env.BUNGIE_API_KEY
+    delete process.env.PLAYERS
   })
 
   it('returns progress for all players', async () => {
@@ -79,6 +91,28 @@ describe('GET /api/progress', () => {
       expect(body[p]).toEqual(expected[p])
     })
     expect(cache.setCachedProgress).toHaveBeenCalledWith('progress', expected)
+
+    await close()
+  })
+
+  it('fetches real progress from Bungie when PLAYERS and BUNGIE_API_KEY are set', async () => {
+    process.env.PLAYERS = 'Alpha:Alpha#1234,Beta:Beta#5678'
+    process.env.BUNGIE_API_KEY = 'test-key'
+
+    vi.mocked(players.resolvePlayer)
+      .mockResolvedValueOnce({ name: 'Alpha', tag: 'Alpha#1234', membershipType: 3, membershipId: 'mid-alpha' })
+      .mockResolvedValueOnce({ name: 'Beta', tag: 'Beta#5678', membershipType: 3, membershipId: 'mid-beta' })
+    vi.mocked(players.fetchPlayerCompletedRecords)
+      .mockResolvedValueOnce(['1001', '1002'])
+      .mockResolvedValueOnce(['1001'])
+
+    const { port, close } = await startServer(buildApp())
+    const response = await fetch(`http://localhost:${port}/api/progress`)
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.Alpha).toEqual(['1001', '1002'])
+    expect(body.Beta).toEqual(['1001'])
 
     await close()
   })
