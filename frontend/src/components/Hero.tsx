@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { Triumph, Player } from '../data';
+import { useLocale } from '../i18n';
 import styles from './Hero.module.css';
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function Hero({ sectionLabel, hasData, triumphs, players, progressFor }: Props) {
+  const { t } = useLocale();
   const total = triumphs.length;
 
   const sorted = useMemo(() => {
@@ -22,14 +24,14 @@ export default function Hero({ sectionLabel, hasData, triumphs, players, progres
   return (
     <div className={styles.hero}>
       <div className={styles.eyebrow}>
-        Destiny 2 · Tracker de triomphes
+        {t.eyebrow}
         <span className={styles.version}>v{__APP_VERSION__}</span>
       </div>
       <h1 className={styles.h1}>{sectionLabel}</h1>
       <div className={styles.grid}>
         <div className={styles.stat}>
-          <div className={styles.num}>{hasData ? `${total} triomphes` : '— triomphes'}</div>
-          <div className={styles.lbl}>Triomphes au total</div>
+          <div className={styles.num}>{hasData ? `${total} ${t.itemsLabel}` : `— ${t.itemsLabel}`}</div>
+          <div className={styles.lbl}>{t.totalLabel}</div>
         </div>
         {hasData && (
           <div className={styles.leaderboard}>

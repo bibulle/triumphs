@@ -1,4 +1,5 @@
 import type { Section } from '../data';
+import { useLocale } from '../i18n';
 import styles from './SectionTabs.module.css';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function SectionTabs({ sections, activeId, onSelect }: Props) {
+  const { t } = useLocale();
   return (
     <nav className={styles.sections}>
       {sections.map(sec => (
@@ -17,8 +19,8 @@ export default function SectionTabs({ sections, activeId, onSelect }: Props) {
           onClick={() => onSelect(sec.id)}
         >
           <span className={styles.dot} />
-          {sec.label}
-          {!sec.hasData && <span className={styles.tag}>à venir</span>}
+          {t.sections[sec.id] ?? sec.label}
+          {!sec.hasData && <span className={styles.tag}>{t.comingSoon}</span>}
         </button>
       ))}
     </nav>

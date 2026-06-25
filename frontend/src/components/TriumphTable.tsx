@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import type { Group, Triumph, Player } from '../data';
+import type { Locale } from '../i18n';
+import { useLocale } from '../i18n';
 import styles from './TriumphTable.module.css';
 
 interface Props {
@@ -11,6 +13,7 @@ interface Props {
   search: string;
   hideDone: boolean;
   progressFor: (p: Player) => Set<string>;
+  locale?: Locale;
 }
 
 const CAT_CLASS: Record<string, string> = {
@@ -22,7 +25,9 @@ const CAT_CLASS: Record<string, string> = {
 };
 
 export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, hideDone, progressFor }: Props) {
+  const { t, locale } = useLocale();
   const q = search.trim().toLowerCase();
+  const useFr = locale === 'fr';
 
   const totalDone = useMemo(
     () => Object.fromEntries(players.map(p => [p, triumphs.filter(d => progressFor(p).has(d.id)).length])),
@@ -34,7 +39,7 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
       <table className={styles.table}>
         <thead>
           <tr>
-            <th className={`${styles.th} ${styles.colTitle}`}>Triomphe</th>
+            <th className={`${styles.th} ${styles.colTitle}`}>{t.triumphColumn}</th>
             {players.map(p => (
               <th key={p} className={`${styles.th} ${styles.friendTh}`}>
                 <div className={styles.friendHead}>
@@ -63,6 +68,9 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
             const groupAllDone = players.length > 0 &&
               group.items.every(item => players.every(p => progressFor(p).has(item.id)));
 
+            const primaryLabel = useFr ? `${group.catFr} · ${group.subFr}` : `${group.cat} · ${group.sub}`;
+            const secondaryLabel = useFr ? `${group.cat} · ${group.sub}` : `${group.catFr} · ${group.subFr}`;
+
             return [
               <tr
                 key={`g-${group.groupKey}`}
@@ -73,8 +81,8 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                   <div className={styles.groupHead}>
                     <span className={styles.chev}>▾</span>
                     <span className={styles.groupLabel}>
-                      {group.catFr} · {group.subFr}
-                      <span className={styles.groupLabelEn}>{group.cat} · {group.sub}</span>
+                      {primaryLabel}
+                      <span className={styles.groupLabelEn}>{secondaryLabel}</span>
                     </span>
                   </div>
                 </td>
@@ -97,6 +105,8 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
               ...(!isCollapsed ? visibleItems.map(item => {
                 const checks = players.map(p => progressFor(p).has(item.id));
                 const allDone = checks.every(Boolean);
+                const primaryName = useFr ? item.fr : item.en;
+                const secondaryName = useFr ? item.en : item.fr;
                 return (
                   <tr
                     key={item.id}
@@ -107,10 +117,10 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                         <span className={`${styles.bullet} ${allDone ? styles.bulletDone : ''}`} />
                         <div className={styles.titleText}>
                           <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
-                            {item.fr}
-                            {allDone && <span className={styles.completeBadge}>COMPLET</span>}
+                            {primaryName}
+                            {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
                           </span>
-                          <span className={styles.titleEn}>{item.en}</span>
+                          <span className={styles.titleEn}>{secondaryName}</span>
                           {!item.descFr && !item.descEn && (
                             <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
                           )}
@@ -122,7 +132,7 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                         <span
                           className={`${styles.status} ${checks[i] ? styles.isDone : styles.isTodo}`}
                           role="img"
-                          aria-label={`${p} — ${item.fr} : ${checks[i] ? 'fait' : 'à faire'}`}
+                          aria-label={`${p} — ${primaryName} : ${checks[i] ? t.done : t.todo}`}
                         />
                       </td>
                     ))}
