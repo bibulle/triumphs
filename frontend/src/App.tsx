@@ -10,7 +10,8 @@ import { useTheme } from './hooks/useTheme';
 import { useLocaleState } from './hooks/useLocale';
 import { useNavState } from './hooks/useNavState';
 import { LocaleContext, useLocale } from './i18n';
-import type { Player } from './data';
+import type { Player, FilterState } from './data';
+import { DEFAULT_FILTER } from './data';
 import { useState } from 'react';
 
 import './App.css';
@@ -19,7 +20,7 @@ function AppInner() {
   const { navState, setTab, toggleGroup: navToggleGroup, closeAll, openFirst } = useNavState();
   const activeSection = navState.tab;
   const [search, setSearch] = useState('');
-  const [hideDone, setHideDone] = useState(false);
+  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER);
   const { theme, toggle: toggleTheme } = useTheme();
   const { t, locale } = useLocale();
 
@@ -89,8 +90,9 @@ function AppInner() {
           <Toolbar
             search={search}
             onSearch={setSearch}
-            hideDone={hideDone}
-            onToggleDone={() => setHideDone(h => !h)}
+            filter={filter}
+            onFilterChange={setFilter}
+            players={players}
             onExpandAll={expandAll}
             onCollapseAll={collapseAll}
             theme={theme}
@@ -103,7 +105,7 @@ function AppInner() {
             collapsed={collapsed}
             onToggleGroup={toggleGroup}
             search={search}
-            hideDone={hideDone}
+            filter={filter}
             progressFor={progressFor}
             locale={locale}
           />

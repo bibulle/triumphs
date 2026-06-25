@@ -125,23 +125,50 @@ test.describe('Toolbar — collapse / expand', () => {
   });
 });
 
-test.describe('Toolbar — hide done', () => {
-  test('"Ocultar concluídos" hides allDone rows', async ({ page }) => {
+test.describe('Toolbar — filter popover', () => {
+  test('"Filtrar" button opens the filter popover', async ({ page }) => {
     await page.goto('/');
-    // Expand first group to make rows visible
-    await page.getByRole('button', { name: 'Expandir tudo' }).click();
-    await expect(page.locator('[class*="allDone"]').first()).toBeVisible();
-    await page.getByRole('button', { name: 'Ocultar concluídos' }).click();
-    await expect(page.locator('[class*="allDone"]')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Filtrar' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
   });
 
-  test('"Mostrar concluídos" restores allDone rows', async ({ page }) => {
+  test('popover closes on Escape', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Filtrar' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+  });
+
+  test('"Concluídos" filter hides non-allDone rows', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Expandir tudo' }).click();
-    await page.locator('[class*="allDone"]').first().waitFor();
-    await page.getByRole('button', { name: 'Ocultar concluídos' }).click();
-    await page.getByRole('button', { name: 'Mostrar concluídos' }).click();
-    await expect(page.locator('[class*="allDone"]').first()).toBeVisible();
+    await page.locator('[class*="itemRow"]').first().waitFor();
+    await page.getByRole('button', { name: 'Filtrar' }).click();
+    await page.getByRole('button', { name: 'Concluídos' }).click();
+    // Only allDone rows should remain
+    const rows = page.locator('[class*="itemRow"]');
+    const allDoneRows = page.locator('[class*="allDone"]');
+    await expect(rows).toHaveCount(await allDoneRows.count());
+  });
+
+  test('active filter shows dot indicator on button', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Filtrar' }).click();
+    await page.getByRole('button', { name: 'Concluídos' }).click();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[class*="filterDot"]')).toBeVisible();
+  });
+
+  test('"Reiniciar" resets the filter', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
+    await page.locator('[class*="itemRow"]').first().waitFor();
+    const totalRows = await page.locator('[class*="itemRow"]').count();
+    await page.getByRole('button', { name: 'Filtrar' }).click();
+    await page.getByRole('button', { name: 'Concluídos' }).click();
+    await page.getByRole('button', { name: 'Reiniciar' }).click();
+    await expect(page.locator('[class*="itemRow"]')).toHaveCount(totalRows);
   });
 });
 

@@ -53,3 +53,22 @@
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
+
+.btnActive {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+}
+
+.filterWrap {
+  position: relative;
+}
+
+.filterDot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold-bright);
+  margin-left: 5px;
+  vertical-align: middle;
+}

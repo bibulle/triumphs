@@ -2,12 +2,14 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Toolbar from '../components/Toolbar';
+import { DEFAULT_FILTER } from '../data';
 
 const baseProps = {
   search: '',
   onSearch: vi.fn(),
-  hideDone: false,
-  onToggleDone: vi.fn(),
+  filter: DEFAULT_FILTER,
+  onFilterChange: vi.fn(),
+  players: ['Bibullus', 'Vincent'] as const,
   onExpandAll: vi.fn(),
   onCollapseAll: vi.fn(),
   theme: 'dark' as const,
@@ -27,21 +29,15 @@ describe('Toolbar', () => {
     expect(onSearch).toHaveBeenCalled();
   });
 
-  it('shows "Masquer terminés" when hideDone is false', () => {
-    render(<Toolbar {...baseProps} hideDone={false} />);
-    expect(screen.getByText('Masquer terminés')).toBeInTheDocument();
+  it('shows the "Filtrer" button', () => {
+    render(<Toolbar {...baseProps} />);
+    expect(screen.getByRole('button', { name: /Filtrer/i })).toBeInTheDocument();
   });
 
-  it('shows "Afficher terminés" when hideDone is true', () => {
-    render(<Toolbar {...baseProps} hideDone={true} />);
-    expect(screen.getByText('Afficher terminés')).toBeInTheDocument();
-  });
-
-  it('calls onToggleDone when the button is clicked', async () => {
-    const onToggleDone = vi.fn();
-    render(<Toolbar {...baseProps} onToggleDone={onToggleDone} />);
-    await userEvent.click(screen.getByText('Masquer terminés'));
-    expect(onToggleDone).toHaveBeenCalledOnce();
+  it('opens filter popover when "Filtrer" is clicked', async () => {
+    render(<Toolbar {...baseProps} />);
+    await userEvent.click(screen.getByRole('button', { name: /Filtrer/i }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('calls onExpandAll when "Tout déplier" is clicked', async () => {
