@@ -5,9 +5,9 @@ import * as api from '../api'
 import type { Triumph } from '../data'
 
 const mockTriumphs: Triumph[] = [
-  { id: 't0', cat: 'Worlds', catFr: 'Mondes', sub: 'Vistas', subFr: 'Panoramas', groupKey: 'Worlds|Vistas', en: 'A', fr: 'B', descEn: '', descFr: '' },
-  { id: 't1', cat: 'Worlds', catFr: 'Mondes', sub: 'Vistas', subFr: 'Panoramas', groupKey: 'Worlds|Vistas', en: 'C', fr: 'D', descEn: '', descFr: '' },
-  { id: 't2', cat: 'Stories', catFr: 'Histoires', sub: 'Campaigns', subFr: 'Campagnes', groupKey: 'Stories|Campaigns', en: 'E', fr: 'F', descEn: '', descFr: '' },
+  { id: 't0', section: 'triumphs', cat: 'Worlds', catFr: 'Mondes', sub: 'Vistas', subFr: 'Panoramas', groupKey: 'triumphs|Worlds|Vistas', en: 'A', fr: 'B', descEn: '', descFr: '' },
+  { id: 't1', section: 'triumphs', cat: 'Worlds', catFr: 'Mondes', sub: 'Vistas', subFr: 'Panoramas', groupKey: 'triumphs|Worlds|Vistas', en: 'C', fr: 'D', descEn: '', descFr: '' },
+  { id: 't2', section: 'triumphs', cat: 'Stories', catFr: 'Histoires', sub: 'Campaigns', subFr: 'Campagnes', groupKey: 'triumphs|Stories|Campaigns', en: 'E', fr: 'F', descEn: '', descFr: '' },
 ]
 const mockProgress = { Bibullus: ['t0'], Vincent: [], Guiz: [] }
 

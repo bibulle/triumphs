@@ -37,6 +37,7 @@ export function useAppData(): AppData {
         rawTriumphs.forEach(t => {
           if (!groupMap.has(t.groupKey)) {
             groupMap.set(t.groupKey, {
+              section: t.section ?? 'triumphs',
               cat: t.cat,
               catFr: t.catFr ?? CAT_FR[t.cat] ?? t.cat,
               sub: t.sub,

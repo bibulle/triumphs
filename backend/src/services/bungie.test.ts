@@ -18,13 +18,24 @@ const MANIFEST_RESPONSE = {
   },
 }
 
-// Minimal presentation node tree:
-// Monument of Triumph → Worlds → Vistas → record 1001
+// Minimal tree using real section root hashes:
+// Triumphs root (1163735237) → Worlds (10) → Vistas (100) → record 1001
+// Titles root (616318467) and Ranks root (3741753466) have no children in this mock
 const EN_NODES: Record<string, unknown> = {
-  '1': {
-    hash: 1,
-    displayProperties: { name: 'Monument of Triumph', description: '' },
+  '1163735237': {
+    hash: 1163735237,
+    displayProperties: { name: 'Triumphs', description: '' },
     children: { presentationNodes: [{ presentationNodeHash: 10 }] },
+  },
+  '616318467': {
+    hash: 616318467,
+    displayProperties: { name: 'Titles', description: '' },
+    children: { presentationNodes: [] },
+  },
+  '3741753466': {
+    hash: 3741753466,
+    displayProperties: { name: 'Guardian Ranks', description: '' },
+    children: { presentationNodes: [] },
   },
   '10': {
     hash: 10,
@@ -39,7 +50,9 @@ const EN_NODES: Record<string, unknown> = {
 }
 
 const FR_NODES: Record<string, unknown> = {
-  '1': { hash: 1, displayProperties: { name: 'Monument de Triomphe', description: '' } },
+  '1163735237': { hash: 1163735237, displayProperties: { name: 'Triomphes', description: '' } },
+  '616318467': { hash: 616318467, displayProperties: { name: 'Titres', description: '' } },
+  '3741753466': { hash: 3741753466, displayProperties: { name: 'Rangs de Gardien', description: '' } },
   '10': { hash: 10, displayProperties: { name: 'Mondes', description: '' } },
   '100': { hash: 100, displayProperties: { name: 'Panoramas', description: '' } },
 }
@@ -95,15 +108,16 @@ describe('fetchTriumphCatalog', () => {
     expect(version).toBe(MANIFEST_VERSION)
   })
 
-  it('builds triumph objects from the tree', async () => {
+  it('builds triumph objects from the triumphs section tree', async () => {
     const { triumphs } = await fetchTriumphCatalog()
     expect(triumphs).toHaveLength(1)
     const t = triumphs[0]
+    expect(t.section).toBe('triumphs')
     expect(t.cat).toBe('Worlds')
     expect(t.catFr).toBe('Mondes')
     expect(t.sub).toBe('Vistas')
     expect(t.subFr).toBe('Panoramas')
-    expect(t.groupKey).toBe('Worlds|Vistas')
+    expect(t.groupKey).toBe('triumphs|Worlds|Vistas')
     expect(t.en).toBe('The Monument')
     expect(t.fr).toBe('Le Monument')
     expect(t.descEn).toBe('Collect all seals.')
@@ -120,12 +134,13 @@ describe('fetchTriumphCatalog', () => {
     expect(triumphs[0].fr).toBe('The Monument')
   })
 
-  it('throws when Monument of Triumph node is not found', async () => {
+  it('returns empty triumphs when section root nodes are missing', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => {
       if (url.includes('/en/nodes.json'))
         return Promise.resolve({ ok: true, json: () => Promise.resolve({}) } as Response)
       return mockFetch(url)
     }))
-    await expect(fetchTriumphCatalog()).rejects.toThrow('Monument of Triumph')
+    const { triumphs } = await fetchTriumphCatalog()
+    expect(triumphs).toHaveLength(0)
   })
 })

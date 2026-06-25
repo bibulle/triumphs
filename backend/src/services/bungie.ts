@@ -1,7 +1,12 @@
 import type { Triumph } from '../data/mock.js'
 
 const BASE_URL = 'https://www.bungie.net'
-const MONUMENT_NAME_EN = 'Monument of Triumph'
+
+const SECTION_ROOTS = [
+  { id: 'triumphs', hash: 1163735237 },
+  { id: 'titles',   hash: 616318467  },
+  { id: 'ranks',    hash: 3741753466 },
+] as const
 
 interface PresentationNode {
   hash: number
@@ -44,6 +49,64 @@ export async function fetchManifestVersion(): Promise<string> {
   return json.Response.version
 }
 
+function walkNode(
+  nodeHash: number,
+  nodesEn: Record<string, PresentationNode>,
+  nodesFr: Record<string, PresentationNode>,
+  recordsEn: Record<string, RecordDefinition>,
+  recordsFr: Record<string, RecordDefinition>,
+  section: string,
+  cat: string, catFr: string,
+  sub: string, subFr: string,
+  triumphs: Triumph[],
+  idx: { v: number },
+  depth: number
+): void {
+  const nodeEn = nodesEn[nodeHash]
+  if (!nodeEn) return
+  const nodeFr = nodesFr[nodeHash]
+  const name = nodeEn.displayProperties.name
+  const nameFr = nodeFr?.displayProperties.name ?? name
+
+  for (const { recordHash } of nodeEn.children?.records ?? []) {
+    const recEn = recordsEn[recordHash]
+    const recFr = recordsFr[recordHash]
+    if (!recEn) continue
+    const effectiveCat = cat || name
+    const effectiveCatFr = catFr || nameFr
+    const effectiveSub = sub || name
+    const effectiveSubFr = subFr || nameFr
+    triumphs.push({
+      id: `t${idx.v++}`,
+      section,
+      cat: effectiveCat,
+      catFr: effectiveCatFr,
+      sub: effectiveSub,
+      subFr: effectiveSubFr,
+      groupKey: `${section}|${effectiveCat}|${effectiveSub}`,
+      en: recEn.displayProperties.name,
+      fr: recFr?.displayProperties.name ?? recEn.displayProperties.name,
+      descEn: recEn.displayProperties.description,
+      descFr: recFr?.displayProperties.description ?? recEn.displayProperties.description,
+    })
+  }
+
+  for (const { presentationNodeHash: childHash } of nodeEn.children?.presentationNodes ?? []) {
+    const childEn = nodesEn[childHash]
+    const childFr = nodesFr[childHash]
+    const childName = childEn?.displayProperties.name ?? ''
+    const childNameFr = childFr?.displayProperties.name ?? childName
+
+    if (depth === 0) {
+      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, childName, childNameFr, '', '', triumphs, idx, 1)
+    } else if (depth === 1) {
+      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, cat, catFr, childName, childNameFr, triumphs, idx, 2)
+    } else {
+      walkNode(childHash, nodesEn, nodesFr, recordsEn, recordsFr, section, cat, catFr, sub, subFr, triumphs, idx, depth + 1)
+    }
+  }
+}
+
 export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs: Triumph[] }> {
   const json = await bungieGet('/Platform/Destiny2/Manifest/') as {
     Response: {
@@ -62,74 +125,15 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     fetchDefinitions<RecordDefinition>(paths.fr.DestinyRecordDefinition),
   ])
 
-  // Build parent map: childHash → parentNode
-  const parentOf = new Map<number, PresentationNode>()
-  for (const node of Object.values(nodesEn)) {
-    for (const { presentationNodeHash } of node.children?.presentationNodes ?? []) {
-      parentOf.set(presentationNodeHash, node)
-    }
-  }
-
-  // Find nodes with no parent (roots) that have presentationNode children
-  const roots = Object.values(nodesEn).filter(n =>
-    !parentOf.has(n.hash) && (n.children?.presentationNodes?.length ?? 0) > 0
-  )
-  console.log('[bungie] Root nodes (no parent, has presentationNode children):')
-  roots.forEach(n => {
-    const childNames = (n.children?.presentationNodes ?? [])
-      .map(c => nodesEn[c.presentationNodeHash]?.displayProperties.name ?? '?')
-      .join(', ')
-    console.log(`[bungie]   "${n.displayProperties.name}" hash=${n.hash} children=[${childNames}]`)
-  })
-
-  const monument = Object.values(nodesEn).find(
-    n => n.displayProperties.name === MONUMENT_NAME_EN
-  )
-  if (!monument) {
-    throw new Error(`"${MONUMENT_NAME_EN}" node not found in Bungie manifest`)
-  }
-  const catNodes = monument.children?.presentationNodes ?? []
-  console.log(`[bungie] Using "${MONUMENT_NAME_EN}" hash=${monument.hash}, presentationNodes=${catNodes.length}`)
-
   const triumphs: Triumph[] = []
-  let idx = 0
+  const idx = { v: 0 }
 
-  for (const { presentationNodeHash: catHash } of catNodes) {
-    const catEn = nodesEn[catHash]
-    const catFrNode = nodesFr[catHash]
-    if (!catEn) continue
-    const cat = catEn.displayProperties.name
-    const catFr = catFrNode?.displayProperties.name ?? cat
-
-    for (const { presentationNodeHash: subHash } of catEn.children?.presentationNodes ?? []) {
-      const subEn = nodesEn[subHash]
-      const subFrNode = nodesFr[subHash]
-      if (!subEn) continue
-      const sub = subEn.displayProperties.name
-      const subFr = subFrNode?.displayProperties.name ?? sub
-      const groupKey = `${cat}|${sub}`
-
-      for (const { recordHash } of subEn.children?.records ?? []) {
-        const recEn = recordsEn[recordHash]
-        const recFr = recordsFr[recordHash]
-        if (!recEn) continue
-
-        triumphs.push({
-          id: `t${idx++}`,
-          cat,
-          catFr,
-          sub,
-          subFr,
-          groupKey,
-          en: recEn.displayProperties.name,
-          fr: recFr?.displayProperties.name ?? recEn.displayProperties.name,
-          descEn: recEn.displayProperties.description,
-          descFr: recFr?.displayProperties.description ?? recEn.displayProperties.description,
-        })
-      }
-    }
+  for (const { id: section, hash } of SECTION_ROOTS) {
+    const before = triumphs.length
+    walkNode(hash, nodesEn, nodesFr, recordsEn, recordsFr, section, '', '', '', '', triumphs, idx, 0)
+    console.log(`[bungie] section "${section}": ${triumphs.length - before} records`)
   }
 
-  console.log(`[bungie] catalog built: ${triumphs.length} triumphs across ${new Set(triumphs.map(t => t.cat)).size} categories`)
+  console.log(`[bungie] catalog built: ${triumphs.length} total records`)
   return { version, triumphs }
 }
