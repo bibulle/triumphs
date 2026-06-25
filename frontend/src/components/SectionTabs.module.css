@@ -44,11 +44,13 @@
 .icon {
   width: 18px;
   height: 18px;
-  object-fit: contain;
-  opacity: 0.5;
+  background: currentColor;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  opacity: 0.45;
   flex-shrink: 0;
-  filter: grayscale(0.3);
-  transition: opacity 0.15s, filter 0.15s;
+  transition: opacity 0.15s;
 }
 
 .active { color: var(--gold-bright); }
@@ -60,7 +62,6 @@
 
 .active .icon {
   opacity: 1;
-  filter: none;
 }
 
 .active::after {

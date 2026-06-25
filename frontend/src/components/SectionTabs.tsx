@@ -30,7 +30,11 @@ export default function SectionTabs({ sections, activeId, onSelect, nodes = [] }
             onClick={() => onSelect(sec.id)}
           >
             {icon
-              ? <img className={styles.icon} src={icon} alt="" aria-hidden="true" />
+              ? <span
+                  className={styles.icon}
+                  style={{ maskImage: `url(${icon})`, WebkitMaskImage: `url(${icon})` }}
+                  aria-hidden="true"
+                />
               : <span className={styles.dot} />
             }
             {t.sections[sec.id] ?? sec.label}
