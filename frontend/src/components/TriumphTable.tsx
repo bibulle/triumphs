@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
-import type { Group, Triumph, Player, FilterState } from '../data';
+import type { Group, Triumph, Player, FilterState, NodeMeta } from '../data';
 import type { Locale } from '../i18n';
 import { useLocale } from '../i18n';
 import styles from './TriumphTable.module.css';
+
+const BUNGIE_CDN = 'https://www.bungie.net';
 
 interface Props {
   groups: Group[];
@@ -14,6 +16,7 @@ interface Props {
   filter: FilterState;
   progressFor: (p: Player) => Set<string>;
   locale?: Locale;
+  nodes?: NodeMeta[];
 }
 
 const CAT_CLASS: Record<string, string> = {
@@ -24,10 +27,16 @@ const CAT_CLASS: Record<string, string> = {
   Competitions: styles.catCompetitions,
 };
 
-export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, filter, progressFor }: Props) {
+export default function TriumphTable({ groups, triumphs, players, collapsed, onToggleGroup, search, filter, progressFor, nodes = [] }: Props) {
   const { t, locale } = useLocale();
   const q = search.trim().toLowerCase();
   const useFr = locale === 'fr';
+
+  const catIconMap = useMemo(() => {
+    const map = new Map<string, string>();
+    nodes.filter(n => n.level === 1 && n.icon).forEach(n => map.set(n.catKey!, `${BUNGIE_CDN}${n.icon}`));
+    return map;
+  }, [nodes]);
 
   const totalDone = useMemo(
     () => Object.fromEntries(players.map(p => [p, triumphs.filter(d => progressFor(p).has(d.id)).length])),
@@ -88,6 +97,7 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                 <td className={`${styles.td} ${styles.colTitle} ${styles.groupTitleCell}`}>
                   <div className={styles.groupHead}>
                     <span className={styles.chev}>▾</span>
+                    {(() => { const icon = catIconMap.get(`${group.section}|${group.cat}`); return icon ? <span className={styles.catIcon} style={{ maskImage: `url(${icon})`, WebkitMaskImage: `url(${icon})` }} aria-hidden="true" /> : null; })()}
                     <span className={styles.groupLabel}>
                       {primaryLabel}
                       <span className={styles.groupLabelEn}>{secondaryLabel}</span>

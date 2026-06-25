@@ -109,6 +109,7 @@ function AppInner() {
             filter={filter}
             progressFor={progressFor}
             locale={locale}
+            nodes={nodes}
           />
         </>
       ) : (
