@@ -58,20 +58,20 @@ describe('Toolbar', () => {
     expect(onCollapseAll).toHaveBeenCalledOnce();
   });
 
-  it('shows "☾ Sombre" in dark theme', () => {
+  it('shows dark theme icon in dark theme', () => {
     render(<Toolbar {...baseProps} theme="dark" />);
-    expect(screen.getByText('☾ Sombre')).toBeInTheDocument();
+    expect(screen.getByText('☾')).toBeInTheDocument();
   });
 
-  it('shows "☀ Clair" in light theme', () => {
+  it('shows light theme icon in light theme', () => {
     render(<Toolbar {...baseProps} theme="light" />);
-    expect(screen.getByText('☀ Clair')).toBeInTheDocument();
+    expect(screen.getByText('☀')).toBeInTheDocument();
   });
 
   it('calls onToggleTheme when the theme button is clicked', async () => {
     const onToggleTheme = vi.fn();
     render(<Toolbar {...baseProps} onToggleTheme={onToggleTheme} />);
-    await userEvent.click(screen.getByText('☾ Sombre'));
+    await userEvent.click(screen.getByRole('button', { name: 'Changer de thème' }));
     expect(onToggleTheme).toHaveBeenCalledOnce();
   });
 });

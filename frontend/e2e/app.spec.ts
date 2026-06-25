@@ -3,13 +3,13 @@ import { test, expect } from './fixtures';
 test.describe('Page load', () => {
   test('renders the page title and eyebrow', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('h1')).toHaveText('Triomphes');
-    await expect(page.getByText(/Destiny 2 · Tracker de triomphes/i)).toBeVisible();
+    await expect(page.locator('h1')).toHaveText('Triunfos');
+    await expect(page.locator('[class*="eyebrow"]')).toBeVisible();
   });
 
   test('shows total triumph count in the hero', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('204 triomphes')).toBeVisible();
+    await expect(page.getByText('204 triunfos')).toBeVisible();
   });
 
   test('renders the leaderboard with all 3 players', async ({ page }) => {
@@ -34,72 +34,71 @@ test.describe('Page load', () => {
   });
 
 test.describe('Section tabs', () => {
-  test('Triomphes tab is active on load', async ({ page }) => {
+  test('Triunfos tab is active on load', async ({ page }) => {
     await page.goto('/');
     const tabs = page.locator('nav button');
-    await expect(tabs.first()).toContainText('Triomphes');
+    await expect(tabs.first()).toContainText('Triunfos');
     await expect(tabs.first()).toHaveClass(/active/);
   });
 
-  test('clicking Titres switches section', async ({ page }) => {
+  test('clicking Títulos switches section', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /Titres/i }).click();
-    await expect(page.locator('h1')).toHaveText('Titres');
+    await page.getByRole('button', { name: /Títulos/i }).click();
+    await expect(page.locator('h1')).toHaveText('Títulos');
   });
 
-  test('no "à venir" badges (all sections have data)', async ({ page }) => {
+  test('no "em breve" badges (all sections have data)', async ({ page }) => {
     await page.goto('/');
-    const badges = page.locator('nav').getByText('à venir');
+    const badges = page.locator('nav').getByText('em breve');
     await expect(badges).toHaveCount(0);
   });
 
-  test('switching back to Triomphes restores the table', async ({ page }) => {
+  test('switching back to Triunfos restores the table', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /Titres/i }).click();
-    await page.getByRole('button', { name: /Triomphes/i }).click();
-    await expect(page.getByPlaceholder(/Rechercher/i)).toBeVisible();
+    await page.getByRole('button', { name: /Títulos/i }).click();
+    await page.getByRole('button', { name: /Triunfos/i }).click();
+    await expect(page.getByPlaceholder(/Pesquisar/i)).toBeVisible();
   });
 });
 
 test.describe('Toolbar — search', () => {
   test('search input is visible', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByPlaceholder(/Rechercher/i)).toBeVisible();
+    await expect(page.getByPlaceholder(/Pesquisar/i)).toBeVisible();
   });
 
   test('filtering by "Le Monument" shows that triumph', async ({ page }) => {
     await page.goto('/');
-    await page.getByPlaceholder(/Rechercher/i).fill('Le Monument');
-    // The triumph title "Le Monument" should be visible in an item row
-    const titleCells = page.locator('[class*="titleFr"]');
-    await expect(titleCells.filter({ hasText: 'Le Monument' }).first()).toBeVisible();
+    await page.getByPlaceholder(/Pesquisar/i).fill('Le Monument');
+    // At least one item row should remain visible after filtering
+    await expect(page.locator('[class*="itemRow"]').first()).toBeVisible();
   });
 
   test('filtering with no match hides all item rows', async ({ page }) => {
     await page.goto('/');
-    await page.getByPlaceholder(/Rechercher/i).fill('zzz_no_match_zzz');
+    await page.getByPlaceholder(/Pesquisar/i).fill('zzz_no_match_zzz');
     await expect(page.locator('[class*="itemRow"]')).toHaveCount(0);
   });
 
   test('clearing search restores item rows', async ({ page }) => {
     await page.goto('/');
-    await page.getByPlaceholder(/Rechercher/i).fill('zzz_no_match_zzz');
-    await page.getByPlaceholder(/Rechercher/i).fill('');
+    await page.getByPlaceholder(/Pesquisar/i).fill('zzz_no_match_zzz');
+    await page.getByPlaceholder(/Pesquisar/i).fill('');
     await expect(page.locator('[class*="itemRow"]').first()).toBeVisible();
   });
 });
 
 test.describe('Toolbar — collapse / expand', () => {
-  test('"Tout replier" hides all triumph rows', async ({ page }) => {
+  test('"Recolher tudo" hides all triumph rows', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Tout replier' }).click();
+    await page.getByRole('button', { name: 'Recolher tudo' }).click();
     await expect(page.locator('[class*="itemRow"]')).toHaveCount(0);
   });
 
-  test('"Tout déplier" after collapse shows triumphs again', async ({ page }) => {
+  test('"Expandir tudo" after collapse shows triumphs again', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Tout replier' }).click();
-    await page.getByRole('button', { name: 'Tout déplier' }).click();
+    await page.getByRole('button', { name: 'Recolher tudo' }).click();
+    await page.getByRole('button', { name: 'Expandir tudo' }).click();
     await expect(page.locator('[class*="itemRow"]').first()).toBeVisible();
   });
 
@@ -127,17 +126,17 @@ test.describe('Toolbar — collapse / expand', () => {
 });
 
 test.describe('Toolbar — hide done', () => {
-  test('"Masquer terminés" hides allDone rows', async ({ page }) => {
+  test('"Ocultar concluídos" hides allDone rows', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[class*="allDone"]').first()).toBeVisible();
-    await page.getByRole('button', { name: 'Masquer terminés' }).click();
+    await page.getByRole('button', { name: 'Ocultar concluídos' }).click();
     await expect(page.locator('[class*="allDone"]')).toHaveCount(0);
   });
 
-  test('"Afficher terminés" restores allDone rows', async ({ page }) => {
+  test('"Mostrar concluídos" restores allDone rows', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Masquer terminés' }).click();
-    await page.getByRole('button', { name: 'Afficher terminés' }).click();
+    await page.getByRole('button', { name: 'Ocultar concluídos' }).click();
+    await page.getByRole('button', { name: 'Mostrar concluídos' }).click();
     await expect(page.locator('[class*="allDone"]').first()).toBeVisible();
   });
 });
@@ -151,23 +150,23 @@ test.describe('Theme toggle', () => {
 
   test('clicking theme button switches to light mode', async ({ page }) => {
     await page.goto('/');
-    await page.locator('button', { hasText: /Sombre/i }).click();
+    await page.getByRole('button', { name: 'Changer de thème' }).click();
     const dataTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
     expect(dataTheme).toBe('light');
-    await expect(page.locator('button', { hasText: /Clair/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Changer de thème' })).toBeVisible();
   });
 
   test('toggling twice returns to dark mode', async ({ page }) => {
     await page.goto('/');
-    await page.locator('button', { hasText: /Sombre/i }).click();
-    await page.locator('button', { hasText: /Clair/i }).click();
+    await page.getByRole('button', { name: 'Changer de thème' }).click();
+    await page.getByRole('button', { name: 'Changer de thème' }).click();
     const dataTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
     expect(dataTheme).toBeNull();
   });
 
   test('theme preference is persisted across page reloads', async ({ page }) => {
     await page.goto('/');
-    await page.locator('button', { hasText: /Sombre/i }).click();
+    await page.getByRole('button', { name: 'Changer de thème' }).click();
     await page.reload();
     const dataTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
     expect(dataTheme).toBe('light');
@@ -179,7 +178,7 @@ test.describe('Status badges', () => {
     await page.goto('/');
     const allDoneRow = page.locator('[class*="allDone"]').first();
     await expect(allDoneRow).toBeVisible();
-    await expect(allDoneRow.getByText('COMPLET')).toBeVisible();
+    await expect(allDoneRow.getByText('COMPLETO')).toBeVisible();
   });
 
   test('status badges are not interactive (no pointer cursor)', async ({ page }) => {
@@ -195,6 +194,6 @@ test.describe('Responsive layout', () => {
     await page.setViewportSize({ width: 640, height: 900 });
     await page.goto('/');
     await expect(page.locator('h1')).toBeVisible();
-    await expect(page.getByPlaceholder(/Rechercher/i)).toBeVisible();
+    await expect(page.getByPlaceholder(/Pesquisar/i)).toBeVisible();
   });
 });

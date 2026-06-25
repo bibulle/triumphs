@@ -8,9 +8,11 @@ export interface Triumph {
   groupKey: string;
   en: string;
   fr: string;
+  pt?: string;
   done?: boolean;
   descEn: string;
   descFr: string;
+  descPt?: string;
 }
 
 export interface Group {

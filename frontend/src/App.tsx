@@ -5,17 +5,21 @@ import Hero from './components/Hero';
 import Toolbar from './components/Toolbar';
 import TriumphTable from './components/TriumphTable';
 import EmptySection from './components/EmptySection';
+import LangPicker from './components/LangPicker';
 import { useTheme } from './hooks/useTheme';
+import { useLocaleState } from './hooks/useLocale';
+import { LocaleContext, useLocale } from './i18n';
 import type { Player } from './data';
 
 import './App.css';
 
-export default function App() {
+function AppInner() {
   const [activeSection, setActiveSection] = useState('triumphs');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [hideDone, setHideDone] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
+  const { t, locale } = useLocale();
 
   const { groups, triumphs, players, progress, sections, loading, error } = useAppData();
 
@@ -30,7 +34,7 @@ export default function App() {
   );
 
   const sectionTriumphs = useMemo(
-    () => triumphs.filter(t => (t.section ?? 'triumphs') === activeSection),
+    () => triumphs.filter(tr => (tr.section ?? 'triumphs') === activeSection),
     [triumphs, activeSection]
   );
 
@@ -51,26 +55,31 @@ export default function App() {
 
   const progressFor = useCallback((player: Player) => progress[player] ?? new Set<string>(), [progress]);
 
-  if (loading) return <div className="loading">Chargement…</div>;
-  if (error) return <div className="error">Erreur : {error}</div>;
+  if (loading) return <div className="loading">{t.loading}</div>;
+  if (error) return <div className="error">{t.error} : {error}</div>;
+
+  const sectionLabel = currentSection ? (t.sections[currentSection.id] ?? currentSection.label) : '';
 
   return (
     <div className="wrap">
-      <SectionTabs
-        sections={sections}
-        activeId={activeSection}
-        onSelect={setActiveSection}
-      />
+      <div className="topbar">
+        <SectionTabs
+          sections={sections}
+          activeId={activeSection}
+          onSelect={setActiveSection}
+        />
+        <LangPicker />
+      </div>
 
       <Hero
-        sectionLabel={currentSection.label}
-        hasData={currentSection.hasData}
+        sectionLabel={sectionLabel}
+        hasData={currentSection?.hasData ?? false}
         triumphs={sectionTriumphs}
         players={players}
         progressFor={progressFor}
       />
 
-      {currentSection.hasData ? (
+      {currentSection?.hasData ? (
         <>
           <Toolbar
             search={search}
@@ -91,15 +100,25 @@ export default function App() {
             search={search}
             hideDone={hideDone}
             progressFor={progressFor}
+            locale={locale}
           />
         </>
       ) : (
-        <EmptySection label={currentSection.label} />
+        <EmptySection label={sectionLabel} />
       )}
 
       <footer className="footer">
         Monument of Triumph est un contenu du jeu Destiny 2 (Bungie). Noms FR provisoires — descriptions à venir.
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  const localeState = useLocaleState();
+  return (
+    <LocaleContext.Provider value={localeState}>
+      <AppInner />
+    </LocaleContext.Provider>
   );
 }

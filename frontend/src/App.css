@@ -1,3 +1,10 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .wrap {
   max-width: 1220px;
   margin: 0 auto;

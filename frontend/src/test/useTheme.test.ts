@@ -1,9 +1,19 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTheme } from '../hooks/useTheme';
 
+const themeStore: Record<string, string> = {};
+const localStorageMock = {
+  getItem: vi.fn((k: string) => themeStore[k] ?? null),
+  setItem: vi.fn((k: string, v: string) => { themeStore[k] = v }),
+  removeItem: vi.fn((k: string) => { delete themeStore[k] }),
+  clear: vi.fn(() => { Object.keys(themeStore).forEach(k => delete themeStore[k]) }),
+};
+
 beforeEach(() => {
-  localStorage.clear();
+  vi.stubGlobal('localStorage', localStorageMock);
+  localStorageMock.clear();
+  vi.clearAllMocks();
   document.documentElement.removeAttribute('data-theme');
 });
 
