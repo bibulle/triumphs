@@ -207,5 +207,13 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     const hasIcon = rawNode?.displayProperties.hasIcon
     console.log(`  [${n.sectionId}] catKey="${n.catKey}" nameEn="${n.nameEn}" icon="${n.icon ?? '(none)'}" rawIcon="${rawIcon}" hasIcon=${hasIcon}`)
   })
+  const level2 = nodes.filter(n => n.level === 2)
+  console.log('[bungie] level-2 nodes (first 15):')
+  level2.slice(0, 15).forEach(n => {
+    const rawNode = nodesEn[String(n.hash)]
+    const rawIcon = rawNode?.displayProperties.icon ?? '(missing)'
+    const hasIcon = rawNode?.displayProperties.hasIcon
+    console.log(`  [${n.sectionId}] groupKey="${n.groupKey}" nameEn="${n.nameEn}" icon="${n.icon ?? '(none)'}" rawIcon="${rawIcon}" hasIcon=${hasIcon}`)
+  })
   return { version, triumphs, nodes }
 }
