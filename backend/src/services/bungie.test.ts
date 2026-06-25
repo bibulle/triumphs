@@ -14,6 +14,10 @@ const MANIFEST_RESPONSE = {
         DestinyPresentationNodeDefinition: '/fr/nodes.json',
         DestinyRecordDefinition: '/fr/records.json',
       },
+      'pt-br': {
+        DestinyPresentationNodeDefinition: '/pt-br/nodes.json',
+        DestinyRecordDefinition: '/pt-br/records.json',
+      },
     },
   },
 }
@@ -65,13 +69,27 @@ const FR_RECORDS: Record<string, unknown> = {
   '1001': { hash: 1001, displayProperties: { name: 'Le Monument', description: 'Collecte tous les cachets.' } },
 }
 
+const PT_NODES: Record<string, unknown> = {
+  '1163735237': { hash: 1163735237, displayProperties: { name: 'Triunfos', description: '' } },
+  '616318467': { hash: 616318467, displayProperties: { name: 'Títulos', description: '' } },
+  '3741753466': { hash: 3741753466, displayProperties: { name: 'Classificações do Guardião', description: '' } },
+  '10': { hash: 10, displayProperties: { name: 'Mundos', description: '' } },
+  '100': { hash: 100, displayProperties: { name: 'Panoramas', description: '' } },
+}
+
+const PT_RECORDS: Record<string, unknown> = {
+  '1001': { hash: 1001, displayProperties: { name: 'O Monumento', description: 'Coleciona todos os selos.' } },
+}
+
 function mockFetch(url: string): Promise<Response> {
   let body: unknown
   if (url.includes('/Platform/Destiny2/Manifest/')) body = MANIFEST_RESPONSE
   else if (url.includes('/en/nodes.json')) body = EN_NODES
   else if (url.includes('/fr/nodes.json')) body = FR_NODES
+  else if (url.includes('/pt-br/nodes.json')) body = PT_NODES
   else if (url.includes('/en/records.json')) body = EN_RECORDS
   else if (url.includes('/fr/records.json')) body = FR_RECORDS
+  else if (url.includes('/pt-br/records.json')) body = PT_RECORDS
   else return Promise.reject(new Error(`Unexpected URL: ${url}`))
 
   return Promise.resolve({
