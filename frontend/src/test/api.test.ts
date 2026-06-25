@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { fetchTriumphs, fetchProgress } from '../api'
+import { fetchTriumphs, fetchProgress, fetchPlayers } from '../api'
 
 const mockTriumphs = [
   { id: 't0', cat: 'Worlds', sub: 'Vistas', groupKey: 'Worlds|Vistas', en: 'A', fr: 'B', descEn: '', descFr: '' },
@@ -23,6 +23,20 @@ describe('fetchTriumphs', () => {
   it('throws on non-ok response', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 500 }))
     await expect(fetchTriumphs()).rejects.toThrow('fetchTriumphs: 500')
+  })
+})
+
+describe('fetchPlayers', () => {
+  it('returns parsed JSON on success', async () => {
+    const mockPlayers = [{ name: 'Bibullus', tag: 'Bibullus#2986' }]
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify(mockPlayers), { status: 200 }))
+    const result = await fetchPlayers()
+    expect(result).toEqual(mockPlayers)
+  })
+
+  it('throws on non-ok response', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 503 }))
+    await expect(fetchPlayers()).rejects.toThrow('fetchPlayers: 503')
   })
 })
 

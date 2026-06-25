@@ -156,3 +156,73 @@ describe('TriumphTable — within group context', () => {
     expect(screen.getByText(firstItem.en)).toBeInTheDocument();
   });
 });
+
+describe('TriumphTable — group allDone and hide behavior', () => {
+  it('hides the group row when all its items are done and hideDone is true', () => {
+    const firstGroup = GROUPS[0];
+    const allDoneProgress: Record<string, Set<string>> = {
+      Bibullus: new Set(firstGroup.items.map(i => i.id)),
+      Vincent: new Set(firstGroup.items.map(i => i.id)),
+      Guiz: new Set(firstGroup.items.map(i => i.id)),
+    };
+    const { container } = render(
+      <TriumphTable
+        groups={[firstGroup]}
+        triumphs={firstGroup.items}
+        players={MOCK_PLAYERS}
+        collapsed={new Set()}
+        onToggleGroup={vi.fn()}
+        search=""
+        hideDone={true}
+        progressFor={p => allDoneProgress[p] ?? new Set()}
+      />
+    );
+    expect(container.querySelector('[class*="groupRow"]')).toBeNull();
+  });
+
+  it('shows the group row when some items are not done even with hideDone', () => {
+    const firstGroup = GROUPS[0];
+    // Only first item done for all — remaining items still visible
+    const partialProgress: Record<string, Set<string>> = {
+      Bibullus: new Set([firstGroup.items[0].id]),
+      Vincent: new Set([firstGroup.items[0].id]),
+      Guiz: new Set([firstGroup.items[0].id]),
+    };
+    const { container } = render(
+      <TriumphTable
+        groups={[firstGroup]}
+        triumphs={firstGroup.items}
+        players={MOCK_PLAYERS}
+        collapsed={new Set()}
+        onToggleGroup={vi.fn()}
+        search=""
+        hideDone={true}
+        progressFor={p => partialProgress[p] ?? new Set()}
+      />
+    );
+    expect(container.querySelector('[class*="groupRow"]')).not.toBeNull();
+  });
+
+  it('adds allDone class to group row when all items are completed by all players', () => {
+    const firstGroup = GROUPS[0];
+    const allDoneProgress: Record<string, Set<string>> = {
+      Bibullus: new Set(firstGroup.items.map(i => i.id)),
+      Vincent: new Set(firstGroup.items.map(i => i.id)),
+      Guiz: new Set(firstGroup.items.map(i => i.id)),
+    };
+    const { container } = render(
+      <TriumphTable
+        groups={[firstGroup]}
+        triumphs={firstGroup.items}
+        players={MOCK_PLAYERS}
+        collapsed={new Set()}
+        onToggleGroup={vi.fn()}
+        search=""
+        hideDone={false}
+        progressFor={p => allDoneProgress[p] ?? new Set()}
+      />
+    );
+    const groupRow = container.querySelector('[class*="groupRow"]');
+    expect(groupRow?.className).toMatch(/allDone/);
+  });
+});

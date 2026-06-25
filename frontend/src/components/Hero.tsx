@@ -17,7 +17,7 @@ export default function Hero({ sectionLabel, hasData, triumphs, players, progres
     return [...players]
       .map(p => ({ name: p, done: triumphs.filter(d => progressFor(p).has(d.id)).length }))
       .sort((a, b) => b.done - a.done);
-  }, [progressFor]);
+  }, [triumphs, progressFor]);
 
   return (
     <div className={styles.hero}>

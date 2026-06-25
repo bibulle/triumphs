@@ -58,14 +58,15 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
               return true;
             });
 
-            const groupVisible = visibleItems.length > 0 || !q;
+            if (visibleItems.length === 0) return null;
 
-            if (!groupVisible) return null;
+            const groupAllDone = players.length > 0 &&
+              group.items.every(item => players.every(p => progressFor(p).has(item.id)));
 
             return [
               <tr
                 key={`g-${group.groupKey}`}
-                className={`${styles.groupRow} ${catClass} ${isCollapsed ? styles.collapsed : ''}`}
+                className={`${styles.groupRow} ${catClass} ${isCollapsed ? styles.collapsed : ''} ${groupAllDone ? styles.allDone : ''}`}
                 onClick={() => onToggleGroup(group.groupKey)}
               >
                 <td className={`${styles.td} ${styles.colTitle} ${styles.groupTitleCell}`}>
