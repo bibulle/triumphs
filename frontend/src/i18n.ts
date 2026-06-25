@@ -76,5 +76,5 @@ export const useLocale = () => useContext(LocaleContext)
 export const LOCALES: { id: Locale; flag: string; label: string }[] = [
   { id: 'fr', flag: '🇫🇷', label: 'Français' },
   { id: 'en', flag: '🇬🇧', label: 'English' },
-  { id: 'pt', flag: '🇧🇷', label: 'Português' },
+  { id: 'pt', flag: '🇵🇹', label: 'Português' },
 ]
