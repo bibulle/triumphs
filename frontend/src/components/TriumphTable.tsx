@@ -147,14 +147,19 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                       <div className={styles.titleCell}>
                         <span className={`${styles.bullet} ${allDone ? styles.bulletDone : ''}`} />
                         <div className={styles.titleText}>
-                          <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
-                            {primaryName}
-                            {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
-                          </span>
-                          <span className={styles.titleEn}>{secondaryName}</span>
-                          {!item.descFr && !item.descEn && (
-                            <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
-                          )}
+                          <div className={styles.titleRow}>
+                            <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
+                              {primaryName}
+                              {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
+                            </span>
+                            {secondaryName && secondaryName !== primaryName && (
+                              <span className={styles.titleEn}>{secondaryName}</span>
+                            )}
+                          </div>
+                          {(item.descFr || item.descEn)
+                            ? <span className={styles.desc}>{useFr ? (item.descFr || item.descEn) : (item.descEn || item.descFr)}</span>
+                            : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
+                          }
                         </div>
                       </div>
                     </td>
