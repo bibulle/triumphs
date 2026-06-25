@@ -80,12 +80,7 @@ async function warmupProgress(): Promise<void> {
       )
     } else {
       console.log('[warmup] progress: using mock data')
-      progress = Object.fromEntries(
-        Object.entries(getMockProgress()).map(([name, ids]) => [
-          name,
-          Object.fromEntries(ids.map(id => [id, { completed: true, objectives: [] }])),
-        ])
-      )
+      progress = getMockProgress()
     }
 
     await setCachedProgress(PROGRESS_KEY, progress)

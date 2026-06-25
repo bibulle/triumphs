@@ -37,13 +37,7 @@ router.get('/', async (_req: Request, res: Response) => {
         })
       )
     } else {
-      // Convert mock string[] format to PlayerProgress format
-      progress = Object.fromEntries(
-        Object.entries(getMockProgress()).map(([name, ids]) => [
-          name,
-          Object.fromEntries(ids.map(id => [id, { completed: true, objectives: [] }])),
-        ])
-      )
+      progress = getMockProgress()
     }
 
     await setCachedProgress(PROGRESS_KEY, progress).catch((e) =>

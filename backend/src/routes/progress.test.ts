@@ -93,7 +93,7 @@ describe('GET /api/progress', () => {
 
     const rawMock = getMockProgress()
     PLAYERS.forEach(p => {
-      const expectedIds = rawMock[p] ?? []
+      const expectedIds = Object.keys(rawMock[p] ?? {})
       expectedIds.forEach(id => {
         expect(body[p][id]?.completed).toBe(true)
       })
