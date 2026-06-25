@@ -288,3 +288,7 @@
 .allDone td { background: var(--gold-soft) !important; }
 .allDone:hover td { background: var(--gold-soft) !important; }
 .allDone .itemColTitle { background: var(--gold-soft) !important; }
+.allDone .groupTitleCell { background: var(--gold-soft) !important; }
+.allDone:hover .groupTitleCell { background: var(--gold-soft) !important; }
+.allDone .groupLabel { color: var(--gold-bright); }
+.allDone .chev { color: var(--gold-bright); }
