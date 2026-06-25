@@ -3,7 +3,7 @@ import { test, expect } from './fixtures';
 test.describe('Page load', () => {
   test('renders the page title and eyebrow', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('h1')).toHaveText('Monument of Triumph');
+    await expect(page.locator('h1')).toHaveText('Triomphes');
     await expect(page.getByText(/Destiny 2 · Tracker de triomphes/i)).toBeVisible();
   });
 
@@ -34,30 +34,29 @@ test.describe('Page load', () => {
   });
 
 test.describe('Section tabs', () => {
-  test('Monument of Triumph tab is active on load', async ({ page }) => {
+  test('Triomphes tab is active on load', async ({ page }) => {
     await page.goto('/');
     const tabs = page.locator('nav button');
-    await expect(tabs.first()).toContainText('Monument of Triumph');
+    await expect(tabs.first()).toContainText('Triomphes');
     await expect(tabs.first()).toHaveClass(/active/);
   });
 
-  test('clicking Lifetime shows empty section state', async ({ page }) => {
+  test('clicking Titres switches section', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /Lifetime/i }).click();
-    await expect(page.getByText(/prochainement/i)).toBeVisible();
-    await expect(page.locator('h1')).toHaveText('Lifetime');
+    await page.getByRole('button', { name: /Titres/i }).click();
+    await expect(page.locator('h1')).toHaveText('Titres');
   });
 
-  test('inactive sections show "à venir" badge', async ({ page }) => {
+  test('no "à venir" badges (all sections have data)', async ({ page }) => {
     await page.goto('/');
     const badges = page.locator('nav').getByText('à venir');
-    await expect(badges).toHaveCount(3);
+    await expect(badges).toHaveCount(0);
   });
 
-  test('switching back to Monument restores the table', async ({ page }) => {
+  test('switching back to Triomphes restores the table', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /Lifetime/i }).click();
-    await page.getByRole('button', { name: /Monument of Triumph/i }).click();
+    await page.getByRole('button', { name: /Titres/i }).click();
+    await page.getByRole('button', { name: /Triomphes/i }).click();
     await expect(page.getByPlaceholder(/Rechercher/i)).toBeVisible();
   });
 });

@@ -303,14 +303,15 @@ export const DATA: Triumph[] = [];
 export const GROUPS: Group[] = [];
 
 RAW.forEach(([cat, sub, items]) => {
-  const groupKey = `${cat}|${sub}`;
+  const catSubKey = `${cat}|${sub}`;
+  const groupKey = `triumphs|${cat}|${sub}`;
   const groupItems: Triumph[] = [];
   items.forEach(([en, fr, done]) => {
-    const item: Triumph = { id: `t${_id++}`, cat, sub, groupKey, en, fr, done, descEn: "", descFr: "" };
+    const item: Triumph = { id: `t${_id++}`, section: 'triumphs', cat, sub, groupKey, en, fr, done, descEn: "", descFr: "" };
     DATA.push(item);
     groupItems.push(item);
   });
-  GROUPS.push({ section: 'triumphs', cat, catFr: CAT_FR[cat] ?? cat, sub, subFr: SUB_FR[groupKey] ?? sub, groupKey, items: groupItems });
+  GROUPS.push({ section: 'triumphs', cat, catFr: CAT_FR[cat] ?? cat, sub, subFr: SUB_FR[catSubKey] ?? sub, groupKey, items: groupItems });
 });
 
 export const PLAYERS = ["Bibullus", "Vincent", "Guiz"] as const;
