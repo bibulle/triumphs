@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAppData } from './hooks/useAppData';
 import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
@@ -8,14 +8,16 @@ import EmptySection from './components/EmptySection';
 import LangPicker from './components/LangPicker';
 import { useTheme } from './hooks/useTheme';
 import { useLocaleState } from './hooks/useLocale';
+import { useNavState } from './hooks/useNavState';
 import { LocaleContext, useLocale } from './i18n';
 import type { Player } from './data';
+import { useState } from 'react';
 
 import './App.css';
 
 function AppInner() {
-  const [activeSection, setActiveSection] = useState('triumphs');
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const { navState, setTab, toggleGroup: navToggleGroup, closeAll, openFirst } = useNavState();
+  const activeSection = navState.tab;
   const [search, setSearch] = useState('');
   const [hideDone, setHideDone] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
@@ -38,20 +40,23 @@ function AppInner() {
     [triumphs, activeSection]
   );
 
-  const toggleGroup = useCallback((groupKey: string) => {
-    setCollapsed(prev => {
-      const next = new Set(prev);
-      if (next.has(groupKey)) next.delete(groupKey);
-      else next.add(groupKey);
-      return next;
-    });
-  }, []);
+  // Derive collapsed Set: all groups except the one currently open
+  const openGroup = navState.openGroups[activeSection] ?? null;
+  const collapsed = useMemo(() => {
+    const all = new Set(sectionGroups.map(g => g.groupKey));
+    if (openGroup) all.delete(openGroup);
+    return all;
+  }, [sectionGroups, openGroup]);
 
-  const expandAll = useCallback(() => setCollapsed(new Set()), []);
-  const collapseAll = useCallback(
-    () => setCollapsed(new Set(sectionGroups.map(g => g.groupKey))),
-    [sectionGroups]
-  );
+  const toggleGroup = useCallback((groupKey: string) => {
+    navToggleGroup(activeSection, groupKey);
+  }, [navToggleGroup, activeSection]);
+
+  const collapseAll = useCallback(() => closeAll(activeSection), [closeAll, activeSection]);
+  const expandAll = useCallback(() => {
+    const first = sectionGroups[0]?.groupKey;
+    if (first) openFirst(activeSection, first);
+  }, [openFirst, activeSection, sectionGroups]);
 
   const progressFor = useCallback((player: Player) => progress[player] ?? new Set<string>(), [progress]);
 
@@ -66,7 +71,7 @@ function AppInner() {
         <SectionTabs
           sections={sections}
           activeId={activeSection}
-          onSelect={setActiveSection}
+          onSelect={setTab}
         />
         <LangPicker />
       </div>
