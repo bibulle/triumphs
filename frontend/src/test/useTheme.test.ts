@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useTheme } from '../hooks/useTheme';
 
 beforeEach(() => {
-  localStorage.clear();
+  Object.keys(localStorage).forEach(key => localStorage.removeItem(key));
   document.documentElement.removeAttribute('data-theme');
 });
 
