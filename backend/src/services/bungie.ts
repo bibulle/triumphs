@@ -62,20 +62,24 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     fetchDefinitions<RecordDefinition>(paths.fr.DestinyRecordDefinition),
   ])
 
-  const monument = Object.values(nodesEn).find(
+  const allMonuments = Object.values(nodesEn).filter(
     n => n.displayProperties.name === MONUMENT_NAME_EN
   )
+  console.log(`[bungie] nodes named "${MONUMENT_NAME_EN}": ${allMonuments.length}`)
+  allMonuments.forEach(n => {
+    const pNodes = n.children?.presentationNodes?.length ?? 0
+    const recs = n.children?.records?.length ?? 0
+    console.log(`[bungie]   hash=${n.hash} presentationNodes=${pNodes} records=${recs}`)
+  })
+
+  const monument = allMonuments.find(n => (n.children?.presentationNodes?.length ?? 0) > 0)
+    ?? allMonuments[0]
   if (!monument) {
-    console.error(`[bungie] "${MONUMENT_NAME_EN}" node not found. Available top-level nodes: ${Object.values(nodesEn).slice(0, 5).map(n => n.displayProperties.name).join(', ')}…`)
+    console.error(`[bungie] "${MONUMENT_NAME_EN}" node not found. Sample nodes: ${Object.values(nodesEn).slice(0, 5).map(n => n.displayProperties.name).join(', ')}…`)
     throw new Error(`"${MONUMENT_NAME_EN}" node not found in Bungie manifest`)
   }
   const catNodes = monument.children?.presentationNodes ?? []
-  console.log(`[bungie] Monument node hash=${monument.hash}, children.presentationNodes=${catNodes.length}`)
-  if (catNodes.length === 0) {
-    console.log(`[bungie] Monument node raw children keys: ${Object.keys(monument.children ?? {}).join(', ')}`)
-  } else {
-    console.log(`[bungie] First category hash: ${catNodes[0].presentationNodeHash}`)
-  }
+  console.log(`[bungie] Using Monument hash=${monument.hash}, presentationNodes=${catNodes.length}, records=${monument.children?.records?.length ?? 0}`)
 
   const triumphs: Triumph[] = []
   let idx = 0
