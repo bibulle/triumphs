@@ -32,6 +32,12 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
   const q = search.trim().toLowerCase();
   const useFr = locale === 'fr';
 
+  const rankIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    nodes.filter(n => n.level === 1 && n.rankIndex !== undefined).forEach(n => map.set(n.catKey!, n.rankIndex!));
+    return map;
+  }, [nodes]);
+
   const catIconMap = useMemo(() => {
     const map = new Map<string, string>();
     nodes.filter(n => n.level === 1 && n.icon).forEach(n => map.set(n.catKey!, `${BUNGIE_CDN}${n.icon}`));
@@ -93,9 +99,11 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
 
             const sameNameEn = group.cat === group.sub;
             const sameNameFr = group.catFr === group.subFr;
-            const primaryLabel = useFr
+            const rankIndex = rankIndexMap.get(`${group.section}|${group.cat}`);
+            const rankPrefix = rankIndex !== undefined ? `${rankIndex + 1} · ` : '';
+            const primaryLabel = rankPrefix + (useFr
               ? (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`)
-              : (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`);
+              : (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`));
             const secondaryLabel = useFr
               ? (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`)
               : (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`);

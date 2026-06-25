@@ -17,6 +17,7 @@ interface DisplayProperties {
 
 interface PresentationNode {
   hash: number
+  index: number
   displayProperties: DisplayProperties
   children?: {
     presentationNodes?: Array<{ presentationNodeHash: number }>
@@ -101,7 +102,10 @@ function walkNode(
       descPt: nodePt?.displayProperties.description,
       icon: extractIcon(nodeEn.displayProperties),
     }
-    if (depth === 1) meta.catKey = `${section}|${cat}`
+    if (depth === 1) {
+      meta.catKey = `${section}|${cat}`
+      if (section === 'ranks') meta.rankIndex = nodeEn.index
+    }
     if (depth === 2) meta.groupKey = `${section}|${cat}|${sub}`
     nodes.push(meta)
   }

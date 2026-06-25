@@ -32,6 +32,7 @@ export interface NodeMeta {
   descFr: string;
   descPt?: string;
   icon?: string;
+  rankIndex?: number;
 }
 
 export interface ObjectiveProgress {
