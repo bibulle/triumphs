@@ -171,11 +171,12 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                       </div>
                     </td>
                     {players.map((p, i) => {
-                      const done = checks[i];
                       const detail = progressDetailFor?.(p)?.[item.id];
                       const objectives = detail?.objectives ?? [];
                       const current = objectives.reduce((s, o) => s + o.current, 0);
                       const total = objectives.reduce((s, o) => s + o.completionValue, 0);
+                      const allObjMet = total > 0 && current >= total;
+                      const done = checks[i] || !!detail?.completed || allObjMet;
                       const hasProgress = !done && total > 0;
                       return (
                         <td key={p} className={`${styles.td} ${styles.friendCell}`}>
