@@ -62,24 +62,24 @@ export async function fetchTriumphCatalog(): Promise<{ version: string; triumphs
     fetchDefinitions<RecordDefinition>(paths.fr.DestinyRecordDefinition),
   ])
 
-  const allMonuments = Object.values(nodesEn).filter(
-    n => n.displayProperties.name === MONUMENT_NAME_EN
-  )
-  console.log(`[bungie] nodes named "${MONUMENT_NAME_EN}": ${allMonuments.length}`)
-  allMonuments.forEach(n => {
-    const pNodes = n.children?.presentationNodes?.length ?? 0
-    const recs = n.children?.records?.length ?? 0
-    console.log(`[bungie]   hash=${n.hash} presentationNodes=${pNodes} records=${recs}`)
+  // Log top-level candidate nodes (many presentationNode children = likely a root)
+  const topCandidates = Object.values(nodesEn)
+    .filter(n => (n.children?.presentationNodes?.length ?? 0) >= 3)
+    .sort((a, b) => (b.children?.presentationNodes?.length ?? 0) - (a.children?.presentationNodes?.length ?? 0))
+    .slice(0, 20)
+  console.log('[bungie] Top presentation nodes by children count:')
+  topCandidates.forEach(n => {
+    console.log(`[bungie]   "${n.displayProperties.name}" hash=${n.hash} presentationNodes=${n.children?.presentationNodes?.length}`)
   })
 
-  const monument = allMonuments.find(n => (n.children?.presentationNodes?.length ?? 0) > 0)
-    ?? allMonuments[0]
+  const monument = Object.values(nodesEn).find(
+    n => n.displayProperties.name === MONUMENT_NAME_EN
+  )
   if (!monument) {
-    console.error(`[bungie] "${MONUMENT_NAME_EN}" node not found. Sample nodes: ${Object.values(nodesEn).slice(0, 5).map(n => n.displayProperties.name).join(', ')}…`)
     throw new Error(`"${MONUMENT_NAME_EN}" node not found in Bungie manifest`)
   }
   const catNodes = monument.children?.presentationNodes ?? []
-  console.log(`[bungie] Using Monument hash=${monument.hash}, presentationNodes=${catNodes.length}, records=${monument.children?.records?.length ?? 0}`)
+  console.log(`[bungie] Using "${MONUMENT_NAME_EN}" hash=${monument.hash}, presentationNodes=${catNodes.length}`)
 
   const triumphs: Triumph[] = []
   let idx = 0
