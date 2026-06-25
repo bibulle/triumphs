@@ -97,7 +97,7 @@ export default function TriumphTable({ groups, triumphs, players, collapsed, onT
                 <td className={`${styles.td} ${styles.colTitle} ${styles.groupTitleCell}`}>
                   <div className={styles.groupHead}>
                     <span className={styles.chev}>▾</span>
-                    {(() => { const icon = catIconMap.get(`${group.section}|${group.cat}`); return icon ? <span className={styles.catIcon} style={{ maskImage: `url(${icon})`, WebkitMaskImage: `url(${icon})` }} aria-hidden="true" /> : null; })()}
+                    {(() => { const icon = catIconMap.get(`${group.section}|${group.cat}`); return icon ? <img src={icon} className={styles.catIcon} aria-hidden="true" alt="" /> : null; })()}
                     <span className={styles.groupLabel}>
                       {primaryLabel}
                       <span className={styles.groupLabelEn}>{secondaryLabel}</span>

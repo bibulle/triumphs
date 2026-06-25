@@ -111,10 +111,7 @@
 .catIcon {
   width: 18px;
   height: 18px;
-  background: currentColor;
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
+  object-fit: contain;
   opacity: 0.6;
   flex-shrink: 0;
 }

@@ -44,11 +44,8 @@
 .icon {
   width: 18px;
   height: 18px;
-  background: currentColor;
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  opacity: 0.45;
+  object-fit: contain;
+  opacity: 0.5;
   flex-shrink: 0;
   transition: opacity 0.15s;
 }
