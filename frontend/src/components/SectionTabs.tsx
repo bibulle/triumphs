@@ -29,10 +29,7 @@ export default function SectionTabs({ sections, activeId, onSelect, nodes = [] }
             className={`${styles.tab} ${sec.id === activeId ? styles.active : ''}`}
             onClick={() => onSelect(sec.id)}
           >
-            {icon
-              ? <img src={icon} className={styles.icon} aria-hidden="true" alt="" />
-              : <span className={styles.dot} />
-            }
+            <span className={styles.dot} />
             {t.sections[sec.id] ?? sec.label}
             {!sec.hasData && <span className={styles.tag}>{t.comingSoon}</span>}
           </button>
