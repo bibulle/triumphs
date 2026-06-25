@@ -3,6 +3,16 @@ import { connectMongo } from './services/cache.js'
 import triumphsRouter from './routes/triumphs.js'
 import progressRouter from './routes/progress.js'
 
+// Catch-all for unhandled async rejections / uncaught exceptions so the process
+// logs something useful before crashing (or staying alive with a bad state).
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] Unhandled promise rejection:', reason)
+})
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught exception:', err.message, err.stack)
+  process.exit(1)
+})
+
 const app = express()
 const PORT = process.env.PORT ?? 3001
 

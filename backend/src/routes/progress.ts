@@ -6,17 +6,24 @@ const router = Router()
 const PROGRESS_KEY = 'progress'
 
 router.get('/', async (_req: Request, res: Response) => {
-  if (process.env.MONGODB_URL) {
-    const cached = await getCachedProgress(PROGRESS_KEY)
-    if (cached) {
-      res.json(cached)
-      return
+  try {
+    if (process.env.MONGODB_URL) {
+      const cached = await getCachedProgress(PROGRESS_KEY)
+      if (cached) {
+        res.json(cached)
+        return
+      }
     }
-  }
 
-  const progress = getMockProgress()
-  await setCachedProgress(PROGRESS_KEY, progress).catch(() => {/* mongo unavailable */})
-  res.json(progress)
+    const progress = getMockProgress()
+    await setCachedProgress(PROGRESS_KEY, progress).catch((e) =>
+      console.warn('[progress] Failed to store in cache:', (e as Error).message)
+    )
+    res.json(progress)
+  } catch (err) {
+    console.error('[progress] Unexpected error:', (err as Error).message, (err as Error).stack)
+    res.status(500).json({ error: 'Failed to fetch progress' })
+  }
 })
 
 export default router
