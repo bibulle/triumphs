@@ -1,23 +1,27 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { Triumph, Group, RecordProgress } from '../data';
 import { useLocale } from '../i18n';
 import styles from './ProgressionModal.module.css';
 
-// Per-player colors (CSS variables defined in App.css)
-const PLAYER_COLORS = [
-  'var(--u-p1)',
-  'var(--u-p2)',
-  'var(--u-p3)',
-  'var(--u-p4)',
-  'var(--u-p5)',
-];
+const CHART_WEEKS = 26;
+
+// Map known player names to CSS variables, fall back to generic slots
+const PLAYER_VAR: Record<string, string> = {
+  Bibulle: '--u-bibulle',
+  Vincent: '--u-vincent',
+  Guiz: '--u-guiz',
+};
+const FALLBACK_VARS = ['--u-p1', '--u-p2', '--u-p3', '--u-p4', '--u-p5'];
+
+function playerColor(name: string, idx: number): string {
+  return `var(${PLAYER_VAR[name] ?? FALLBACK_VARS[idx % FALLBACK_VARS.length]})`;
+}
 
 type Metric = 'cumul' | 'weekly';
 
 interface WeekPoint {
-  week: string; // YYYY-Www
-  date: Date;
-  counts: number[]; // per player
+  label: string; // "Www YYYY"
+  counts: number[];
 }
 
 function isoWeek(d: Date): string {
@@ -26,20 +30,15 @@ function isoWeek(d: Date): string {
   return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 }
 
-function weekStart(isoWeekStr: string): Date {
+function weekLabel(isoWeekStr: string): string {
   const [year, wStr] = isoWeekStr.split('-W');
-  const w = parseInt(wStr);
-  const jan4 = new Date(parseInt(year), 0, 4);
-  const dow = jan4.getDay() || 7;
-  const monday = new Date(jan4.getTime() - (dow - 1) * 86400000 + (w - 1) * 7 * 86400000);
-  return monday;
+  return `S${wStr} ${year}`;
 }
 
 function niceMax(v: number): number {
   if (v === 0) return 10;
   const mag = Math.pow(10, Math.floor(Math.log10(v)));
-  const nice = [1, 2, 5, 10];
-  for (const n of nice) {
+  for (const n of [1, 2, 5, 10]) {
     if (n * mag >= v) return n * mag;
   }
   return Math.ceil(v / mag) * mag;
@@ -58,30 +57,36 @@ function buildSeries(
 
   const weekMap = new Map<string, number[]>();
 
+  // Seed the last CHART_WEEKS weeks
+  const now = new Date();
+  const weekKeys: string[] = [];
+  for (let i = CHART_WEEKS - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 7 * 86400000);
+    weekKeys.push(isoWeek(d));
+  }
+  weekKeys.forEach(w => { if (!weekMap.has(w)) weekMap.set(w, players.map(() => 0)); });
+
   players.forEach((player, pi) => {
     const recs = progressDetail[player] ?? {};
     Object.entries(recs).forEach(([id, rec]) => {
       if (!rec.completed || !rec.completedAt) return;
       if (filteredIds && !filteredIds.has(id)) return;
       const week = isoWeek(new Date(rec.completedAt));
-      if (!weekMap.has(week)) weekMap.set(week, players.map(() => 0));
+      if (!weekMap.has(week)) return; // outside window
       weekMap.get(week)![pi]++;
     });
   });
 
-  if (weekMap.size === 0) return [];
-
-  const sorted = [...weekMap.entries()].sort(([a], [b]) => a.localeCompare(b));
+  const sorted = weekKeys.map(w => ({ week: w, counts: weekMap.get(w)! }));
 
   if (metric === 'weekly') {
-    return sorted.map(([week, counts]) => ({ week, date: weekStart(week), counts }));
+    return sorted.map(({ week, counts }) => ({ label: weekLabel(week), counts }));
   }
 
-  // Cumulative
   const cumul = players.map(() => 0);
-  return sorted.map(([week, counts]) => {
+  return sorted.map(({ week, counts }) => {
     counts.forEach((c, i) => { cumul[i] += c; });
-    return { week, date: weekStart(week), counts: [...cumul] };
+    return { label: weekLabel(week), counts: [...cumul] };
   });
 }
 
@@ -94,17 +99,18 @@ interface Props {
   progressDetail: Record<string, Record<string, RecordProgress>>;
 }
 
-const W = 600;
-const H = 280;
-const PAD = { top: 16, right: 24, bottom: 40, left: 48 };
+const W = 700;
+const H = 260;
+const PAD = { top: 16, right: 24, bottom: 36, left: 44 };
 
 export default function ProgressionModal({ open, onClose, players, triumphs, groups, progressDetail }: Props) {
   const { t } = useLocale();
   const [metric, setMetric] = useState<Metric>('cumul');
   const [filterCat, setFilterCat] = useState<string | null>(null);
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; week: string; counts: number[] } | null>(null);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const chartRef = useRef<SVGSVGElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -125,6 +131,13 @@ export default function ProgressionModal({ open, onClose, players, triumphs, gro
     () => buildSeries(players, progressDetail, filterCat, triumphs, metric),
     [players, progressDetail, filterCat, triumphs, metric]
   );
+
+  // Totals per player (cumulative max for legend)
+  const totals = useMemo(() => {
+    const cumulSeries = buildSeries(players, progressDetail, filterCat, triumphs, 'cumul');
+    const last = cumulSeries[cumulSeries.length - 1];
+    return last ? last.counts : players.map(() => 0);
+  }, [players, progressDetail, filterCat, triumphs]);
 
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
@@ -151,17 +164,16 @@ export default function ProgressionModal({ open, onClose, players, triumphs, gro
     [players, series, xScale, yScale]
   );
 
-  // X-axis labels (show ~6 evenly spaced)
+  // X-axis labels: show ~6 evenly spaced
   const xLabels = useMemo(() => {
     if (series.length === 0) return [];
     const step = Math.max(1, Math.floor(series.length / 6));
-    return series.filter((_, i) => i % step === 0 || i === series.length - 1).map((pt) => ({
-      label: pt.date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }),
-      x: xScale(series.indexOf(pt)),
-    }));
+    return series
+      .map((pt, i) => ({ pt, i }))
+      .filter(({ i }) => i % step === 0 || i === series.length - 1)
+      .map(({ pt, i }) => ({ label: pt.label, x: xScale(i) }));
   }, [series, xScale]);
 
-  // Y-axis ticks
   const yTicks = useMemo(() => {
     const count = 4;
     return Array.from({ length: count + 1 }, (_, i) => ({
@@ -173,19 +185,40 @@ export default function ProgressionModal({ open, onClose, players, triumphs, gro
   const handleMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (series.length === 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const mx = e.clientX - rect.left - PAD.left;
+    const svgX = (e.clientX - rect.left) * (W / rect.width);
+    const mx = svgX - PAD.left;
     const idx = Math.max(0, Math.min(series.length - 1, Math.round((mx / chartW) * (series.length - 1))));
-    const pt = series[idx];
-    setTooltip({ x: xScale(idx), y: PAD.top, week: pt.week, counts: pt.counts });
-  }, [series, chartW, xScale]);
+    setHoverIdx(idx);
+  }, [series.length, chartW]);
+
+  // Compute tooltip position in px relative to chartWrap
+  const tipPos = useMemo(() => {
+    if (hoverIdx === null || !chartRef.current || !wrapRef.current) return null;
+    const svgRect = chartRef.current.getBoundingClientRect();
+    const wrapRect = wrapRef.current.getBoundingClientRect();
+    const svgScale = svgRect.width / W;
+    const x = PAD.left + (series.length < 2 ? chartW / 2 : (hoverIdx / (series.length - 1)) * chartW);
+    return {
+      x: svgRect.left - wrapRect.left + x * svgScale,
+      y: svgRect.top - wrapRect.top + PAD.top * svgScale,
+    };
+  }, [hoverIdx, series.length, chartW]);
+
+  const hoverPt = hoverIdx !== null ? series[hoverIdx] : null;
 
   if (!open) return null;
 
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <div className={styles.header}>
-          <span className={styles.title}>{t.progressionTitle ?? 'Progression'}</span>
+        {/* Gold top border */}
+        <div className={styles.goldBar} />
+
+        <div className={styles.head}>
+          <div>
+            <div className={styles.eyebrow}>Progression</div>
+            <h2 className={styles.title}>{t.progressionTitle ?? 'Triomphes dans le temps'}</h2>
+          </div>
           <button className={styles.close} onClick={onClose} aria-label="Fermer">✕</button>
         </div>
 
@@ -208,24 +241,26 @@ export default function ProgressionModal({ open, onClose, players, triumphs, gro
             <option value="">Toutes catégories</option>
             {cats.map(c => <option key={c.cat} value={c.cat}>{c.catFr}</option>)}
           </select>
+
+          <div className={styles.legend}>
+            {players.map((p, i) => (
+              <span key={p} className={styles.legendItem}>
+                <span className={styles.legendSw} style={{ background: playerColor(p, i) }} />
+                <span className={styles.legendName}>{p}</span>
+                <strong className={styles.legendTotal}>{totals[i]}</strong>
+              </span>
+            ))}
+          </div>
         </div>
 
-        <div className={styles.legend}>
-          {players.map((p, i) => (
-            <span key={p} className={styles.legendItem}>
-              <span className={styles.legendDot} style={{ background: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
-              {p}
-            </span>
-          ))}
-        </div>
-
-        <div className={styles.chartWrap} onMouseLeave={() => setTooltip(null)}>
+        <div className={styles.chartWrap} ref={wrapRef} onMouseLeave={() => setHoverIdx(null)}>
           {series.length === 0 ? (
             <div className={styles.noData}>Aucune donnée de progression disponible</div>
           ) : (
             <svg
+              ref={chartRef}
               viewBox={`0 0 ${W} ${H}`}
-              className={styles.chart}
+              className={`${styles.chart} ${hoverIdx !== null ? styles.showHover : ''}`}
               onMouseMove={handleMouseMove}
             >
               {/* Grid lines */}
@@ -247,52 +282,58 @@ export default function ProgressionModal({ open, onClose, players, triumphs, gro
                   key={i}
                   d={d}
                   fill="none"
-                  stroke={PLAYER_COLORS[i % PLAYER_COLORS.length]}
+                  stroke={playerColor(players[i], i)}
                   strokeWidth="2"
                   strokeLinejoin="round"
                   strokeLinecap="round"
                 />
               ))}
 
-              {/* Tooltip crosshair */}
-              {tooltip && (
-                <>
-                  <line
-                    x1={tooltip.x} x2={tooltip.x}
-                    y1={PAD.top} y2={H - PAD.bottom}
-                    className={styles.crosshair}
-                  />
-                  {tooltip.counts.map((c, i) => (
-                    <circle
-                      key={i}
-                      cx={tooltip.x}
-                      cy={yScale(c)}
-                      r={4}
-                      fill={PLAYER_COLORS[i % PLAYER_COLORS.length]}
-                      stroke="var(--surface)"
-                      strokeWidth={1.5}
-                    />
-                  ))}
-                  <foreignObject
-                    x={Math.min(tooltip.x + 8, W - PAD.right - 130)}
-                    y={PAD.top}
-                    width={120}
-                    height={players.length * 20 + 28}
-                  >
-                    <div className={styles.tip}>
-                      <div className={styles.tipWeek}>{tooltip.week}</div>
-                      {players.map((p, i) => (
-                        <div key={p} className={styles.tipRow}>
-                          <span className={styles.tipDot} style={{ background: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
-                          {p}: <strong>{tooltip.counts[i]}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  </foreignObject>
-                </>
+              {/* Hover guide line */}
+              {hoverIdx !== null && (
+                <line
+                  className={styles.guide}
+                  x1={xScale(hoverIdx)} x2={xScale(hoverIdx)}
+                  y1={PAD.top} y2={H - PAD.bottom}
+                />
               )}
+
+              {/* Hover dots */}
+              {hoverIdx !== null && hoverPt && players.map((p, i) => (
+                <circle
+                  key={i}
+                  className={styles.hdot}
+                  cx={xScale(hoverIdx)}
+                  cy={yScale(hoverPt.counts[i])}
+                  r={4}
+                  fill={playerColor(p, i)}
+                  stroke="var(--surface)"
+                  strokeWidth={1.5}
+                />
+              ))}
             </svg>
           )}
+
+          {/* Tooltip */}
+          {tipPos && hoverPt && (
+            <div
+              className={styles.tip}
+              style={{ left: tipPos.x, top: tipPos.y }}
+            >
+              <div className={styles.tipWeek}>{hoverPt.label}</div>
+              {players.map((p, i) => (
+                <div key={p} className={styles.tipRow}>
+                  <span className={styles.tipSw} style={{ background: playerColor(p, i) }} />
+                  <span className={styles.tipName}>{p}</span>
+                  <strong className={styles.tipVal}>{hoverPt.counts[i]}</strong>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.note}>
+          Données temporelles d'exemple — à remplacer par les dates de complétion du backend.
         </div>
       </div>
     </div>

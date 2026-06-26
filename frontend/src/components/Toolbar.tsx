@@ -89,8 +89,8 @@ export default function Toolbar({
           onSortChange={onSortChange}
         />
       </div>
-      <button className={styles.btn} onClick={onShowProgression} title="Voir la progression dans le temps">
-        📈
+      <button className={styles.btn} onClick={onShowProgression}>
+        Progression
       </button>
       <div className={styles.iconGroup}>
         <button
