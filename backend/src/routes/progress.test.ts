@@ -5,6 +5,8 @@ import type { Express } from 'express'
 vi.mock('../services/cache.js', () => ({
   getCachedProgress: vi.fn().mockResolvedValue(null),
   setCachedProgress: vi.fn().mockResolvedValue(undefined),
+  deleteCachedProgress: vi.fn().mockResolvedValue(undefined),
+  getCachedCatalog: vi.fn().mockResolvedValue(null),
 }))
 
 vi.mock('../services/players.js', async (importOriginal) => {
