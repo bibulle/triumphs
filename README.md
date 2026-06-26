@@ -92,8 +92,11 @@ MONGODB_URL=mongodb+srv://... docker compose up
 |---|---|
 | `npm run dev` | Lance frontend + backend en parallèle |
 | `npm run build` | Build frontend puis backend |
-| `npm test` | Tests unitaires frontend (67) + backend (25) |
-| `npm run test:e2e` | Tests Playwright (26 scénarios) |
+| `npm test` | Tests unitaires frontend + backend |
+| `npm run test:e2e` | Tests Playwright |
+| `npm run release:patch` | Bump patch, commit (incl. package-lock.json), tag, push |
+| `npm run release:minor` | Bump minor, commit (incl. package-lock.json), tag, push |
+| `npm run release:major` | Bump major, commit (incl. package-lock.json), tag, push |
 
 ### Frontend (`cd frontend`)
 
