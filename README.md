@@ -128,6 +128,7 @@ MONGODB_URL=mongodb+srv://... docker compose up
 | `GET /api/annotations` | Priorités & flags de tous les joueurs | Persisté sans TTL (`triumph_annotations`) |
 | `PUT /api/annotations/:player` | Sauvegarde les annotations d'un joueur | idem |
 | `GET /api/version` | Version déployée du backend | Aucun (lu depuis `package.json`) |
+| `GET /api/progress?force=true` | Progression joueurs en forçant le re-fetch (invalide le cache MongoDB) | — |
 
 Les collections MongoDB sont préfixées `triumph_` pour cohabiter avec d'autres applications sur le même cluster.
 
@@ -160,7 +161,7 @@ Variables d'environnement :
 - **Priorités & flags par joueur** : clic sur une cellule joueur ouvre un mini-éditeur (popover fixe) permettant de définir une priorité (0/1/2/4 → aucune/basse/moyenne/haute) et un statut personnel (besoin des autres / faisable seul / abandonné). Persistés en MongoDB via `PUT /api/annotations/:player`.
   - **Prio globale** : moyenne des prios joueurs, buckétée en 3 niveaux (seuils 1.5 / 2.5), affichée à droite de chaque triomphe avec le pire flag collectif
   - **Tri** : défaut (par groupe), prio globale (avec flag comme tiebreaker), statut, ou prio par joueur — en mode tri actif, le classement s'applique à tout l'onglet et non groupe par groupe
-- **Mise à jour automatique** : la progression est re-fetchée toutes les 5 minutes en arrière-plan (= TTL du cache backend), sans rechargement de page
+- **Mise à jour automatique** : la progression est re-fetchée toutes les 5 minutes en arrière-plan (= TTL du cache backend), sans rechargement de page. Un compte à rebours discret dans la Toolbar indique le prochain refresh automatique. Un bouton ↻ permet de forcer un rechargement immédiat (invalide aussi le cache backend via `?force=true`)
 - **Détection de nouvelle version** : le frontend poll `/api/version` toutes les 5 minutes ; si la version change (nouveau déploiement), un bandeau invite à recharger la page
 - **Recherche** : filtre live FR + EN + PT
 - **Thème** : sombre par défaut, persisté en `localStorage`

@@ -27,7 +27,7 @@ function AppInner() {
   const { t, locale } = useLocale();
   const updateAvailable = useVersionCheck();
 
-  const { groups, triumphs, players, progress, progressDetail, nodes, annotations: initAnnotations, sections, loading, error } = useAppData();
+  const { groups, triumphs, players, progress, progressDetail, nodes, annotations: initAnnotations, sections, loading, error, refreshProgress, nextRefreshIn } = useAppData();
   const [annotations, setAnnotations] = useState<Annotations>({});
 
   // Merge server annotations once loaded
@@ -127,6 +127,8 @@ function AppInner() {
             onCollapseAll={collapseAll}
             theme={theme}
             onToggleTheme={toggleTheme}
+            onRefreshProgress={refreshProgress}
+            nextRefreshIn={nextRefreshIn}
           />
           <TriumphTable
             groups={sectionGroups}

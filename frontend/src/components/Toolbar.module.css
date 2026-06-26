@@ -119,3 +119,59 @@
   margin-left: 5px;
   vertical-align: middle;
 }
+
+.refreshBtn {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.refreshing {
+  animation: spin 0.8s linear infinite;
+}
+
+.refreshBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--text-faint);
+  opacity: 0.4;
+  transition: width 1s linear;
+  border-radius: 0;
+}
+
+:global([data-theme='light']) .refreshBar {
+  opacity: 0.25;
+}
+
+.refreshBtn::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.refreshBtn:hover::after {
+  opacity: 1;
+}

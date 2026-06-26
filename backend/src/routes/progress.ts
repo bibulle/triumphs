@@ -1,19 +1,24 @@
 import { Router, Request, Response } from 'express'
 import { getMockProgress } from '../data/mock.js'
 import type { PlayerProgress } from '../data/mock.js'
-import { getCachedProgress, setCachedProgress } from '../services/cache.js'
+import { getCachedProgress, setCachedProgress, deleteCachedProgress } from '../services/cache.js'
 import { parsePlayersEnv, resolvePlayer, fetchPlayerProgress } from '../services/players.js'
 
 const router = Router()
 const PROGRESS_KEY = 'progress'
 
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
+    const force = req.query.force === 'true'
     if (process.env.MONGODB_URL) {
-      const cached = await getCachedProgress(PROGRESS_KEY)
-      if (cached) {
-        res.json(cached)
-        return
+      if (force) {
+        await deleteCachedProgress(PROGRESS_KEY).catch(() => {})
+      } else {
+        const cached = await getCachedProgress(PROGRESS_KEY)
+        if (cached) {
+          res.json(cached)
+          return
+        }
       }
     }
 

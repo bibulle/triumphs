@@ -23,8 +23,9 @@ export async function fetchNodes(): Promise<NodeMeta[]> {
   return res.json()
 }
 
-export async function fetchProgress(): Promise<Record<string, Record<string, RecordProgress>>> {
-  const res = await fetch('/api/progress')
+export async function fetchProgress(force = false): Promise<Record<string, Record<string, RecordProgress>>> {
+  const url = force ? '/api/progress?force=true' : '/api/progress'
+  const res = await fetch(url)
   if (!res.ok) throw new Error(`fetchProgress: ${res.status}`)
   return res.json()
 }

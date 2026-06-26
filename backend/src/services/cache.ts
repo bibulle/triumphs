@@ -80,6 +80,10 @@ export async function setCachedProgress<T>(key: string, data: T): Promise<void> 
   )
 }
 
+export async function deleteCachedProgress(key: string): Promise<void> {
+  await getProgressModel().deleteOne({ key })
+}
+
 export async function getProgressCacheAge(key: string): Promise<number | null> {
   const doc = await getProgressModel().findOne({ key })
   if (!doc) return null
