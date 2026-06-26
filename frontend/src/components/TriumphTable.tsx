@@ -88,11 +88,14 @@ export default function TriumphTable({
     return 3;
   };
 
+  const globalPrioRaw = (id: string): number =>
+    players.length ? players.reduce((s, p) => s + prioLevel(p, id), 0) / players.length : 0;
+
   const sortItems = (items: Triumph[]): Triumph[] => {
     if (sortState === 'default') return items;
     return [...items].sort((a, b) => {
-      const ka = sortState === 'global' ? globalPrio(a.id) : prioLevel(sortState.slice(2), a.id);
-      const kb = sortState === 'global' ? globalPrio(b.id) : prioLevel(sortState.slice(2), b.id);
+      const ka = sortState === 'global' ? globalPrioRaw(a.id) : prioLevel(sortState.slice(2), a.id);
+      const kb = sortState === 'global' ? globalPrioRaw(b.id) : prioLevel(sortState.slice(2), b.id);
       return kb - ka;
     });
   };
