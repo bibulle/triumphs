@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { Player, FilterState, FilterStatus } from '../data';
+import type { Player, FilterState, FilterStatus, SortState } from '../data';
 import { DEFAULT_FILTER, isFilterActive } from '../data';
 import { useLocale } from '../i18n';
 import styles from './FilterPopover.module.css';
@@ -10,11 +10,13 @@ interface Props {
   filter: FilterState;
   onChange: (f: FilterState) => void;
   players: readonly Player[];
+  sortState: SortState;
+  onSortChange: (s: SortState) => void;
 }
 
 const STATUS_KEYS: FilterStatus[] = ['all', 'none', 'partial', 'done'];
 
-export default function FilterPopover({ open, onClose, filter, onChange, players }: Props) {
+export default function FilterPopover({ open, onClose, filter, onChange, players, sortState, onSortChange }: Props) {
   const { t } = useLocale();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -46,6 +48,13 @@ export default function FilterPopover({ open, onClose, filter, onChange, players
     if (next.has(p)) next.delete(p); else next.add(p);
     onChange({ ...filter, missing: next });
   };
+
+  const isActive = isFilterActive(filter) || sortState !== 'default';
+  const sortOptions: { key: SortState; label: string }[] = [
+    { key: 'default', label: 'Défaut' },
+    { key: 'global', label: 'Prio. globale' },
+    ...players.map(p => ({ key: `p:${p}` as SortState, label: p })),
+  ];
 
   return (
     <div className={styles.popover} ref={ref} role="dialog" aria-modal="false">
@@ -81,8 +90,26 @@ export default function FilterPopover({ open, onClose, filter, onChange, players
         </div>
       )}
 
-      {isFilterActive(filter) && (
-        <button className={styles.reset} onClick={() => onChange(DEFAULT_FILTER)}>
+      <div className={styles.section}>
+        <div className={styles.sectionLabel}>Trier <span className={styles.hint}>(dans chaque groupe)</span></div>
+        <div className={styles.seg}>
+          {sortOptions.map(({ key, label }) => (
+            <button
+              key={key}
+              className={`${styles.segBtn} ${sortState === key ? styles.segActive : ''}`}
+              onClick={() => onSortChange(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isActive && (
+        <button
+          className={styles.reset}
+          onClick={() => { onChange(DEFAULT_FILTER); onSortChange('default'); }}
+        >
           {t.filterReset}
         </button>
       )}

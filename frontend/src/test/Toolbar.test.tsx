@@ -9,6 +9,8 @@ const baseProps = {
   onSearch: vi.fn(),
   filter: DEFAULT_FILTER,
   onFilterChange: vi.fn(),
+  sortState: 'default' as const,
+  onSortChange: vi.fn(),
   players: ['Bibullus', 'Vincent'] as const,
   onExpandAll: vi.fn(),
   onCollapseAll: vi.fn(),

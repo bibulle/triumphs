@@ -98,3 +98,42 @@ export async function setManifestCheck(key: string): Promise<void> {
     { upsert: true }
   )
 }
+
+// Annotations: persistent storage (no TTL) for per-player prio/flags
+interface AnnotationDoc extends Document {
+  player: string
+  prio: Record<string, number>
+  flags: Record<string, string>
+}
+
+let annotationModel: Model<AnnotationDoc> | null = null
+
+function getAnnotationModel(): Model<AnnotationDoc> {
+  if (annotationModel) return annotationModel
+  const schema = new Schema<AnnotationDoc>(
+    {
+      player: { type: String, required: true, unique: true },
+      prio: { type: Schema.Types.Mixed, default: {} },
+      flags: { type: Schema.Types.Mixed, default: {} },
+    },
+    { collection: 'triumph_annotations' }
+  )
+  const modelName = 'TriumphAnnotation'
+  annotationModel = mongoose.models[modelName]
+    ? (mongoose.model(modelName) as Model<AnnotationDoc>)
+    : mongoose.model<AnnotationDoc>(modelName, schema)
+  return annotationModel
+}
+
+export async function getAllAnnotations(): Promise<Record<string, { prio: Record<string, number>; flags: Record<string, string> }>> {
+  const docs = await getAnnotationModel().find()
+  return Object.fromEntries(docs.map(d => [d.player, { prio: d.prio ?? {}, flags: d.flags ?? {} }]))
+}
+
+export async function setPlayerAnnotations(player: string, prio: Record<string, number>, flags: Record<string, string>): Promise<void> {
+  await getAnnotationModel().findOneAndUpdate(
+    { player },
+    { player, prio, flags },
+    { upsert: true }
+  )
+}

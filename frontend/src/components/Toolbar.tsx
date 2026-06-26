@@ -19,7 +19,7 @@ function IconCollapse() {
     </svg>
   );
 }
-import type { Player, FilterState } from '../data';
+import type { Player, FilterState, SortState } from '../data';
 import { isFilterActive } from '../data';
 import { useLocale } from '../i18n';
 import FilterPopover from './FilterPopover';
@@ -30,6 +30,8 @@ interface Props {
   onSearch: (v: string) => void;
   filter: FilterState;
   onFilterChange: (f: FilterState) => void;
+  sortState: SortState;
+  onSortChange: (s: SortState) => void;
   players: readonly Player[];
   onExpandAll: () => void;
   onCollapseAll: () => void;
@@ -38,12 +40,12 @@ interface Props {
 }
 
 export default function Toolbar({
-  search, onSearch, filter, onFilterChange, players,
+  search, onSearch, filter, onFilterChange, sortState, onSortChange, players,
   onExpandAll, onCollapseAll, theme, onToggleTheme
 }: Props) {
   const { t } = useLocale();
   const [filterOpen, setFilterOpen] = useState(false);
-  const active = isFilterActive(filter);
+  const active = isFilterActive(filter) || sortState !== 'default';
 
   return (
     <div className={styles.toolbar}>
@@ -68,6 +70,8 @@ export default function Toolbar({
           filter={filter}
           onChange={onFilterChange}
           players={players}
+          sortState={sortState}
+          onSortChange={onSortChange}
         />
       </div>
       <div className={styles.iconGroup}>

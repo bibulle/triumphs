@@ -356,3 +356,47 @@
 .allDone:hover .groupTitleCell { background: var(--gold-soft) !important; }
 .allDone .groupLabel { color: var(--gold-bright); }
 .allDone .chev { color: var(--gold-bright); }
+
+/* ---------- PRIORITÉ & FLAGS ---------- */
+
+/* cellule joueur cliquable */
+.cellEdit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 5px 3px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.cellEdit:hover,
+.cellEditOpen {
+  background: var(--surface-3);
+  border-color: var(--border);
+}
+
+.cellEdit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.cellMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 11px;
+}
+
+/* priorité globale dans la colonne titre */
+.prioGlobal {
+  margin-left: auto;
+  align-self: center;
+  flex-shrink: 0;
+}

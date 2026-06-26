@@ -114,3 +114,10 @@
   color: var(--text);
   border-color: var(--gold);
 }
+
+.hint {
+  font-size: 9px;
+  color: var(--text-faint);
+  text-transform: none;
+  letter-spacing: 0;
+}
