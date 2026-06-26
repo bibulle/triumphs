@@ -19,6 +19,15 @@ async function mockApi(page: Page) {
       ),
     })
   );
+  await page.route('/api/version', route =>
+    route.fulfill({ contentType: 'application/json', body: JSON.stringify({ version: '0.0.0' }) })
+  );
+  await page.route('/api/annotations', route =>
+    route.fulfill({ contentType: 'application/json', body: JSON.stringify({}) })
+  );
+  await page.route('/api/annotations/*', route =>
+    route.fulfill({ status: 200, body: '' })
+  );
 }
 
 export const test = base.extend<{ mockApi: void }>({

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppData } from './hooks/useAppData';
+import { useVersionCheck } from './hooks/useVersionCheck';
 import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
 import Toolbar from './components/Toolbar';
@@ -24,6 +25,7 @@ function AppInner() {
   const [sortState, setSortState] = useState<SortState>('default');
   const { theme, toggle: toggleTheme } = useTheme();
   const { t, locale } = useLocale();
+  const updateAvailable = useVersionCheck();
 
   const { groups, triumphs, players, progress, progressDetail, nodes, annotations: initAnnotations, sections, loading, error } = useAppData();
   const [annotations, setAnnotations] = useState<Annotations>({});
@@ -88,6 +90,12 @@ function AppInner() {
 
   return (
     <div className="wrap">
+      {updateAvailable && (
+        <div className="updateBanner">
+          Nouvelle version disponible —{' '}
+          <button onClick={() => window.location.reload()}>Recharger</button>
+        </div>
+      )}
       <div className="topbar">
         <SectionTabs
           sections={sections}
