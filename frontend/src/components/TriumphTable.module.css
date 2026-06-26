@@ -201,6 +201,7 @@
   background: var(--surface);
   border-right: 1px solid var(--border);
   padding-left: 34px !important;
+  padding-right: 32px !important;
 }
 
 .titleCell {
@@ -396,7 +397,7 @@
 
 /* priorité globale dans la colonne titre */
 .prioGlobal {
-  align-self: flex-end;
-  flex-shrink: 0;
-  margin-bottom: 2px;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
 }
