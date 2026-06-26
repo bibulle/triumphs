@@ -18,25 +18,39 @@ function log(msg: string) {
   console.log(`[triumphs] ${msg}`)
 }
 
+async function refreshCatalogInBackground(): Promise<void> {
+  try {
+    const latestVersion = await fetchManifestVersion()
+    const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
+    if (validCache(cached) && cached.version === latestVersion) {
+      log(`background: version unchanged (${latestVersion}), renewing window`)
+      await setManifestCheck(MANIFEST_CHECK_KEY)
+      return
+    }
+    log('background: new manifest version detected, fetching catalog…')
+    const catalog = await fetchTriumphCatalog()
+    await setCachedCatalog(CATALOG_KEY, { ...catalog })
+    await setManifestCheck(MANIFEST_CHECK_KEY)
+    log(`background: catalog updated — ${catalog.triumphs.length} triumphs (version ${catalog.version})`)
+  } catch (err) {
+    console.error('[triumphs] background refresh error:', (err as Error).message)
+  }
+}
+
 async function getOrFetchCatalog(): Promise<CatalogCache | null> {
   const apiKey = process.env.BUNGIE_API_KEY
   const hasDb = !!process.env.MONGODB_URL
 
   if (apiKey && hasDb) {
     const windowValid = await getManifestCheck(MANIFEST_CHECK_KEY)
-    if (windowValid) {
-      const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
-      if (validCache(cached)) return cached
+    if (!windowValid) {
+      // stale-while-revalidate: serve cache immediately, refresh in background
+      refreshCatalogInBackground()
     }
-
-    const latestVersion = await fetchManifestVersion()
     const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
+    if (validCache(cached)) return cached
 
-    if (validCache(cached) && cached.version === latestVersion) {
-      await setManifestCheck(MANIFEST_CHECK_KEY)
-      return cached
-    }
-
+    // No cache at all (first boot without warmup) — must wait
     const catalog = await fetchTriumphCatalog()
     const toStore: CatalogCache = { ...catalog }
     await setCachedCatalog(CATALOG_KEY, toStore)
