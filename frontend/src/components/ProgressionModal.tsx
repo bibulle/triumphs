@@ -55,19 +55,32 @@ function buildSeries(
   filterSection: string | null,
   metric: Metric,
 ): WeekPoint[] {
-  // Seed the last CHART_WEEKS weeks
-  const now = new Date();
-  const weekKeys: string[] = [];
-  for (let i = CHART_WEEKS - 1; i >= 0; i--) {
-    const d = new Date(now.getTime() - i * 7 * 86400000);
-    weekKeys.push(isoWeek(d));
-  }
-  const weekSet = new Set(weekKeys);
-
   // Filter: level 0 snapshots for a specific section, or aggregate level 0 across all sections
   const level0 = snapshots.filter(s => s.level === 0 && (filterSection === null || s.nodeKey === filterSection));
 
-  // Build per-player weekly counts map: week -> player idx -> sum of nodeKey counts
+  // Build week range: from first snapshot date to today, capped at CHART_WEEKS
+  const now = new Date();
+  const firstDate = level0.length > 0
+    ? level0.reduce((min, s) => s.date < min ? s.date : min, level0[0].date)
+    : null;
+  const firstWeek = firstDate ? isoWeek(new Date(firstDate)) : isoWeek(new Date(now.getTime() - (CHART_WEEKS - 1) * 7 * 86400000));
+  const nowWeek = isoWeek(now);
+  const weekKeys: string[] = [];
+  {
+    const d = new Date(now.getTime() - (CHART_WEEKS - 1) * 7 * 86400000);
+    while (true) {
+      const w = isoWeek(d);
+      if (w >= firstWeek) weekKeys.push(w);
+      if (w >= nowWeek) break;
+      d.setDate(d.getDate() + 7);
+    }
+  }
+  if (weekKeys.length === 0) weekKeys.push(nowWeek);
+  const weekSet = new Set(weekKeys);
+
+  // Build per-player weekly counts map: week -> player idx -> count delta
+  // Snapshots store cumulative counts per date. We need to find the latest snapshot per
+  // (player, nodeKey) per week and sum across nodeKeys.
   const weekMap = new Map<string, number[]>();
   weekKeys.forEach(w => weekMap.set(w, players.map(() => 0)));
 
@@ -75,13 +88,14 @@ function buildSeries(
     const pi = players.indexOf(player);
     const playerSnaps = level0.filter(s => s.player === player);
 
-    // Group by nodeKey, carry forward last known count per week
+    // Group by nodeKey, get value per week (carry forward last known)
     const nodeKeys = [...new Set(playerSnaps.map(s => s.nodeKey))];
     for (const nodeKey of nodeKeys) {
       const byDate = playerSnaps
         .filter(s => s.nodeKey === nodeKey)
         .sort((a, b) => a.date.localeCompare(b.date));
 
+      // For each week, find the last snapshot on or before that week's last day
       let snapIdx = 0;
       let lastCount = 0;
       for (const week of weekKeys) {
@@ -210,7 +224,7 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
     [players, snapshots, filterSection, metric]
   );
 
-  // Totals per player (last cumulative value)
+  // Totals per player (cumulative max for legend)
   const totals = useMemo(() => {
     const cumulSeries = buildSeries(players, snapshots, filterSection, 'cumul');
     const last = cumulSeries[cumulSeries.length - 1];
