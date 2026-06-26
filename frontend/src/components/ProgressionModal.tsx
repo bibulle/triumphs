@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef, useId } from 'react';
 import type { Triumph, Group, RecordProgress } from '../data';
 import { useLocale } from '../i18n';
 import styles from './ProgressionModal.module.css';
@@ -88,6 +88,66 @@ function buildSeries(
     counts.forEach((c, i) => { cumul[i] += c; });
     return { label: weekLabel(week), counts: [...cumul] };
   });
+}
+
+// Custom dropdown (replaces native <select> for consistent styling)
+interface CatDropdownProps {
+  cats: { cat: string; catFr: string }[];
+  value: string | null;
+  onChange: (v: string | null) => void;
+}
+
+function CatDropdown({ cats, value, onChange }: CatDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const id = useId();
+  const label = value ? (cats.find(c => c.cat === value)?.catFr ?? value) : 'Toutes catégories';
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const select = (v: string | null) => { onChange(v); setOpen(false); };
+
+  return (
+    <div className={styles.dropdown} ref={ref}>
+      <button
+        className={styles.ddTrigger}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen(o => !o)}
+        type="button"
+      >
+        <span className={styles.ddVal}>{label}</span>
+        <span className={`${styles.ddCaret} ${open ? styles.ddCaretOpen : ''}`}>▾</span>
+      </button>
+      {open && (
+        <ul className={styles.ddMenu} role="listbox" id={id}>
+          {[{ cat: '', catFr: 'Toutes catégories' }, ...cats].map(c => {
+            const active = (c.cat === '' ? null : c.cat) === value;
+            return (
+              <li key={c.cat} role="option" aria-selected={active}>
+                <button
+                  className={`${styles.ddOpt} ${active ? styles.ddOptActive : ''}`}
+                  onClick={() => select(c.cat === '' ? null : c.cat)}
+                  type="button"
+                >
+                  <span className={styles.ddTick}>◆</span>
+                  {c.catFr}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 interface Props {
@@ -233,14 +293,7 @@ export default function ProgressionModal({ open, onClose, players, triumphs, gro
               onClick={() => setMetric('weekly')}
             >Hebdo</button>
           </div>
-          <select
-            className={styles.catFilter}
-            value={filterCat ?? ''}
-            onChange={e => setFilterCat(e.target.value || null)}
-          >
-            <option value="">Toutes catégories</option>
-            {cats.map(c => <option key={c.cat} value={c.cat}>{c.catFr}</option>)}
-          </select>
+          <CatDropdown cats={cats} value={filterCat} onChange={setFilterCat} />
 
           <div className={styles.legend}>
             {players.map((p, i) => (
