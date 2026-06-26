@@ -13,7 +13,7 @@ import { useLocaleState } from './hooks/useLocale';
 import { useNavState } from './hooks/useNavState';
 import { LocaleContext, useLocale } from './i18n';
 import { saveAnnotations } from './api';
-import type { Player, FilterState, SortState, Annotations, PrioLevel, FlagKey, Section } from './data';
+import type { Player, FilterState, SortState, Annotations, PrioLevel, FlagKey } from './data';
 import { DEFAULT_FILTER } from './data';
 
 import './App.css';
