@@ -201,13 +201,6 @@ export default function TriumphTable({
                               <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
                                 {primaryName}
                                 {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
-                                {gp > 0 && (
-                                  <PrioMeter
-                                    level={gp}
-                                    extraClass={styles.prioGlobal}
-                                    title={`Priorité globale : ${PRIO_LABELS[gp]}`}
-                                  />
-                                )}
                               </span>
                               {secondaryName && secondaryName !== primaryName && (
                                 <span className={styles.titleEn}>{secondaryName}</span>
@@ -218,6 +211,13 @@ export default function TriumphTable({
                               : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
                             }
                           </div>
+                          {gp > 0 && (
+                            <PrioMeter
+                              level={gp}
+                              extraClass={styles.prioGlobal}
+                              title={`Priorité globale : ${PRIO_LABELS[gp]}`}
+                            />
+                          )}
                         </div>
                       </td>
                       {players.map((p, i) => {

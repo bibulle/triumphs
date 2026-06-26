@@ -396,8 +396,7 @@
 
 /* priorité globale dans la colonne titre */
 .prioGlobal {
-  display: inline-flex;
-  margin-left: 8px;
-  vertical-align: middle;
+  align-self: flex-end;
   flex-shrink: 0;
+  margin-bottom: 2px;
 }
