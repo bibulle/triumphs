@@ -43,14 +43,14 @@ describe('Toolbar', () => {
   it('calls onExpandAll when "Tout déplier" is clicked', async () => {
     const onExpandAll = vi.fn();
     render(<Toolbar {...baseProps} onExpandAll={onExpandAll} />);
-    await userEvent.click(screen.getByText('Tout déplier'));
+    await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }));
     expect(onExpandAll).toHaveBeenCalledOnce();
   });
 
   it('calls onCollapseAll when "Tout replier" is clicked', async () => {
     const onCollapseAll = vi.fn();
     render(<Toolbar {...baseProps} onCollapseAll={onCollapseAll} />);
-    await userEvent.click(screen.getByText('Tout replier'));
+    await userEvent.click(screen.getByRole('button', { name: 'Tout replier' }));
     expect(onCollapseAll).toHaveBeenCalledOnce();
   });
 
