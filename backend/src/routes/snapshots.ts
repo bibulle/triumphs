@@ -8,7 +8,7 @@ router.get('/', async (_req: Request, res: Response) => {
   try {
     if (process.env.MONGODB_URL) {
       const snapshots = await getSnapshots()
-      res.json(snapshots)
+      res.json(snapshots.length > 0 ? snapshots : getMockSnapshots())
     } else {
       res.json(getMockSnapshots())
     }
