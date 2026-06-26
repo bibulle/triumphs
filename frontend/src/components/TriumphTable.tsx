@@ -105,18 +105,6 @@ export default function TriumphTable({
     return flags.reduce((best, f) => FLAG_WEIGHT[f] > FLAG_WEIGHT[best] ? f : best);
   };
 
-  const sortItems = (items: Triumph[]): Triumph[] => {
-    if (sortState === 'default') return items;
-    return [...items].sort((a, b) => {
-      const ka = sortState === 'global' ? globalPrioRaw(a.id) * 10 + worstFlagWeight(a.id) / 10
-               : sortState === 'flag' ? worstFlagWeight(a.id)
-               : prioLevel(sortState.slice(2), a.id);
-      const kb = sortState === 'global' ? globalPrioRaw(b.id) * 10 + worstFlagWeight(b.id) / 10
-               : sortState === 'flag' ? worstFlagWeight(b.id)
-               : prioLevel(sortState.slice(2), b.id);
-      return kb - ka;
-    });
-  };
 
   return (
     <>
@@ -136,11 +124,8 @@ export default function TriumphTable({
             </tr>
           </thead>
           <tbody>
-            {groups.map(group => {
-              const isCollapsed = collapsed.has(group.groupKey);
-              const catClass = CAT_CLASS[group.cat] ?? '';
-
-              const visibleItems = group.items.filter(item => {
+            {(() => {
+              const filterItem = (item: Triumph) => {
                 const matchSearch = !q || (item.en + ' ' + item.fr).toLowerCase().includes(q);
                 if (!matchSearch) return false;
                 const doneCount = players.filter(p => progressFor(p).has(item.id)).length;
@@ -154,147 +139,166 @@ export default function TriumphTable({
                   }
                 }
                 return true;
-              });
+              };
 
-              if (visibleItems.length === 0) return null;
-
-              const sortedItems = sortItems(visibleItems);
-
-              const groupAllDone = players.length > 0 &&
-                group.items.every(item => players.every(p => progressFor(p).has(item.id)));
-
-              const sameNameEn = group.cat === group.sub;
-              const sameNameFr = group.catFr === group.subFr;
-              const rankIndex = rankIndexMap.get(`${group.section}|${group.cat}`);
-              const rankPrefix = rankIndex !== undefined ? `${rankIndex + 1} · ` : '';
-              const primaryLabel = rankPrefix + (useFr
-                ? (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`)
-                : (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`));
-              const secondaryLabel = useFr
-                ? (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`)
-                : (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`);
-
-              return [
-                <tr
-                  key={`g-${group.groupKey}`}
-                  className={`${styles.groupRow} ${catClass} ${isCollapsed ? styles.collapsed : ''} ${groupAllDone ? styles.allDone : ''}`}
-                  onClick={() => onToggleGroup(group.groupKey)}
-                >
-                  <td className={`${styles.td} ${styles.colTitle} ${styles.groupTitleCell}`}>
-                    <div className={styles.groupHead}>
-                      <span className={styles.chev}>▾</span>
-                      {(() => { const icon = groupIconMap.get(group.groupKey) ?? catIconMap.get(`${group.section}|${group.cat}`); return icon ? <img src={icon} className={styles.catIcon} aria-hidden="true" alt="" /> : null; })()}
-                      <span className={styles.groupLabel}>{primaryLabel}</span>
-                      {secondaryLabel !== primaryLabel && <span className={styles.groupLabelEn}>{secondaryLabel}</span>}
-                    </div>
-                  </td>
-                  {players.map(p => {
-                    const done = group.items.filter(i => progressFor(p).has(i.id)).length;
-                    const total = group.items.length;
-                    const pct = Math.round(done / total * 100);
-                    return (
-                      <td key={p} className={`${styles.td} ${styles.friendCell} ${styles.groupCount}`}>
-                        <div className={styles.groupCountInner}>
-                          <span className={styles.groupFrac}>{done}/{total}</span>
-                          <div className={styles.groupBar}>
-                            <div className={styles.groupBarFill} style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>,
-                ...(!isCollapsed ? sortedItems.map(item => {
-                  const checks = players.map(p => progressFor(p).has(item.id));
-                  const allDone = checks.every(Boolean);
-                  const localeName = locale === 'fr' ? item.fr : locale === 'pt' ? item.pt : undefined;
-                  const primaryName = localeName || item.en;
-                  const secondaryName = useFr ? item.en : item.fr;
-                  const gp = globalPrio(item.id);
-
-                  return (
-                    <tr
-                      key={item.id}
-                      className={`${styles.itemRow} ${allDone ? styles.allDone : ''}`}
-                    >
-                      <td className={`${styles.td} ${styles.colTitle} ${styles.itemColTitle}`}>
-                        <div className={styles.titleCell}>
-                          <span className={`${styles.bullet} ${allDone ? styles.bulletDone : ''}`} />
-                          <div className={styles.titleText}>
-                            <div className={styles.titleRow}>
-                              <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
-                                {primaryName}
-                                {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
-                              </span>
-                              {secondaryName && secondaryName !== primaryName && (
-                                <span className={styles.titleEn}>{secondaryName}</span>
-                              )}
+              const renderGroupRow = (group: Group, isCollapsed: boolean) => {
+                const catClass = CAT_CLASS[group.cat] ?? '';
+                const groupAllDone = players.length > 0 &&
+                  group.items.every(item => players.every(p => progressFor(p).has(item.id)));
+                const sameNameEn = group.cat === group.sub;
+                const sameNameFr = group.catFr === group.subFr;
+                const rankIndex = rankIndexMap.get(`${group.section}|${group.cat}`);
+                const rankPrefix = rankIndex !== undefined ? `${rankIndex + 1} · ` : '';
+                const primaryLabel = rankPrefix + (useFr
+                  ? (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`)
+                  : (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`));
+                const secondaryLabel = useFr
+                  ? (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`)
+                  : (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`);
+                return (
+                  <tr
+                    key={`g-${group.groupKey}`}
+                    className={`${styles.groupRow} ${catClass} ${isCollapsed ? styles.collapsed : ''} ${groupAllDone ? styles.allDone : ''}`}
+                    onClick={() => onToggleGroup(group.groupKey)}
+                  >
+                    <td className={`${styles.td} ${styles.colTitle} ${styles.groupTitleCell}`}>
+                      <div className={styles.groupHead}>
+                        <span className={styles.chev}>▾</span>
+                        {(() => { const icon = groupIconMap.get(group.groupKey) ?? catIconMap.get(`${group.section}|${group.cat}`); return icon ? <img src={icon} className={styles.catIcon} aria-hidden="true" alt="" /> : null; })()}
+                        <span className={styles.groupLabel}>{primaryLabel}</span>
+                        {secondaryLabel !== primaryLabel && <span className={styles.groupLabelEn}>{secondaryLabel}</span>}
+                      </div>
+                    </td>
+                    {players.map(p => {
+                      const done = group.items.filter(i => progressFor(p).has(i.id)).length;
+                      const total = group.items.length;
+                      const pct = Math.round(done / total * 100);
+                      return (
+                        <td key={p} className={`${styles.td} ${styles.friendCell} ${styles.groupCount}`}>
+                          <div className={styles.groupCountInner}>
+                            <span className={styles.groupFrac}>{done}/{total}</span>
+                            <div className={styles.groupBar}>
+                              <div className={styles.groupBarFill} style={{ width: `${pct}%` }} />
                             </div>
-                            {(item.descFr || item.descEn)
-                              ? <span className={styles.desc}>{useFr ? (item.descFr || item.descEn) : (item.descEn || item.descFr)}</span>
-                              : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
-                            }
                           </div>
-                          {(() => { const wf = worstFlagKey(item.id); const showPrio = gp > 0; const showFlag = wf !== null; return (showPrio || showFlag) ? (
-                            <span className={styles.prioGlobal}>
-                              {showPrio && <PrioMeter level={gp} title={`Priorité globale : ${GLOBAL_PRIO_LABELS[gp]}`} />}
-                              {showFlag && <FlagIcon flagKey={wf} />}
-                            </span>
-                          ) : null; })()}
-                        </div>
-                      </td>
-                      {players.map((p, i) => {
-                        const detail = progressDetailFor?.(p)?.[item.id];
-                        const objectives = detail?.objectives ?? [];
-                        const current = objectives.reduce((s, o) => s + o.current, 0);
-                        const total = objectives.reduce((s, o) => s + o.completionValue, 0);
-                        const allObjMet = total > 0 && current >= total;
-                        const done = checks[i] || !!detail?.completed || allObjMet;
-                        const hasProgress = !done && total > 0;
-                        const lvl = prioLevel(p, item.id);
-                        const fl = flagOf(p, item.id);
-                        const isEditingThis = editing?.player === p && editing?.item.id === item.id;
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              };
 
-                        return (
-                          <td key={p} className={`${styles.td} ${styles.friendCell}`}>
-                            <button
-                              className={`${styles.cellEdit} ${isEditingThis ? styles.cellEditOpen : ''}`}
-                              onClick={e => { e.stopPropagation(); setEditing({ player: p, item, anchor: e.currentTarget.getBoundingClientRect() }); }}
-                              aria-label={`${p} — ${primaryName} : modifier priorité et statut`}
-                            >
-                              {done ? (
-                                <span
-                                  className={`${styles.status} ${styles.isDone}`}
-                                  role="img"
-                                  aria-label={`${p} — ${primaryName} : ${t.done}`}
-                                />
-                              ) : hasProgress ? (
-                                <span className={styles.progress} aria-label={`${p} — ${primaryName} : ${current}/${total}`}>
-                                  <span className={styles.progressText}>{current}/{total}</span>
-                                  <span className={styles.progressBar}>
-                                    <span className={styles.progressFill} style={{ width: `${Math.round(current / total * 100)}%` }} />
-                                  </span>
+              const renderItemRow = (item: Triumph) => {
+                const checks = players.map(p => progressFor(p).has(item.id));
+                const allDone = checks.every(Boolean);
+                const localeName = locale === 'fr' ? item.fr : locale === 'pt' ? item.pt : undefined;
+                const primaryName = localeName || item.en;
+                const secondaryName = useFr ? item.en : item.fr;
+                const gp = globalPrio(item.id);
+                const wf = worstFlagKey(item.id);
+                return (
+                  <tr key={item.id} className={`${styles.itemRow} ${allDone ? styles.allDone : ''}`}>
+                    <td className={`${styles.td} ${styles.colTitle} ${styles.itemColTitle}`}>
+                      <div className={styles.titleCell}>
+                        <span className={`${styles.bullet} ${allDone ? styles.bulletDone : ''}`} />
+                        <div className={styles.titleText}>
+                          <div className={styles.titleRow}>
+                            <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
+                              {primaryName}
+                              {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
+                            </span>
+                            {secondaryName && secondaryName !== primaryName && (
+                              <span className={styles.titleEn}>{secondaryName}</span>
+                            )}
+                          </div>
+                          {(item.descFr || item.descEn)
+                            ? <span className={styles.desc}>{useFr ? (item.descFr || item.descEn) : (item.descEn || item.descFr)}</span>
+                            : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
+                          }
+                        </div>
+                        {(gp > 0 || wf !== null) && (
+                          <span className={styles.prioGlobal}>
+                            {gp > 0 && <PrioMeter level={gp} title={`Priorité globale : ${GLOBAL_PRIO_LABELS[gp]}`} />}
+                            {wf !== null && <FlagIcon flagKey={wf} />}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    {players.map((p, i) => {
+                      const detail = progressDetailFor?.(p)?.[item.id];
+                      const objectives = detail?.objectives ?? [];
+                      const current = objectives.reduce((s, o) => s + o.current, 0);
+                      const total = objectives.reduce((s, o) => s + o.completionValue, 0);
+                      const allObjMet = total > 0 && current >= total;
+                      const done = checks[i] || !!detail?.completed || allObjMet;
+                      const hasProgress = !done && total > 0;
+                      const lvl = prioLevel(p, item.id);
+                      const fl = flagOf(p, item.id);
+                      const isEditingThis = editing?.player === p && editing?.item.id === item.id;
+                      return (
+                        <td key={p} className={`${styles.td} ${styles.friendCell}`}>
+                          <button
+                            className={`${styles.cellEdit} ${isEditingThis ? styles.cellEditOpen : ''}`}
+                            onClick={e => { e.stopPropagation(); setEditing({ player: p, item, anchor: e.currentTarget.getBoundingClientRect() }); }}
+                            aria-label={`${p} — ${primaryName} : modifier priorité et statut`}
+                          >
+                            {done ? (
+                              <span className={`${styles.status} ${styles.isDone}`} role="img" aria-label={`${p} — ${primaryName} : ${t.done}`} />
+                            ) : hasProgress ? (
+                              <span className={styles.progress} aria-label={`${p} — ${primaryName} : ${current}/${total}`}>
+                                <span className={styles.progressText}>{current}/{total}</span>
+                                <span className={styles.progressBar}>
+                                  <span className={styles.progressFill} style={{ width: `${Math.round(current / total * 100)}%` }} />
                                 </span>
-                              ) : (
-                                <span
-                                  className={`${styles.status} ${styles.isTodo}`}
-                                  role="img"
-                                  aria-label={`${p} — ${primaryName} : ${t.todo}`}
-                                />
-                              )}
-                              <span className={styles.cellMeta}>
-                                <PrioMeter level={lvl} />
-                                <FlagIcon flagKey={fl} />
                               </span>
-                            </button>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                }) : [])
-              ];
-            })}
+                            ) : (
+                              <span className={`${styles.status} ${styles.isTodo}`} role="img" aria-label={`${p} — ${primaryName} : ${t.todo}`} />
+                            )}
+                            <span className={styles.cellMeta}>
+                              <PrioMeter level={lvl} />
+                              <FlagIcon flagKey={fl} />
+                            </span>
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              };
+
+              if (sortState === 'default') {
+                return groups.flatMap(group => {
+                  const visibleItems = group.items.filter(filterItem);
+                  if (!visibleItems.length) return [];
+                  const isCollapsed = collapsed.has(group.groupKey);
+                  return [renderGroupRow(group, isCollapsed), ...(isCollapsed ? [] : visibleItems.map(renderItemRow))];
+                });
+              }
+
+              // global sort: flatten all visible items, sort, then render with group headers as dividers
+              const flat = groups.flatMap(group =>
+                group.items.filter(filterItem).map(item => ({ group, item }))
+              );
+              flat.sort((a, b) => {
+                const ka = sortState === 'global' ? globalPrioRaw(a.item.id) * 10 + worstFlagWeight(a.item.id) / 10
+                         : sortState === 'flag' ? worstFlagWeight(a.item.id)
+                         : prioLevel(sortState.slice(2), a.item.id);
+                const kb = sortState === 'global' ? globalPrioRaw(b.item.id) * 10 + worstFlagWeight(b.item.id) / 10
+                         : sortState === 'flag' ? worstFlagWeight(b.item.id)
+                         : prioLevel(sortState.slice(2), b.item.id);
+                return kb - ka;
+              });
+              const rows: React.ReactNode[] = [];
+              let lastGroupKey = '';
+              for (const { group, item } of flat) {
+                if (group.groupKey !== lastGroupKey) {
+                  rows.push(renderGroupRow(group, false));
+                  lastGroupKey = group.groupKey;
+                }
+                rows.push(renderItemRow(item));
+              }
+              return rows;
+            })()}
           </tbody>
         </table>
       </div>
