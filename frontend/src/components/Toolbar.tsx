@@ -109,14 +109,15 @@ export default function Toolbar({
           className={`${styles.iconBtn} ${styles.refreshBtn} ${refreshing ? styles.refreshing : ''}`}
           onClick={handleRefresh}
           disabled={refreshing}
-          title={`Actualiser la progression (prochain auto: ${formatCountdown(nextRefreshIn)})`}
+          title={`Actualiser la progression — prochain auto dans ${formatCountdown(nextRefreshIn)}`}
           aria-label="Actualiser la progression"
         >
           ↻
+          <span
+            className={styles.refreshBar}
+            style={{ width: `${(nextRefreshIn / 300) * 100}%` }}
+          />
         </button>
-        <span className={styles.countdown} title="Prochain rafraîchissement automatique">
-          {formatCountdown(nextRefreshIn)}
-        </span>
         <button
           className={styles.iconBtn}
           onClick={onToggleTheme}
