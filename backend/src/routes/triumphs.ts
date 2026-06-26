@@ -5,8 +5,11 @@ import { fetchManifestVersion, fetchTriumphCatalog } from '../services/bungie.js
 import type { Triumph, NodeMeta } from '../data/mock.js'
 
 const router = Router()
-const CATALOG_KEY = 'triumphs'
-const MANIFEST_CHECK_KEY = 'last_check'
+
+// Bump this when the cached data structure changes (forces a clean fetch on next startup)
+const CACHE_SCHEMA_VERSION = 1
+const CATALOG_KEY = `triumphs_v${CACHE_SCHEMA_VERSION}`
+const MANIFEST_CHECK_KEY = `last_check_v${CACHE_SCHEMA_VERSION}`
 
 export type CatalogCache = { version: string; triumphs: Triumph[]; nodes: NodeMeta[] }
 
