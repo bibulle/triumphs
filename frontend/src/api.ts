@@ -35,6 +35,13 @@ export async function fetchAnnotations(): Promise<Annotations> {
   return res.json()
 }
 
+export async function fetchVersion(): Promise<string> {
+  const res = await fetch('/api/version')
+  if (!res.ok) throw new Error(`fetchVersion: ${res.status}`)
+  const data = await res.json() as { version: string }
+  return data.version
+}
+
 export async function saveAnnotations(player: string, data: PlayerAnnotation): Promise<void> {
   const res = await fetch(`/api/annotations/${encodeURIComponent(player)}`, {
     method: 'PUT',

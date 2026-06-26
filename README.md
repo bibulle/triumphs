@@ -127,6 +127,7 @@ MONGODB_URL=mongodb+srv://... docker compose up
 | `GET /api/progress` | Progression de chaque joueur | `triumph_progress` (TTL 5 min) |
 | `GET /api/annotations` | Priorités & flags de tous les joueurs | Persisté sans TTL (`triumph_annotations`) |
 | `PUT /api/annotations/:player` | Sauvegarde les annotations d'un joueur | idem |
+| `GET /api/version` | Version déployée du backend | Aucun (lu depuis `package.json`) |
 
 Les collections MongoDB sont préfixées `triumph_` pour cohabiter avec d'autres applications sur le même cluster.
 
@@ -160,13 +161,14 @@ Variables d'environnement :
   - **Prio globale** : moyenne des prios joueurs, buckétée en 3 niveaux (seuils 1.5 / 2.5), affichée à droite de chaque triomphe avec le pire flag collectif
   - **Tri** : défaut (par groupe), prio globale (avec flag comme tiebreaker), statut, ou prio par joueur — en mode tri actif, le classement s'applique à tout l'onglet et non groupe par groupe
 - **Mise à jour automatique** : la progression est re-fetchée toutes les 5 minutes en arrière-plan (= TTL du cache backend), sans rechargement de page
+- **Détection de nouvelle version** : le frontend poll `/api/version` toutes les 5 minutes ; si la version change (nouveau déploiement), un bandeau invite à recharger la page
 - **Recherche** : filtre live FR + EN + PT
 - **Thème** : sombre par défaut, persisté en `localStorage`
 - **Responsive** : adapté ≤ 640 px
 
 ## Tests
 
-### Frontend — Tests unitaires (76 tests)
+### Frontend — Tests unitaires (82 tests)
 
 ```bash
 cd frontend && npm test
@@ -183,13 +185,13 @@ cd frontend && npm run build && npm run test:e2e
 Scénarios : chargement, navigation, recherche, collapse/expand, masquer terminés, thème, badges, responsive 640 px, version affichée.  
 Les tests mockent `/api/triumphs` et `/api/progress` via `page.route()` (fixture automatique dans `e2e/fixtures.ts`).
 
-### Backend — Tests unitaires (28 tests)
+### Backend — Tests unitaires (29 tests)
 
 ```bash
 cd backend && npm test
 ```
 
-Couvrent : intégrité des données mock (`mock.test.ts`), service Bungie (`bungie.test.ts`) avec fetch mocké, route `/api/triumphs` avec toutes les branches (window cache, version check, re-fetch, fallback), route `/api/progress`.
+Couvrent : intégrité des données mock (`mock.test.ts`), service Bungie (`bungie.test.ts`) avec fetch mocké, route `/api/triumphs` avec toutes les branches (window cache, version check, re-fetch, fallback), route `/api/progress`, route `/api/version`.
 
 ## CI/CD
 
