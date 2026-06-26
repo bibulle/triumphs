@@ -123,10 +123,6 @@
 .refreshBtn {
   font-size: 18px;
   line-height: 1;
-  overflow: hidden;
-  flex-direction: column;
-  gap: 0;
-  padding-bottom: 3px;
 }
 
 .refreshBtn:disabled {
