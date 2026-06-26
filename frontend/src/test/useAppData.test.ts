@@ -79,4 +79,13 @@ describe('useAppData', () => {
     expect(result.current.error).toBe('network error')
     expect(result.current.triumphs).toHaveLength(0)
   })
+
+  it('registers a polling interval for progress refresh', () => {
+    const setIntervalSpy = vi.spyOn(globalThis, 'setInterval')
+    const { unmount } = renderHook(() => useAppData())
+    const calls = setIntervalSpy.mock.calls.filter(([, delay]) => delay === 5 * 60 * 1000)
+    expect(calls.length).toBeGreaterThan(0)
+    unmount()
+    setIntervalSpy.mockRestore()
+  })
 })

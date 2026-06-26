@@ -156,7 +156,8 @@ Variables d'environnement :
 - **Priorités & flags par joueur** : clic sur une cellule joueur ouvre un mini-éditeur (popover fixe) permettant de définir une priorité (0/1/2/4 → aucune/basse/moyenne/haute) et un statut personnel (besoin des autres / faisable seul / abandonné). Persistés en MongoDB via `PUT /api/annotations/:player`.
   - **Prio globale** : moyenne des prios joueurs, buckétée en 3 niveaux (seuils 1.5 / 2.5), affichée à droite de chaque triomphe avec le pire flag collectif
   - **Tri** : défaut (par groupe), prio globale (avec flag comme tiebreaker), statut, ou prio par joueur — en mode tri actif, le classement s'applique à tout l'onglet et non groupe par groupe
-- **Recherche** : filtre live FR + EN
+- **Mise à jour automatique** : la progression est re-fetchée toutes les 5 minutes en arrière-plan (= TTL du cache backend), sans rechargement de page
+- **Recherche** : filtre live FR + EN + PT
 - **Thème** : sombre par défaut, persisté en `localStorage`
 - **Responsive** : adapté ≤ 640 px
 
