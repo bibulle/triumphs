@@ -13,7 +13,7 @@ import { useLocaleState } from './hooks/useLocale';
 import { useNavState } from './hooks/useNavState';
 import { LocaleContext, useLocale } from './i18n';
 import { saveAnnotations } from './api';
-import type { Player, FilterState, SortState, Annotations, PrioLevel, FlagKey } from './data';
+import type { Player, FilterState, SortState, Annotations, PrioLevel, FlagKey, Section } from './data';
 import { DEFAULT_FILTER } from './data';
 
 import './App.css';
@@ -94,7 +94,7 @@ function AppInner() {
     <div className="wrap">
       {updateAvailable && (
         <div className="updateBanner">
-          Nouvelle version disponible —{' '}
+          Nouvelle version disponible &mdash;{' '}
           <button onClick={() => window.location.reload()}>Recharger</button>
         </div>
       )}
@@ -158,13 +158,13 @@ function AppInner() {
         open={progressionOpen}
         onClose={() => setProgressionOpen(false)}
         players={players}
-        triumphs={sectionTriumphs}
-        groups={sectionGroups}
+        triumphs={triumphs}
+        sections={sections}
         progressDetail={progressDetail}
       />
 
       <footer className="footer">
-        Monument of Triumph est un contenu du jeu Destiny 2 (Bungie). Noms FR provisoires — descriptions à venir.
+        Monument of Triumph est un contenu du jeu Destiny 2 (Bungie). Noms FR provisoires &mdash; descriptions à venir.
       </footer>
     </div>
   );

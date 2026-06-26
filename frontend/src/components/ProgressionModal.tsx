@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useId } from 'react';
-import type { Triumph, Group, RecordProgress } from '../data';
+import type { Triumph, Section, RecordProgress } from '../data';
 import { useLocale } from '../i18n';
 import styles from './ProgressionModal.module.css';
 
@@ -47,12 +47,12 @@ function niceMax(v: number): number {
 function buildSeries(
   players: readonly string[],
   progressDetail: Record<string, Record<string, RecordProgress>>,
-  filterCat: string | null,
+  filterSection: string | null,
   triumphs: Triumph[],
   metric: Metric,
 ): WeekPoint[] {
-  const filteredIds = filterCat
-    ? new Set(triumphs.filter(t => t.cat === filterCat).map(t => t.id))
+  const filteredIds = filterSection
+    ? new Set(triumphs.filter(t => (t.section ?? 'triumphs') === filterSection).map(t => t.id))
     : null;
 
   const weekMap = new Map<string, number[]>();
@@ -90,18 +90,19 @@ function buildSeries(
   });
 }
 
-// Custom dropdown (replaces native <select> for consistent styling)
-interface CatDropdownProps {
-  cats: { cat: string; catFr: string }[];
+// Custom dropdown for section filtering
+interface SectionDropdownProps {
+  sections: Section[];
   value: string | null;
   onChange: (v: string | null) => void;
+  t: { sections: Record<string, string> };
 }
 
-function CatDropdown({ cats, value, onChange }: CatDropdownProps) {
+function SectionDropdown({ sections, value, onChange, t }: SectionDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
-  const label = value ? (cats.find(c => c.cat === value)?.catFr ?? value) : 'Toutes catégories';
+  const label = value ? (t.sections[value] ?? value) : 'Toutes sections';
 
   useEffect(() => {
     if (!open) return;
@@ -129,17 +130,17 @@ function CatDropdown({ cats, value, onChange }: CatDropdownProps) {
       </button>
       {open && (
         <ul className={styles.ddMenu} role="listbox" id={id}>
-          {[{ cat: '', catFr: 'Toutes catégories' }, ...cats].map(c => {
-            const active = (c.cat === '' ? null : c.cat) === value;
+          {[{ id: '', label: 'Toutes sections' }, ...sections.map(s => ({ id: s.id, label: t.sections[s.id] ?? s.label }))].map(s => {
+            const active = (s.id === '' ? null : s.id) === value;
             return (
-              <li key={c.cat} role="option" aria-selected={active}>
+              <li key={s.id} role="option" aria-selected={active}>
                 <button
                   className={`${styles.ddOpt} ${active ? styles.ddOptActive : ''}`}
-                  onClick={() => select(c.cat === '' ? null : c.cat)}
+                  onClick={() => select(s.id === '' ? null : s.id)}
                   type="button"
                 >
                   <span className={styles.ddTick}>◆</span>
-                  {c.catFr}
+                  {s.label}
                 </button>
               </li>
             );
@@ -155,7 +156,7 @@ interface Props {
   onClose: () => void;
   players: readonly string[];
   triumphs: Triumph[];
-  groups: Group[];
+  sections: Section[];
   progressDetail: Record<string, Record<string, RecordProgress>>;
 }
 
@@ -163,10 +164,10 @@ const W = 700;
 const H = 260;
 const PAD = { top: 16, right: 24, bottom: 36, left: 44 };
 
-export default function ProgressionModal({ open, onClose, players, triumphs, groups, progressDetail }: Props) {
+export default function ProgressionModal({ open, onClose, players, triumphs, sections, progressDetail }: Props) {
   const { t } = useLocale();
   const [metric, setMetric] = useState<Metric>('cumul');
-  const [filterCat, setFilterCat] = useState<string | null>(null);
+  const [filterSection, setFilterSection] = useState<string | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const chartRef = useRef<SVGSVGElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -178,26 +179,17 @@ export default function ProgressionModal({ open, onClose, players, triumphs, gro
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  const cats = useMemo(() => {
-    const seen = new Set<string>();
-    const result: { cat: string; catFr: string }[] = [];
-    groups.forEach(g => {
-      if (!seen.has(g.cat)) { seen.add(g.cat); result.push({ cat: g.cat, catFr: g.catFr }); }
-    });
-    return result;
-  }, [groups]);
-
   const series = useMemo(
-    () => buildSeries(players, progressDetail, filterCat, triumphs, metric),
-    [players, progressDetail, filterCat, triumphs, metric]
+    () => buildSeries(players, progressDetail, filterSection, triumphs, metric),
+    [players, progressDetail, filterSection, triumphs, metric]
   );
 
   // Totals per player (cumulative max for legend)
   const totals = useMemo(() => {
-    const cumulSeries = buildSeries(players, progressDetail, filterCat, triumphs, 'cumul');
+    const cumulSeries = buildSeries(players, progressDetail, filterSection, triumphs, 'cumul');
     const last = cumulSeries[cumulSeries.length - 1];
     return last ? last.counts : players.map(() => 0);
-  }, [players, progressDetail, filterCat, triumphs]);
+  }, [players, progressDetail, filterSection, triumphs]);
 
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
@@ -293,7 +285,7 @@ export default function ProgressionModal({ open, onClose, players, triumphs, gro
               onClick={() => setMetric('weekly')}
             >Hebdo</button>
           </div>
-          <CatDropdown cats={cats} value={filterCat} onChange={setFilterCat} />
+          <SectionDropdown sections={sections} value={filterSection} onChange={setFilterSection} t={t} />
 
           <div className={styles.legend}>
             {players.map((p, i) => (
