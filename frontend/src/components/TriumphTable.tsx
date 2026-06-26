@@ -126,7 +126,7 @@ export default function TriumphTable({
           <tbody>
             {(() => {
               const filterItem = (item: Triumph) => {
-                const matchSearch = !q || [item.en, item.fr, item.pt].filter(Boolean).join(' ').toLowerCase().includes(q);
+                const matchSearch = !q || [item.en, item.fr, item.pt, item.descEn, item.descFr].filter(Boolean).join(' ').toLowerCase().includes(q);
                 if (!matchSearch) return false;
                 const doneCount = players.filter(p => progressFor(p).has(item.id)).length;
                 const n = players.length;

@@ -163,13 +163,13 @@ Variables d'environnement :
   - **Tri** : défaut (par groupe), prio globale (avec flag comme tiebreaker), statut, ou prio par joueur — en mode tri actif, le classement s'applique à tout l'onglet et non groupe par groupe
 - **Mise à jour automatique** : la progression est re-fetchée toutes les 5 minutes en arrière-plan (= TTL du cache backend), sans rechargement de page. Un compte à rebours discret dans la Toolbar indique le prochain refresh automatique. Un bouton ↻ permet de forcer un rechargement immédiat (invalide aussi le cache backend via `?force=true`)
 - **Détection de nouvelle version** : le frontend poll `/api/version` toutes les 5 minutes ; si la version change (nouveau déploiement), un bandeau invite à recharger la page
-- **Recherche** : filtre live FR + EN + PT
+- **Recherche** : filtre live sur tous les champs texte — noms FR + EN + PT et descriptions EN + FR
 - **Thème** : sombre par défaut, persisté en `localStorage`
 - **Responsive** : adapté ≤ 640 px
 
 ## Tests
 
-### Frontend — Tests unitaires (82 tests)
+### Frontend — Tests unitaires (84 tests)
 
 ```bash
 cd frontend && npm test

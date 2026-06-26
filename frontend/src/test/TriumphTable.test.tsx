@@ -97,6 +97,48 @@ describe('TriumphTable', () => {
     expect(screen.getByText(ptItem.fr)).toBeInTheDocument();
   });
 
+  it('filters triumphs by search query on description (descEn)', () => {
+    const descItem = { ...GROUPS[0].items[0], descEn: 'unique english description keyword' };
+    const descGroup = { ...GROUPS[0], items: [descItem, ...GROUPS[0].items.slice(1)] };
+    render(
+      <TriumphTable
+        groups={[descGroup]}
+        triumphs={[descItem, ...DATA.slice(1)]}
+        players={MOCK_PLAYERS}
+        collapsed={new Set()}
+        onToggleGroup={vi.fn()}
+        search="unique english description keyword"
+        filter={DEFAULT_FILTER}
+        sortState="default"
+        annotations={{}}
+        onAnnotation={vi.fn()}
+        progressFor={progressFor}
+      />
+    );
+    expect(screen.getByText(descItem.fr)).toBeInTheDocument();
+  });
+
+  it('filters triumphs by search query on description (descFr)', () => {
+    const descItem = { ...GROUPS[0].items[0], descFr: 'description française unique' };
+    const descGroup = { ...GROUPS[0], items: [descItem, ...GROUPS[0].items.slice(1)] };
+    render(
+      <TriumphTable
+        groups={[descGroup]}
+        triumphs={[descItem, ...DATA.slice(1)]}
+        players={MOCK_PLAYERS}
+        collapsed={new Set()}
+        onToggleGroup={vi.fn()}
+        search="description française unique"
+        filter={DEFAULT_FILTER}
+        sortState="default"
+        annotations={{}}
+        onAnnotation={vi.fn()}
+        progressFor={progressFor}
+      />
+    );
+    expect(screen.getByText(descItem.fr)).toBeInTheDocument();
+  });
+
   it('hides triumphs that do not match search query', () => {
     renderTable({ search: 'zzz_no_match_zzz' });
     DATA.forEach(d => {
