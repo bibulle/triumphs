@@ -128,6 +128,8 @@
 .prioMeter[data-level="1"] .pip:nth-child(-n+1) { background: var(--p1); border-color: var(--p1); }
 .prioMeter[data-level="2"] .pip:nth-child(-n+2) { background: var(--p2); border-color: var(--p2); }
 .prioMeter[data-level="3"] .pip:nth-child(-n+3) { background: var(--p3); border-color: var(--p3); }
+/* player prio 4 = haute, maps to all 3 pips */
+.prioMeter[data-level="4"] .pip { background: var(--p3); border-color: var(--p3); }
 
 /* flag icons */
 .flagIco {

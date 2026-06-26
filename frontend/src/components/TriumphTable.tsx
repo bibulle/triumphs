@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import type { Group, Triumph, Player, FilterState, NodeMeta, RecordProgress, SortState, Annotations, PrioLevel, FlagKey } from '../data';
+import type { Group, Triumph, Player, FilterState, NodeMeta, RecordProgress, SortState, Annotations, PrioLevel, GlobalPrio, FlagKey } from '../data';
 import type { Locale } from '../i18n';
 import { useLocale } from '../i18n';
 import CellEditor, { PrioMeter, FlagIcon } from './CellEditor';
 import styles from './TriumphTable.module.css';
 
 const BUNGIE_CDN = 'https://www.bungie.net';
-const PRIO_LABELS = ['Aucune', 'Basse', 'Moyenne', 'Haute'];
+const GLOBAL_PRIO_LABELS = ['Aucune', 'Basse', 'Moyenne', 'Haute'];
 
 interface CellEditState {
   player: string;
@@ -79,10 +79,13 @@ export default function TriumphTable({
   const flagOf = (player: string, id: string): FlagKey | null =>
     (annotations[player]?.flags[id] as FlagKey) ?? null;
 
-  const globalPrio = (id: string): PrioLevel => {
+  const globalPrio = (id: string): GlobalPrio => {
     if (!players.length) return 0;
-    const sum = players.reduce((s, p) => s + prioLevel(p, id), 0);
-    return Math.round(sum / players.length) as PrioLevel;
+    const avg = players.reduce((s, p) => s + prioLevel(p, id), 0) / players.length;
+    if (avg === 0) return 0;
+    if (avg < 1.5) return 1;
+    if (avg < 2.5) return 2;
+    return 3;
   };
 
   const sortItems = (items: Triumph[]): Triumph[] => {
@@ -215,7 +218,7 @@ export default function TriumphTable({
                             <PrioMeter
                               level={gp}
                               extraClass={styles.prioGlobal}
-                              title={`Priorité globale : ${PRIO_LABELS[gp]}`}
+                              title={`Priorité globale : ${GLOBAL_PRIO_LABELS[gp]}`}
                             />
                           )}
                         </div>
