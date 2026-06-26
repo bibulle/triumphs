@@ -89,7 +89,7 @@
   background: linear-gradient(180deg, var(--surface-2), var(--bg-soft));
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 12px 12px;
+  padding: 12px 8px;
   cursor: pointer;
   user-select: none;
 }
@@ -397,6 +397,6 @@
 /* priorité globale dans la colonne titre */
 .prioGlobal {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  right: 10px;
+  bottom: 13px;
 }
