@@ -88,5 +88,31 @@ export function useAppData(): AppData {
     return () => { cancelled = true }
   }, [])
 
+  // Re-fetch progress every 5 minutes (matches backend cache TTL)
+  useEffect(() => {
+    const INTERVAL = 5 * 60 * 1000
+    const id = setInterval(async () => {
+      try {
+        const rawProgress = await fetchProgress()
+        setProgressDetail(rawProgress)
+        setProgress(prev => {
+          const playerNames = Object.keys(prev)
+          return Object.fromEntries(
+            playerNames.map(name => {
+              const playerRecs = rawProgress[name] ?? {}
+              const completed = new Set<string>(
+                Object.entries(playerRecs).filter(([, r]) => r.completed).map(([id]) => id)
+              )
+              return [name, completed]
+            })
+          )
+        })
+      } catch {
+        // silently ignore polling errors
+      }
+    }, INTERVAL)
+    return () => clearInterval(id)
+  }, [])
+
   return { groups, triumphs, players, progress, progressDetail, nodes, annotations, sections: SECTIONS, loading, error }
 }
