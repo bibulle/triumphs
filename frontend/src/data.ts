@@ -9,7 +9,7 @@ export interface PlayerAnnotation {
 
 export type Annotations = Record<string, PlayerAnnotation>;
 
-export type SortState = 'default' | 'global' | `p:${string}`;
+export type SortState = 'default' | 'global' | 'flag' | `p:${string}`;
 
 export interface Triumph {
   id: string;

@@ -91,11 +91,20 @@ export default function TriumphTable({
   const globalPrioRaw = (id: string): number =>
     players.length ? players.reduce((s, p) => s + prioLevel(p, id), 0) / players.length : 0;
 
+  const FLAG_WEIGHT: Record<string, number> = { need: 3, solo: 2, abandon: 0 };
+  const worstFlag = (id: string): number => {
+    if (!players.length) return 1;
+    return Math.max(...players.map(p => {
+      const f = flagOf(p, id);
+      return f !== null ? FLAG_WEIGHT[f] : 1;
+    }));
+  };
+
   const sortItems = (items: Triumph[]): Triumph[] => {
     if (sortState === 'default') return items;
     return [...items].sort((a, b) => {
-      const ka = sortState === 'global' ? globalPrioRaw(a.id) : prioLevel(sortState.slice(2), a.id);
-      const kb = sortState === 'global' ? globalPrioRaw(b.id) : prioLevel(sortState.slice(2), b.id);
+      const ka = sortState === 'global' ? globalPrioRaw(a.id) : sortState === 'flag' ? worstFlag(a.id) : prioLevel(sortState.slice(2), a.id);
+      const kb = sortState === 'global' ? globalPrioRaw(b.id) : sortState === 'flag' ? worstFlag(b.id) : prioLevel(sortState.slice(2), b.id);
       return kb - ka;
     });
   };

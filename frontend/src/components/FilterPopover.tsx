@@ -53,6 +53,7 @@ export default function FilterPopover({ open, onClose, filter, onChange, players
   const sortOptions: { key: SortState; label: string }[] = [
     { key: 'default', label: 'Défaut' },
     { key: 'global', label: 'Prio. globale' },
+    { key: 'flag', label: 'Statut' },
     ...players.map(p => ({ key: `p:${p}` as SortState, label: p })),
   ];
 
