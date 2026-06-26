@@ -4,7 +4,7 @@ import { useLocale } from '../i18n';
 import { fetchSnapshots } from '../api';
 import styles from './ProgressionModal.module.css';
 
-const CHART_WEEKS = 26;
+const CHART_MAX_DAYS = 26 * 7;
 
 // Map known player names to CSS variables, fall back to generic slots
 const PLAYER_VAR: Record<string, string> = {
@@ -20,24 +20,40 @@ function playerColor(name: string, idx: number): string {
 
 type Metric = 'cumul' | 'weekly';
 
-interface WeekPoint {
-  label: string; // "Sww YYYY"
+interface DataPoint {
+  date: string;
+  label: string;
   counts: number[];
 }
 
-function isoWeek(d: Date): string {
-  const jan4 = new Date(d.getFullYear(), 0, 4);
-  const weekNum = Math.ceil(((d.getTime() - jan4.getTime()) / 86400000 + jan4.getDay() + 1) / 7);
-  return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+const FR_MONTHS = ['jan', 'fév', 'mar', 'avr', 'mai', 'jun', 'jul', 'aoû', 'sep', 'oct', 'nov', 'déc'];
+
+function toDateStr(d: Date): string {
+  return d.toISOString().slice(0, 10);
 }
 
-function weekLabel(isoWeekStr: string): string {
-  const [year, wStr] = isoWeekStr.split('-W');
-  return `S${wStr} ${year}`;
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setUTCDate(r.getUTCDate() + n);
+  return r;
 }
 
-function dateToWeek(date: string): string {
-  return isoWeek(new Date(date));
+function dayLabel(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getUTCDate()} ${FR_MONTHS[d.getUTCMonth()]}`;
+}
+
+function weekLabel(dateStr: string): string {
+  const d = new Date(dateStr);
+  const day = d.getUTCDay();
+  const monday = new Date(d);
+  monday.setUTCDate(d.getUTCDate() - ((day + 6) % 7));
+  return `${monday.getUTCDate()} ${FR_MONTHS[monday.getUTCMonth()]}`;
+}
+
+function monthLabel(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${FR_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 function niceMax(v: number): number {
@@ -54,74 +70,68 @@ function buildSeries(
   snapshots: ProgressSnapshot[],
   filterSection: string | null,
   metric: Metric,
-): WeekPoint[] {
-  // Filter: level 0 snapshots for a specific section, or aggregate level 0 across all sections
+): DataPoint[] {
   const level0 = snapshots.filter(s => s.level === 0 && (filterSection === null || s.nodeKey === filterSection));
 
-  // Build week range: from first snapshot date to today, capped at CHART_WEEKS
-  const now = new Date();
+  const nowDate = toDateStr(new Date());
+  const minDate = toDateStr(addDays(new Date(), -(CHART_MAX_DAYS - 1)));
   const firstDate = level0.length > 0
     ? level0.reduce((min, s) => s.date < min ? s.date : min, level0[0].date)
-    : null;
-  const firstWeek = firstDate ? isoWeek(new Date(firstDate)) : isoWeek(new Date(now.getTime() - (CHART_WEEKS - 1) * 7 * 86400000));
-  const nowWeek = isoWeek(now);
-  const weekKeys: string[] = [];
-  {
-    const d = new Date(now.getTime() - (CHART_WEEKS - 1) * 7 * 86400000);
-    while (true) {
-      const w = isoWeek(d);
-      if (w >= firstWeek) weekKeys.push(w);
-      if (w >= nowWeek) break;
-      d.setDate(d.getDate() + 7);
-    }
-  }
-  if (weekKeys.length === 0) weekKeys.push(nowWeek);
-  const weekSet = new Set(weekKeys);
+    : nowDate;
+  const startDate = firstDate > minDate ? firstDate : minDate;
 
-  // Build per-player weekly counts map: week -> player idx -> count delta
-  // Snapshots store cumulative counts per date. We need to find the latest snapshot per
-  // (player, nodeKey) per week and sum across nodeKeys.
-  const weekMap = new Map<string, number[]>();
-  weekKeys.forEach(w => weekMap.set(w, players.map(() => 0)));
+  // Build day keys: one entry per day from startDate to today
+  const dayKeys: string[] = [];
+  for (let d = new Date(startDate + 'T00:00:00Z'); toDateStr(d) <= nowDate; d = addDays(d, 1)) {
+    dayKeys.push(toDateStr(d));
+  }
+  if (dayKeys.length === 0) dayKeys.push(nowDate);
+
+  // Per-player cumulative counts per day (carry forward last known)
+  const dayMap = new Map<string, number[]>();
+  dayKeys.forEach(d => dayMap.set(d, players.map(() => 0)));
 
   for (const player of players) {
     const pi = players.indexOf(player);
     const playerSnaps = level0.filter(s => s.player === player);
-
-    // Group by nodeKey, get value per week (carry forward last known)
     const nodeKeys = [...new Set(playerSnaps.map(s => s.nodeKey))];
+
     for (const nodeKey of nodeKeys) {
       const byDate = playerSnaps
         .filter(s => s.nodeKey === nodeKey)
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      // For each week, find the last snapshot on or before that week's last day
       let snapIdx = 0;
       let lastCount = 0;
-      for (const week of weekKeys) {
-        const weekStr = week;
-        while (snapIdx < byDate.length && dateToWeek(byDate[snapIdx].date) <= weekStr) {
+      for (const day of dayKeys) {
+        while (snapIdx < byDate.length && byDate[snapIdx].date <= day) {
           lastCount = byDate[snapIdx].count;
           snapIdx++;
         }
-        weekMap.get(week)![pi] += lastCount;
+        dayMap.get(day)![pi] += lastCount;
       }
     }
   }
 
-  const sorted = weekKeys.map(w => ({ week: w, counts: weekMap.get(w)! }))
-    .filter(({ week }) => weekSet.has(week));
+  // Choose label granularity based on span
+  const spanDays = dayKeys.length;
+  const getLabelFn = spanDays <= 14 ? dayLabel : spanDays <= 90 ? weekLabel : monthLabel;
 
-  if (metric === 'cumul') {
-    return sorted.map(({ week, counts }) => ({ label: weekLabel(week), counts }));
-  }
+  const cumulPoints: DataPoint[] = dayKeys.map(d => ({
+    date: d,
+    label: getLabelFn(d),
+    counts: dayMap.get(d)!,
+  }));
 
-  // Weekly delta: compute diff from previous week
-  return sorted.map(({ week, counts }, i) => {
-    const prev = i > 0 ? sorted[i - 1].counts : players.map(() => 0);
+  if (metric === 'cumul') return cumulPoints;
+
+  // Weekly delta: diff from 7 days prior
+  return cumulPoints.map((pt, i) => {
+    const prev7 = i >= 7 ? cumulPoints[i - 7].counts : players.map(() => 0);
     return {
-      label: weekLabel(week),
-      counts: counts.map((c, pi) => Math.max(0, c - prev[pi])),
+      date: pt.date,
+      label: pt.label,
+      counts: pt.counts.map((c, pi) => Math.max(0, c - prev7[pi])),
     };
   });
 }
@@ -224,7 +234,7 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
     [players, snapshots, filterSection, metric]
   );
 
-  // Totals per player (cumulative max for legend)
+  // Totals per player (last cumulative value)
   const totals = useMemo(() => {
     const cumulSeries = buildSeries(players, snapshots, filterSection, 'cumul');
     const last = cumulSeries[cumulSeries.length - 1];
@@ -256,13 +266,15 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
     [players, series, xScale, yScale]
   );
 
-  // X-axis labels: show ~6 evenly spaced
+  // X-axis labels: deduplicate consecutive identical labels, show ~6
   const xLabels = useMemo(() => {
     if (series.length === 0) return [];
     const step = Math.max(1, Math.floor(series.length / 6));
+    const seen = new Set<string>();
     return series
       .map((pt, i) => ({ pt, i }))
       .filter(({ i }) => i % step === 0 || i === series.length - 1)
+      .filter(({ pt }) => { if (seen.has(pt.label)) return false; seen.add(pt.label); return true; })
       .map(({ pt, i }) => ({ label: pt.label, x: xScale(i) }));
   }, [series, xScale]);
 
@@ -283,7 +295,6 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
     setHoverIdx(idx);
   }, [series.length, chartW]);
 
-  // Compute tooltip position in px relative to chartWrap
   const tipPos = useMemo(() => {
     if (hoverIdx === null || !chartRef.current || !wrapRef.current) return null;
     const svgRect = chartRef.current.getBoundingClientRect();
@@ -303,7 +314,6 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        {/* Gold top border */}
         <div className={styles.goldBar} />
 
         <div className={styles.head}>
@@ -348,7 +358,6 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
               className={`${styles.chart} ${hoverIdx !== null ? styles.showHover : ''}`}
               onMouseMove={handleMouseMove}
             >
-              {/* Grid lines */}
               {yTicks.map(tick => (
                 <g key={tick.v}>
                   <line x1={PAD.left} x2={W - PAD.right} y1={tick.y} y2={tick.y} className={styles.gridLine} />
@@ -356,12 +365,10 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
                 </g>
               ))}
 
-              {/* X-axis labels */}
               {xLabels.map(({ label, x }, i) => (
                 <text key={i} x={x} y={H - PAD.bottom + 14} className={styles.axisLabel} textAnchor="middle">{label}</text>
               ))}
 
-              {/* Lines */}
               {paths.map((d, i) => d && (
                 <path
                   key={i}
@@ -374,7 +381,6 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
                 />
               ))}
 
-              {/* Hover guide line */}
               {hoverIdx !== null && (
                 <line
                   className={styles.guide}
@@ -383,7 +389,6 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
                 />
               )}
 
-              {/* Hover dots */}
               {hoverIdx !== null && hoverPt && players.map((p, i) => (
                 <circle
                   key={i}
@@ -399,13 +404,12 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
             </svg>
           )}
 
-          {/* Tooltip */}
           {tipPos && hoverPt && (
             <div
               className={styles.tip}
               style={{ left: tipPos.x, top: tipPos.y }}
             >
-              <div className={styles.tipWeek}>{hoverPt.label}</div>
+              <div className={styles.tipWeek}>{hoverPt.date}</div>
               {players.map((p, i) => (
                 <div key={p} className={styles.tipRow}>
                   <span className={styles.tipSw} style={{ background: playerColor(p, i) }} />
