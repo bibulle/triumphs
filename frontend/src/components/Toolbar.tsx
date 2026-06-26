@@ -109,8 +109,8 @@ export default function Toolbar({
           className={`${styles.iconBtn} ${styles.refreshBtn} ${refreshing ? styles.refreshing : ''}`}
           onClick={handleRefresh}
           disabled={refreshing}
-          title={`Actualiser la progression — prochain auto dans ${formatCountdown(nextRefreshIn)}`}
           aria-label="Actualiser la progression"
+          data-label={refreshing ? '…' : formatCountdown(nextRefreshIn)}
         >
           ↻
           <span
