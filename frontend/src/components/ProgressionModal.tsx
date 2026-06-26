@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef, useId } from 'react';
-import type { Triumph, Section, RecordProgress } from '../data';
+import type { Section, ProgressSnapshot } from '../data';
 import { useLocale } from '../i18n';
+import { fetchSnapshots } from '../api';
 import styles from './ProgressionModal.module.css';
 
 const CHART_WEEKS = 26;
@@ -20,7 +21,7 @@ function playerColor(name: string, idx: number): string {
 type Metric = 'cumul' | 'weekly';
 
 interface WeekPoint {
-  label: string; // "Www YYYY"
+  label: string; // "Sww YYYY"
   counts: number[];
 }
 
@@ -35,6 +36,10 @@ function weekLabel(isoWeekStr: string): string {
   return `S${wStr} ${year}`;
 }
 
+function dateToWeek(date: string): string {
+  return isoWeek(new Date(date));
+}
+
 function niceMax(v: number): number {
   if (v === 0) return 10;
   const mag = Math.pow(10, Math.floor(Math.log10(v)));
@@ -46,17 +51,10 @@ function niceMax(v: number): number {
 
 function buildSeries(
   players: readonly string[],
-  progressDetail: Record<string, Record<string, RecordProgress>>,
+  snapshots: ProgressSnapshot[],
   filterSection: string | null,
-  triumphs: Triumph[],
   metric: Metric,
 ): WeekPoint[] {
-  const filteredIds = filterSection
-    ? new Set(triumphs.filter(t => (t.section ?? 'triumphs') === filterSection).map(t => t.id))
-    : null;
-
-  const weekMap = new Map<string, number[]>();
-
   // Seed the last CHART_WEEKS weeks
   const now = new Date();
   const weekKeys: string[] = [];
@@ -64,29 +62,53 @@ function buildSeries(
     const d = new Date(now.getTime() - i * 7 * 86400000);
     weekKeys.push(isoWeek(d));
   }
-  weekKeys.forEach(w => { if (!weekMap.has(w)) weekMap.set(w, players.map(() => 0)); });
+  const weekSet = new Set(weekKeys);
 
-  players.forEach((player, pi) => {
-    const recs = progressDetail[player] ?? {};
-    Object.entries(recs).forEach(([id, rec]) => {
-      if (!rec.completed || !rec.completedAt) return;
-      if (filteredIds && !filteredIds.has(id)) return;
-      const week = isoWeek(new Date(rec.completedAt));
-      if (!weekMap.has(week)) return; // outside window
-      weekMap.get(week)![pi]++;
-    });
-  });
+  // Filter: level 0 snapshots for a specific section, or aggregate level 0 across all sections
+  const level0 = snapshots.filter(s => s.level === 0 && (filterSection === null || s.nodeKey === filterSection));
 
-  const sorted = weekKeys.map(w => ({ week: w, counts: weekMap.get(w)! }));
+  // Build per-player weekly counts map: week -> player idx -> sum of nodeKey counts
+  const weekMap = new Map<string, number[]>();
+  weekKeys.forEach(w => weekMap.set(w, players.map(() => 0)));
 
-  if (metric === 'weekly') {
+  for (const player of players) {
+    const pi = players.indexOf(player);
+    const playerSnaps = level0.filter(s => s.player === player);
+
+    // Group by nodeKey, carry forward last known count per week
+    const nodeKeys = [...new Set(playerSnaps.map(s => s.nodeKey))];
+    for (const nodeKey of nodeKeys) {
+      const byDate = playerSnaps
+        .filter(s => s.nodeKey === nodeKey)
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      let snapIdx = 0;
+      let lastCount = 0;
+      for (const week of weekKeys) {
+        const weekStr = week;
+        while (snapIdx < byDate.length && dateToWeek(byDate[snapIdx].date) <= weekStr) {
+          lastCount = byDate[snapIdx].count;
+          snapIdx++;
+        }
+        weekMap.get(week)![pi] += lastCount;
+      }
+    }
+  }
+
+  const sorted = weekKeys.map(w => ({ week: w, counts: weekMap.get(w)! }))
+    .filter(({ week }) => weekSet.has(week));
+
+  if (metric === 'cumul') {
     return sorted.map(({ week, counts }) => ({ label: weekLabel(week), counts }));
   }
 
-  const cumul = players.map(() => 0);
-  return sorted.map(({ week, counts }) => {
-    counts.forEach((c, i) => { cumul[i] += c; });
-    return { label: weekLabel(week), counts: [...cumul] };
+  // Weekly delta: compute diff from previous week
+  return sorted.map(({ week, counts }, i) => {
+    const prev = i > 0 ? sorted[i - 1].counts : players.map(() => 0);
+    return {
+      label: weekLabel(week),
+      counts: counts.map((c, pi) => Math.max(0, c - prev[pi])),
+    };
   });
 }
 
@@ -155,22 +177,26 @@ interface Props {
   open: boolean;
   onClose: () => void;
   players: readonly string[];
-  triumphs: Triumph[];
   sections: Section[];
-  progressDetail: Record<string, Record<string, RecordProgress>>;
 }
 
 const W = 700;
 const H = 260;
 const PAD = { top: 16, right: 24, bottom: 36, left: 44 };
 
-export default function ProgressionModal({ open, onClose, players, triumphs, sections, progressDetail }: Props) {
+export default function ProgressionModal({ open, onClose, players, sections }: Props) {
   const { t } = useLocale();
   const [metric, setMetric] = useState<Metric>('cumul');
   const [filterSection, setFilterSection] = useState<string | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const [snapshots, setSnapshots] = useState<ProgressSnapshot[]>([]);
   const chartRef = useRef<SVGSVGElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    fetchSnapshots().then(setSnapshots).catch(console.error);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -180,16 +206,16 @@ export default function ProgressionModal({ open, onClose, players, triumphs, sec
   }, [open, onClose]);
 
   const series = useMemo(
-    () => buildSeries(players, progressDetail, filterSection, triumphs, metric),
-    [players, progressDetail, filterSection, triumphs, metric]
+    () => buildSeries(players, snapshots, filterSection, metric),
+    [players, snapshots, filterSection, metric]
   );
 
-  // Totals per player (cumulative max for legend)
+  // Totals per player (last cumulative value)
   const totals = useMemo(() => {
-    const cumulSeries = buildSeries(players, progressDetail, filterSection, triumphs, 'cumul');
+    const cumulSeries = buildSeries(players, snapshots, filterSection, 'cumul');
     const last = cumulSeries[cumulSeries.length - 1];
     return last ? last.counts : players.map(() => 0);
-  }, [players, progressDetail, filterSection, triumphs]);
+  }, [players, snapshots, filterSection]);
 
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
@@ -375,10 +401,6 @@ export default function ProgressionModal({ open, onClose, players, triumphs, sec
               ))}
             </div>
           )}
-        </div>
-
-        <div className={styles.note}>
-          Données temporelles d'exemple — à remplacer par les dates de complétion du backend.
         </div>
       </div>
     </div>

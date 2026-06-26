@@ -75,6 +75,14 @@ export interface Section {
   hasData: boolean;
 }
 
+export interface ProgressSnapshot {
+  player: string;
+  date: string;       // YYYY-MM-DD
+  level: 0 | 1 | 2;
+  nodeKey: string;
+  count: number;
+}
+
 export const CAT_FR: Record<string, string> = {
   Worlds: "Mondes",
   Stories: "Histoires",
