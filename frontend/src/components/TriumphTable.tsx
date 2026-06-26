@@ -92,19 +92,28 @@ export default function TriumphTable({
     players.length ? players.reduce((s, p) => s + prioLevel(p, id), 0) / players.length : 0;
 
   const FLAG_WEIGHT: Record<string, number> = { need: 3, solo: 2, abandon: 0 };
-  const worstFlag = (id: string): number => {
+  const worstFlagWeight = (id: string): number => {
     if (!players.length) return 1;
     return Math.max(...players.map(p => {
       const f = flagOf(p, id);
       return f !== null ? FLAG_WEIGHT[f] : 1;
     }));
   };
+  const worstFlagKey = (id: string): FlagKey | null => {
+    const flags = players.map(p => flagOf(p, id)).filter((f): f is FlagKey => f !== null);
+    if (!flags.length) return null;
+    return flags.reduce((best, f) => FLAG_WEIGHT[f] > FLAG_WEIGHT[best] ? f : best);
+  };
 
   const sortItems = (items: Triumph[]): Triumph[] => {
     if (sortState === 'default') return items;
     return [...items].sort((a, b) => {
-      const ka = sortState === 'global' ? globalPrioRaw(a.id) : sortState === 'flag' ? worstFlag(a.id) : prioLevel(sortState.slice(2), a.id);
-      const kb = sortState === 'global' ? globalPrioRaw(b.id) : sortState === 'flag' ? worstFlag(b.id) : prioLevel(sortState.slice(2), b.id);
+      const ka = sortState === 'global' ? globalPrioRaw(a.id) * 10 + worstFlagWeight(a.id) / 10
+               : sortState === 'flag' ? worstFlagWeight(a.id)
+               : prioLevel(sortState.slice(2), a.id);
+      const kb = sortState === 'global' ? globalPrioRaw(b.id) * 10 + worstFlagWeight(b.id) / 10
+               : sortState === 'flag' ? worstFlagWeight(b.id)
+               : prioLevel(sortState.slice(2), b.id);
       return kb - ka;
     });
   };
@@ -226,13 +235,12 @@ export default function TriumphTable({
                               : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
                             }
                           </div>
-                          {gp > 0 && (
-                            <PrioMeter
-                              level={gp}
-                              extraClass={styles.prioGlobal}
-                              title={`Priorité globale : ${GLOBAL_PRIO_LABELS[gp]}`}
-                            />
-                          )}
+                          {(() => { const wf = worstFlagKey(item.id); const showPrio = gp > 0; const showFlag = wf !== null; return (showPrio || showFlag) ? (
+                            <span className={styles.prioGlobal}>
+                              {showPrio && <PrioMeter level={gp} title={`Priorité globale : ${GLOBAL_PRIO_LABELS[gp]}`} />}
+                              {showFlag && <FlagIcon flagKey={wf} />}
+                            </span>
+                          ) : null; })()}
                         </div>
                       </td>
                       {players.map((p, i) => {

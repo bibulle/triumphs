@@ -399,4 +399,7 @@
   position: absolute;
   right: 10px;
   bottom: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
