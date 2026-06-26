@@ -1,6 +1,6 @@
 import {
   getCachedCatalog, setCachedCatalog,
-  getManifestCheck, setManifestCheck,
+  setManifestCheck,
   getCachedProgress, setCachedProgress,
   getProgressCacheAge,
 } from './cache.js'
@@ -19,15 +19,6 @@ async function warmupCatalog(): Promise<void> {
     return
   }
   try {
-    const windowValid = await getManifestCheck(MANIFEST_CHECK_KEY)
-    if (windowValid) {
-      const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
-      if (validCache(cached)) {
-        console.log(`[warmup] catalog: cache valid — ${cached.triumphs.length} triumphs, skipping fetch`)
-        return
-      }
-    }
-
     const latestVersion = await fetchManifestVersion()
     const cached = await getCachedCatalog<unknown>(CATALOG_KEY)
     if (validCache(cached) && cached.version === latestVersion) {

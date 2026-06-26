@@ -70,31 +70,41 @@ describe('GET /api/triumphs', () => {
     await close()
   })
 
-  it('renews window without re-fetching when manifest version unchanged', async () => {
+  it('serves stale cache immediately and renews window in background when version unchanged', async () => {
     process.env.BUNGIE_API_KEY = 'key'
     process.env.MONGODB_URL = 'mongodb://fake'
     const cachedTriumphs = [{ id: 't1', en: 'A', fr: 'B' }]
     vi.mocked(cache.getManifestCheck).mockResolvedValueOnce(false)
     vi.mocked(bungie.fetchManifestVersion).mockResolvedValueOnce('1.0.0')
-    vi.mocked(cache.getCachedCatalog).mockResolvedValueOnce({ version: '1.0.0', triumphs: cachedTriumphs })
+    // first call: route serves stale cache; second call: background refresh reads cache
+    vi.mocked(cache.getCachedCatalog)
+      .mockResolvedValueOnce({ version: '1.0.0', triumphs: cachedTriumphs })
+      .mockResolvedValueOnce({ version: '1.0.0', triumphs: cachedTriumphs })
 
     const app = buildApp()
     const { port, close } = await startServer(app)
-    await fetch(`http://localhost:${port}/api/triumphs`)
+    const response = await fetch(`http://localhost:${port}/api/triumphs`)
+    const body = await response.json()
 
-    expect(bungie.fetchManifestVersion).toHaveBeenCalledOnce()
+    // stale cache returned immediately
+    expect(body).toEqual(cachedTriumphs)
+    // let background settle
+    await vi.waitFor(() => expect(cache.setManifestCheck).toHaveBeenCalledOnce())
     expect(bungie.fetchTriumphCatalog).not.toHaveBeenCalled()
-    expect(cache.setManifestCheck).toHaveBeenCalledOnce()
     await close()
   })
 
-  it('re-fetches full catalog when manifest version changed', async () => {
+  it('serves stale cache immediately and re-fetches catalog in background when version changed', async () => {
     process.env.BUNGIE_API_KEY = 'key'
     process.env.MONGODB_URL = 'mongodb://fake'
+    const oldTriumphs = [{ id: 't-old', en: 'Old', fr: 'Ancien', catFr: 'M', subFr: 'P' }]
     const newTriumphs = [{ id: 't-new', en: 'New', fr: 'Nouveau', catFr: 'M', subFr: 'P' }]
     vi.mocked(cache.getManifestCheck).mockResolvedValueOnce(false)
     vi.mocked(bungie.fetchManifestVersion).mockResolvedValueOnce('2.0.0')
-    vi.mocked(cache.getCachedCatalog).mockResolvedValueOnce({ version: '1.0.0', triumphs: [] })
+    // first call: route serves stale; second call: background reads stale to compare version
+    vi.mocked(cache.getCachedCatalog)
+      .mockResolvedValueOnce({ version: '1.0.0', triumphs: oldTriumphs })
+      .mockResolvedValueOnce({ version: '1.0.0', triumphs: oldTriumphs })
     vi.mocked(bungie.fetchTriumphCatalog).mockResolvedValueOnce({ version: '2.0.0', triumphs: newTriumphs })
 
     const app = buildApp()
@@ -102,8 +112,10 @@ describe('GET /api/triumphs', () => {
     const response = await fetch(`http://localhost:${port}/api/triumphs`)
     const body = await response.json()
 
-    expect(bungie.fetchTriumphCatalog).toHaveBeenCalledOnce()
-    expect(body).toEqual(newTriumphs)
+    // stale cache returned immediately
+    expect(body).toEqual(oldTriumphs)
+    // background eventually fetches new catalog
+    await vi.waitFor(() => expect(bungie.fetchTriumphCatalog).toHaveBeenCalledOnce())
     await close()
   })
 
