@@ -87,28 +87,42 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
   }
 
   const progress: PlayerProgress = {}
+  const profileStates: Record<string, number> = {}
 
   const mergeRecord = (hash: string, rec: {
     state: number
     objectives?: Array<{ progress: number; completionValue: number; complete?: boolean }>
-  }) => {
+  }, source: 'profile' | 'character') => {
     const objectives = (rec.objectives ?? []).map(o => ({
       current: o.complete ? o.completionValue : (o.progress ?? 0),
       completionValue: o.completionValue,
     }))
     const allObjComplete = objectives.length > 0 && objectives.every(o => o.current >= o.completionValue)
     const completed = (rec.state & 4) === 0 || allObjComplete
+
+    if (source === 'profile') {
+      profileStates[hash] = rec.state
+      if (completed && rec.state === 0 && objectives.length === 0) {
+        console.log(`[players:debug] ${player.name} profile state=0, no objectives → completed=true: hash=${hash}`)
+      }
+    } else {
+      const prev = progress[hash]
+      if (completed && prev && !prev.completed && hash in profileStates) {
+        console.log(`[players:debug] ${player.name} character PROMOTES hash=${hash} profile_state=${profileStates[hash]} char_state=${rec.state} char_completed=${completed}`)
+      }
+    }
+
     if (!progress[hash] || completed) {
       progress[hash] = { completed, objectives }
     }
   }
 
   for (const [hash, rec] of Object.entries(json.Response.profileRecords?.data?.records ?? {})) {
-    mergeRecord(hash, rec)
+    mergeRecord(hash, rec, 'profile')
   }
   for (const charData of Object.values(json.Response.characterRecords?.data ?? {})) {
     for (const [hash, rec] of Object.entries(charData.records ?? {})) {
-      mergeRecord(hash, rec)
+      mergeRecord(hash, rec, 'character')
     }
   }
 
