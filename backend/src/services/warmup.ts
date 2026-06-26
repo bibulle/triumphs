@@ -78,7 +78,9 @@ async function warmupProgress(): Promise<void> {
     await setCachedProgress(PROGRESS_KEY, progress)
     const counts = Object.entries(progress).map(([n, p]) => `${n}:${Object.values(p).filter(r => r.completed).length}`).join(', ')
     console.log(`[warmup] progress: stored (${counts})`)
-    await recordSnapshots(progress, TRIUMPHS)
+    const catalogCache = await getCachedCatalog<unknown>(CATALOG_KEY)
+    const triumphs = validCache(catalogCache) ? catalogCache.triumphs : TRIUMPHS
+    await recordSnapshots(progress, triumphs)
     console.log('[warmup] progress: snapshots recorded')
   } catch (err) {
     console.error('[warmup] progress error:', (err as Error).message)

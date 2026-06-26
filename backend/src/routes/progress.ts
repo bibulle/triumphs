@@ -5,6 +5,8 @@ import { getCachedProgress, setCachedProgress, deleteCachedProgress } from '../s
 import { parsePlayersEnv, resolvePlayer, fetchPlayerProgress } from '../services/players.js'
 import { recordSnapshots } from '../services/snapshots.js'
 import { TRIUMPHS } from '../data/mock.js'
+import { getCachedCatalog } from '../services/cache.js'
+import { validCache, CATALOG_KEY } from './triumphs.js'
 
 const router = Router()
 const PROGRESS_KEY = 'progress'
@@ -51,7 +53,10 @@ router.get('/', async (req: Request, res: Response) => {
       console.warn('[progress] Failed to store in cache:', (e as Error).message)
     )
     if (process.env.MONGODB_URL) {
-      recordSnapshots(progress, TRIUMPHS).catch((e: Error) =>
+      getCachedCatalog<unknown>(CATALOG_KEY).then(catalogCache => {
+        const triumphs = validCache(catalogCache) ? catalogCache.triumphs : TRIUMPHS
+        return recordSnapshots(progress, triumphs)
+      }).catch((e: Error) =>
         console.warn('[progress] Failed to record snapshots:', e.message)
       )
     }
