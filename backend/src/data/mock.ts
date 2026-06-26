@@ -42,6 +42,7 @@ export interface ObjectiveProgress {
 export interface RecordProgress {
   completed: boolean;
   objectives: ObjectiveProgress[];
+  completedAt?: string; // ISO date string (YYYY-MM-DD)
 }
 
 export type PlayerProgress = Record<string, RecordProgress>;
@@ -351,14 +352,27 @@ const DONE_BY_BIBULLUS = new Set(
   )
 );
 
-export function getMockProgress(): Record<Player, Record<string, { completed: boolean; objectives: [] }>> {
-  // Demo: first triumph completed by all (to visualise allDone state)
+// Generate a fake ISO date within a range for mock history
+function fakeDate(baseMs: number, spreadDays: number, seed: number): string {
+  const offset = Math.abs(seed * 1_234_567 % (spreadDays * 86_400_000));
+  return new Date(baseMs + offset).toISOString().slice(0, 10);
+}
+
+export function getMockProgress(): Record<Player, Record<string, RecordProgress>> {
   const firstId = TRIUMPHS[0].id;
-  const toRecord = (ids: string[]) =>
-    Object.fromEntries(ids.map(id => [id, { completed: true, objectives: [] as [] }]));
+  const now = Date.now();
+  const SIX_MONTHS = 180 * 86_400_000;
+  const start = now - SIX_MONTHS;
+
+  const toRecord = (ids: string[], playerSeed: number) =>
+    Object.fromEntries(ids.map((id, i) => [
+      id,
+      { completed: true, objectives: [] as ObjectiveProgress[], completedAt: fakeDate(start, 180, playerSeed + i) },
+    ]));
+
   return {
-    Bibullus: toRecord([...DONE_BY_BIBULLUS, firstId]),
-    Vincent: toRecord([firstId]),
-    Guiz: toRecord([firstId]),
+    Bibullus: toRecord([...DONE_BY_BIBULLUS, firstId], 0),
+    Vincent: toRecord([firstId], 100),
+    Guiz: toRecord([firstId], 200),
   };
 }

@@ -39,6 +39,7 @@ interface Props {
   onToggleTheme: () => void;
   onRefreshProgress: (force?: boolean) => Promise<void>;
   nextRefreshIn: number;
+  onShowProgression: () => void;
 }
 
 function formatCountdown(seconds: number): string {
@@ -49,7 +50,7 @@ function formatCountdown(seconds: number): string {
 
 export default function Toolbar({
   search, onSearch, filter, onFilterChange, sortState, onSortChange, players,
-  onExpandAll, onCollapseAll, theme, onToggleTheme, onRefreshProgress, nextRefreshIn
+  onExpandAll, onCollapseAll, theme, onToggleTheme, onRefreshProgress, nextRefreshIn, onShowProgression
 }: Props) {
   const { t } = useLocale();
   const [filterOpen, setFilterOpen] = useState(false);
@@ -88,6 +89,9 @@ export default function Toolbar({
           onSortChange={onSortChange}
         />
       </div>
+      <button className={styles.btn} onClick={onShowProgression} title="Voir la progression dans le temps">
+        📈
+      </button>
       <div className={styles.iconGroup}>
         <button
           className={styles.iconBtn}

@@ -24,6 +24,11 @@
   --p1: oklch(0.66 0.10 235);
   --p2: var(--gold-bright);
   --p3: oklch(0.66 0.19 28);
+  --u-p1: oklch(0.72 0.14 235);
+  --u-p2: oklch(0.72 0.14 135);
+  --u-p3: oklch(0.72 0.16 28);
+  --u-p4: oklch(0.72 0.14 305);
+  --u-p5: oklch(0.72 0.13 75);
   --radius: 4px;
   --font-display: 'Chakra Petch', sans-serif;
   --font-body: 'Inter', sans-serif;

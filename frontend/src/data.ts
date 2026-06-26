@@ -56,6 +56,7 @@ export interface ObjectiveProgress {
 export interface RecordProgress {
   completed: boolean;
   objectives: ObjectiveProgress[];
+  completedAt?: string; // ISO date string YYYY-MM-DD
 }
 
 export interface Group {
