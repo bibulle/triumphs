@@ -76,6 +76,27 @@ describe('TriumphTable', () => {
     expect(screen.getAllByText(targetItem.fr).length).toBeGreaterThan(0);
   });
 
+  it('filters triumphs by search query (PT)', () => {
+    const ptItem = { ...GROUPS[0].items[0], pt: 'Mundos: Panoramas PT único' };
+    const ptGroup = { ...GROUPS[0], items: [ptItem, ...GROUPS[0].items.slice(1)] };
+    render(
+      <TriumphTable
+        groups={[ptGroup]}
+        triumphs={[ptItem, ...DATA.slice(1)]}
+        players={MOCK_PLAYERS}
+        collapsed={new Set()}
+        onToggleGroup={vi.fn()}
+        search="Panoramas PT único"
+        filter={DEFAULT_FILTER}
+        sortState="default"
+        annotations={{}}
+        onAnnotation={vi.fn()}
+        progressFor={progressFor}
+      />
+    );
+    expect(screen.getByText(ptItem.fr)).toBeInTheDocument();
+  });
+
   it('hides triumphs that do not match search query', () => {
     renderTable({ search: 'zzz_no_match_zzz' });
     DATA.forEach(d => {
