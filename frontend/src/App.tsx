@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppData } from './hooks/useAppData';
 import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
@@ -29,7 +29,7 @@ function AppInner() {
   const [annotations, setAnnotations] = useState<Annotations>({});
 
   // Merge server annotations once loaded
-  useMemo(() => {
+  useEffect(() => {
     setAnnotations(initAnnotations);
   }, [initAnnotations]);
 

@@ -202,22 +202,22 @@ export default function TriumphTable({
                                 {primaryName}
                                 {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
                               </span>
-                              {secondaryName && secondaryName !== primaryName && (
-                                <span className={styles.titleEn}>{secondaryName}</span>
+                              {gp > 0 && (
+                                <PrioMeter
+                                  level={gp}
+                                  extraClass={styles.prioGlobal}
+                                  title={`Priorité globale : ${PRIO_LABELS[gp]}`}
+                                />
                               )}
                             </div>
+                            {secondaryName && secondaryName !== primaryName && (
+                              <span className={styles.titleEn}>{secondaryName}</span>
+                            )}
                             {(item.descFr || item.descEn)
                               ? <span className={styles.desc}>{useFr ? (item.descFr || item.descEn) : (item.descEn || item.descFr)}</span>
                               : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
                             }
                           </div>
-                          {gp > 0 && (
-                            <PrioMeter
-                              level={gp}
-                              extraClass={styles.prioGlobal}
-                              title={`Priorité globale : ${PRIO_LABELS[gp]}`}
-                            />
-                          )}
                         </div>
                       </td>
                       {players.map((p, i) => {
