@@ -89,6 +89,8 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
   const progress: PlayerProgress = {}
   const profileStates: Record<string, number> = {}
 
+  const debugHashes = new Set((process.env.DEBUG_RECORD_HASHES ?? '').split(',').filter(Boolean))
+
   const mergeRecord = (hash: string, rec: {
     state: number
     objectives?: Array<{ progress: number; completionValue: number; complete?: boolean }>
@@ -99,6 +101,10 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
     }))
     const allObjComplete = objectives.length > 0 && objectives.every(o => o.current >= o.completionValue)
     const completed = (rec.state & 4) === 0 || allObjComplete
+
+    if (debugHashes.has(hash)) {
+      console.log(`[players:debug] hash=${hash} source=${source} state=${rec.state} (binary:${rec.state.toString(2)}) completed=${completed} objectives=${JSON.stringify(rec.objectives ?? [])}`)
+    }
 
     if (source === 'profile') {
       profileStates[hash] = rec.state
