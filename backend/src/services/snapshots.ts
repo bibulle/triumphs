@@ -102,6 +102,7 @@ export async function getSnapshots(): Promise<ProgressSnapshot[]> {
   const docs = await getSnapshotModel()
     .find({}, { _id: 0, player: 1, date: 1, level: 1, nodeKey: 1, count: 1 })
     .sort({ date: 1 })
+  console.log(`[snapshots] getSnapshots: ${docs.length} docs found`)
   return docs.map(d => ({
     player: d.player,
     date: d.date,
