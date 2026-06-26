@@ -3,6 +3,8 @@ import { getMockProgress } from '../data/mock.js'
 import type { PlayerProgress } from '../data/mock.js'
 import { getCachedProgress, setCachedProgress, deleteCachedProgress } from '../services/cache.js'
 import { parsePlayersEnv, resolvePlayer, fetchPlayerProgress } from '../services/players.js'
+import { recordSnapshots } from '../services/snapshots.js'
+import { TRIUMPHS } from '../data/mock.js'
 
 const router = Router()
 const PROGRESS_KEY = 'progress'
@@ -48,6 +50,11 @@ router.get('/', async (req: Request, res: Response) => {
     await setCachedProgress(PROGRESS_KEY, progress).catch((e) =>
       console.warn('[progress] Failed to store in cache:', (e as Error).message)
     )
+    if (process.env.MONGODB_URL) {
+      recordSnapshots(progress, TRIUMPHS).catch((e: Error) =>
+        console.warn('[progress] Failed to record snapshots:', e.message)
+      )
+    }
     res.json(progress)
   } catch (err) {
     console.error('[progress] Unexpected error:', (err as Error).message, (err as Error).stack)

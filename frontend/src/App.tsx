@@ -158,9 +158,7 @@ function AppInner() {
         open={progressionOpen}
         onClose={() => setProgressionOpen(false)}
         players={players}
-        triumphs={triumphs}
         sections={sections}
-        progressDetail={progressDetail}
       />
 
       <footer className="footer">

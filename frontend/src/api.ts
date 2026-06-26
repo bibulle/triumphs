@@ -1,4 +1,4 @@
-import type { Triumph, NodeMeta, RecordProgress, Annotations, PlayerAnnotation } from './data'
+import type { Triumph, NodeMeta, RecordProgress, Annotations, PlayerAnnotation, ProgressSnapshot } from './data'
 
 export interface PlayerInfo {
   name: string
@@ -41,6 +41,12 @@ export async function fetchVersion(): Promise<string> {
   if (!res.ok) throw new Error(`fetchVersion: ${res.status}`)
   const data = await res.json() as { version: string }
   return data.version
+}
+
+export async function fetchSnapshots(): Promise<ProgressSnapshot[]> {
+  const res = await fetch('/api/snapshots')
+  if (!res.ok) throw new Error(`fetchSnapshots: ${res.status}`)
+  return res.json()
 }
 
 export async function saveAnnotations(player: string, data: PlayerAnnotation): Promise<void> {
