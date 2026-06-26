@@ -89,7 +89,10 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
   const progress: PlayerProgress = {}
   const profileStates: Record<string, number> = {}
 
-  const debugHashes = new Set((process.env.DEBUG_RECORD_HASHES ?? '').split(',').filter(Boolean))
+  const debugHashes = new Set([
+    '3241995275', // Voie de la Puissance
+    ...(process.env.DEBUG_RECORD_HASHES ?? '').split(',').filter(Boolean),
+  ])
 
   const mergeRecord = (hash: string, rec: {
     state: number
