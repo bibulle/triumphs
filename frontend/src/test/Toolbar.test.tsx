@@ -16,6 +16,8 @@ const baseProps = {
   onCollapseAll: vi.fn(),
   theme: 'dark' as const,
   onToggleTheme: vi.fn(),
+  onRefreshProgress: vi.fn().mockResolvedValue(undefined),
+  nextRefreshIn: 300,
 };
 
 describe('Toolbar', () => {

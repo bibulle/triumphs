@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 function IconExpand() {
   return (
@@ -37,15 +37,29 @@ interface Props {
   onCollapseAll: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
+  onRefreshProgress: (force?: boolean) => Promise<void>;
+  nextRefreshIn: number;
+}
+
+function formatCountdown(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 export default function Toolbar({
   search, onSearch, filter, onFilterChange, sortState, onSortChange, players,
-  onExpandAll, onCollapseAll, theme, onToggleTheme
+  onExpandAll, onCollapseAll, theme, onToggleTheme, onRefreshProgress, nextRefreshIn
 }: Props) {
   const { t } = useLocale();
   const [filterOpen, setFilterOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const active = isFilterActive(filter) || sortState !== 'default';
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try { await onRefreshProgress(true); } finally { setRefreshing(false); }
+  }, [onRefreshProgress]);
 
   return (
     <div className={styles.toolbar}>
@@ -91,6 +105,18 @@ export default function Toolbar({
         >
           <IconCollapse />
         </button>
+        <button
+          className={`${styles.iconBtn} ${styles.refreshBtn} ${refreshing ? styles.refreshing : ''}`}
+          onClick={handleRefresh}
+          disabled={refreshing}
+          title={`Actualiser la progression (prochain auto: ${formatCountdown(nextRefreshIn)})`}
+          aria-label="Actualiser la progression"
+        >
+          ↻
+        </button>
+        <span className={styles.countdown} title="Prochain rafraîchissement automatique">
+          {formatCountdown(nextRefreshIn)}
+        </span>
         <button
           className={styles.iconBtn}
           onClick={onToggleTheme}

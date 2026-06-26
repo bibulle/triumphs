@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchTriumphs, fetchProgress, fetchPlayers, fetchNodes, fetchAnnotations } from '../api'
 import { CAT_FR, SUB_FR, SECTIONS } from '../data'
 import type { Triumph, Group, Player, NodeMeta, RecordProgress, Annotations } from '../data'
+
+const PROGRESS_INTERVAL = 5 * 60 * 1000
 
 export type AppData = {
   groups: Group[]
@@ -14,6 +16,23 @@ export type AppData = {
   sections: typeof SECTIONS
   loading: boolean
   error: string | null
+  refreshProgress: (force?: boolean) => Promise<void>
+  nextRefreshIn: number
+}
+
+function applyRawProgress(
+  rawProgress: Record<string, Record<string, RecordProgress>>,
+  playerNames: string[]
+): Record<string, Set<string>> {
+  return Object.fromEntries(
+    playerNames.map(name => {
+      const playerRecs = rawProgress[name] ?? {}
+      const completed = new Set<string>(
+        Object.entries(playerRecs).filter(([, r]) => r.completed).map(([id]) => id)
+      )
+      return [name, completed]
+    })
+  )
 }
 
 export function useAppData(): AppData {
@@ -26,6 +45,37 @@ export function useAppData(): AppData {
   const [annotations, setAnnotations] = useState<Annotations>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [nextRefreshIn, setNextRefreshIn] = useState(PROGRESS_INTERVAL / 1000)
+
+  const nextRefreshAt = useRef<number>(Date.now() + PROGRESS_INTERVAL)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const applyProgress = useCallback((rawProgress: Record<string, Record<string, RecordProgress>>) => {
+    setProgressDetail(rawProgress)
+    setProgress(prev => applyRawProgress(rawProgress, Object.keys(prev)))
+  }, [])
+
+  const scheduleNextRefresh = useCallback(() => {
+    nextRefreshAt.current = Date.now() + PROGRESS_INTERVAL
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    intervalRef.current = setInterval(async () => {
+      try {
+        applyProgress(await fetchProgress())
+      } catch {
+        // silently ignore polling errors
+      }
+      scheduleNextRefresh()
+    }, PROGRESS_INTERVAL)
+  }, [applyProgress])
+
+  const refreshProgress = useCallback(async (force = false) => {
+    try {
+      applyProgress(await fetchProgress(force))
+      scheduleNextRefresh()
+    } catch {
+      // silently ignore
+    }
+  }, [applyProgress, scheduleNextRefresh])
 
   useEffect(() => {
     let cancelled = false
@@ -59,20 +109,10 @@ export function useAppData(): AppData {
 
         const playerNames = rawPlayers.map(p => p.name)
 
-        const prog = Object.fromEntries(
-          playerNames.map(name => {
-            const playerRecs = rawProgress[name] ?? {}
-            const completed = new Set<string>(
-              Object.entries(playerRecs).filter(([, r]) => r.completed).map(([id]) => id)
-            )
-            return [name, completed]
-          })
-        )
-
         setTriumphs(rawTriumphs)
         setGroups([...groupMap.values()])
         setPlayers(playerNames)
-        setProgress(prog)
+        setProgress(applyRawProgress(rawProgress, playerNames))
         setProgressDetail(rawProgress)
         setNodes(rawNodes)
         setAnnotations(rawAnnotations)
@@ -88,31 +128,19 @@ export function useAppData(): AppData {
     return () => { cancelled = true }
   }, [])
 
-  // Re-fetch progress every 5 minutes (matches backend cache TTL)
+  // Auto-refresh polling
   useEffect(() => {
-    const INTERVAL = 5 * 60 * 1000
-    const id = setInterval(async () => {
-      try {
-        const rawProgress = await fetchProgress()
-        setProgressDetail(rawProgress)
-        setProgress(prev => {
-          const playerNames = Object.keys(prev)
-          return Object.fromEntries(
-            playerNames.map(name => {
-              const playerRecs = rawProgress[name] ?? {}
-              const completed = new Set<string>(
-                Object.entries(playerRecs).filter(([, r]) => r.completed).map(([id]) => id)
-              )
-              return [name, completed]
-            })
-          )
-        })
-      } catch {
-        // silently ignore polling errors
-      }
-    }, INTERVAL)
+    scheduleNextRefresh()
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [scheduleNextRefresh])
+
+  // Countdown ticker (updates every second)
+  useEffect(() => {
+    const id = setInterval(() => {
+      setNextRefreshIn(Math.max(0, Math.round((nextRefreshAt.current - Date.now()) / 1000)))
+    }, 1000)
     return () => clearInterval(id)
   }, [])
 
-  return { groups, triumphs, players, progress, progressDetail, nodes, annotations, sections: SECTIONS, loading, error }
+  return { groups, triumphs, players, progress, progressDetail, nodes, annotations, sections: SECTIONS, loading, error, refreshProgress, nextRefreshIn }
 }
