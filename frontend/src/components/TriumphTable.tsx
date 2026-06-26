@@ -201,18 +201,18 @@ export default function TriumphTable({
                               <span className={`${styles.titleFr} ${allDone ? styles.titleFrDone : ''}`}>
                                 {primaryName}
                                 {allDone && <span className={styles.completeBadge}>{t.complete}</span>}
+                                {gp > 0 && (
+                                  <PrioMeter
+                                    level={gp}
+                                    extraClass={styles.prioGlobal}
+                                    title={`Priorité globale : ${PRIO_LABELS[gp]}`}
+                                  />
+                                )}
                               </span>
-                              {gp > 0 && (
-                                <PrioMeter
-                                  level={gp}
-                                  extraClass={styles.prioGlobal}
-                                  title={`Priorité globale : ${PRIO_LABELS[gp]}`}
-                                />
+                              {secondaryName && secondaryName !== primaryName && (
+                                <span className={styles.titleEn}>{secondaryName}</span>
                               )}
                             </div>
-                            {secondaryName && secondaryName !== primaryName && (
-                              <span className={styles.titleEn}>{secondaryName}</span>
-                            )}
                             {(item.descFr || item.descEn)
                               ? <span className={styles.desc}>{useFr ? (item.descFr || item.descEn) : (item.descEn || item.descFr)}</span>
                               : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
