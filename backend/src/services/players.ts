@@ -103,7 +103,8 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
       completionValue: o.completionValue,
     }))
     const allObjComplete = objectives.length > 0 && objectives.every(o => o.current >= o.completionValue)
-    const completed = (rec.state & 4) === 0 || allObjComplete
+    // bit 2 (4) = ObjectiveNotCompleted, bit 0 (1) = RecordRedeemed (reward claimed = triumph done)
+    const completed = (rec.state & 4) === 0 || (rec.state & 1) !== 0 || allObjComplete
 
     if (debugHashes.has(hash)) {
       console.log(`[players:debug] hash=${hash} source=${source} state=${rec.state} (binary:${rec.state.toString(2)}) completed=${completed} objectives=${JSON.stringify(rec.objectives ?? [])}`)
