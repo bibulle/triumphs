@@ -6,9 +6,10 @@ import {
 } from './cache.js'
 import { fetchManifestVersion, fetchTriumphCatalog } from './bungie.js'
 import { parsePlayersEnv, resolvePlayer, fetchPlayerProgress } from './players.js'
-import { getMockProgress } from '../data/mock.js'
+import { getMockProgress, TRIUMPHS } from '../data/mock.js'
 import type { PlayerProgress } from '../data/mock.js'
 import { validCache, CATALOG_KEY, MANIFEST_CHECK_KEY } from '../routes/triumphs.js'
+import { recordSnapshots } from './snapshots.js'
 
 const PROGRESS_KEY = 'progress'
 const DEV_SKIP_SECONDS = 20
@@ -77,6 +78,8 @@ async function warmupProgress(): Promise<void> {
     await setCachedProgress(PROGRESS_KEY, progress)
     const counts = Object.entries(progress).map(([n, p]) => `${n}:${Object.values(p).filter(r => r.completed).length}`).join(', ')
     console.log(`[warmup] progress: stored (${counts})`)
+    await recordSnapshots(progress, TRIUMPHS)
+    console.log('[warmup] progress: snapshots recorded')
   } catch (err) {
     console.error('[warmup] progress error:', (err as Error).message)
   }

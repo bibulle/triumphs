@@ -77,6 +77,7 @@ export async function recordSnapshots(
   const model = getSnapshotModel()
   const today = new Date().toISOString().slice(0, 10)
   const counts = computeCounts(progress, triumphs)
+  let written = 0
 
   for (const [player, entries] of Object.entries(counts)) {
     for (const { level, nodeKey, count } of entries) {
@@ -91,8 +92,10 @@ export async function recordSnapshots(
         { player, date: today, level, nodeKey, count },
         { upsert: true }
       )
+      written++
     }
   }
+  console.log(`[snapshots] recordSnapshots: ${written} upserted (${Object.keys(counts).join(', ')}, triumphs=${triumphs.length})`)
 }
 
 export async function getSnapshots(): Promise<ProgressSnapshot[]> {
