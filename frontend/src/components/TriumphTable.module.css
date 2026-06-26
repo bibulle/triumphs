@@ -201,7 +201,6 @@
   background: var(--surface);
   border-right: 1px solid var(--border);
   padding-left: 34px !important;
-  padding-right: 32px !important;
 }
 
 .titleCell {
