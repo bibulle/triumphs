@@ -63,6 +63,53 @@
   position: relative;
 }
 
+.iconGroup {
+  display: flex;
+  align-items: stretch;
+}
+
+.iconGroup .iconBtn:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.iconGroup .iconBtn:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.iconGroup .iconBtn:not(:first-child) {
+  margin-left: -1px;
+}
+
+.iconBtn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s, z-index 0s;
+  position: relative;
+  z-index: 0;
+}
+
+.iconBtn:hover {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: var(--surface-2);
+  z-index: 1;
+}
+
+.iconBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  z-index: 2;
+}
+
 .filterDot {
   display: inline-block;
   width: 5px;

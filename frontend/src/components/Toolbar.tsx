@@ -1,4 +1,24 @@
 import { useState } from 'react';
+
+function IconExpand() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <line x1="2" y1="2" x2="14" y2="2" />
+      <polyline points="5,6 8,10 11,6" />
+      <line x1="2" y1="14" x2="14" y2="14" />
+    </svg>
+  );
+}
+
+function IconCollapse() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <line x1="2" y1="2" x2="14" y2="2" />
+      <polyline points="5,10 8,6 11,10" />
+      <line x1="2" y1="14" x2="14" y2="14" />
+    </svg>
+  );
+}
 import type { Player, FilterState } from '../data';
 import { isFilterActive } from '../data';
 import { useLocale } from '../i18n';
@@ -34,8 +54,6 @@ export default function Toolbar({
         value={search}
         onChange={e => onSearch(e.target.value)}
       />
-      <button className={styles.btn} onClick={onExpandAll}>{t.expandAll}</button>
-      <button className={styles.btn} onClick={onCollapseAll}>{t.collapseAll}</button>
       <div className={styles.filterWrap}>
         <button
           className={`${styles.btn} ${active ? styles.btnActive : ''}`}
@@ -52,9 +70,32 @@ export default function Toolbar({
           players={players}
         />
       </div>
-      <button className={styles.btn} onClick={onToggleTheme} aria-label="Changer de thème">
-        {theme === 'dark' ? '☾' : '☀'}
-      </button>
+      <div className={styles.iconGroup}>
+        <button
+          className={styles.iconBtn}
+          onClick={onExpandAll}
+          title={t.expandAll}
+          aria-label={t.expandAll}
+        >
+          <IconExpand />
+        </button>
+        <button
+          className={styles.iconBtn}
+          onClick={onCollapseAll}
+          title={t.collapseAll}
+          aria-label={t.collapseAll}
+        >
+          <IconCollapse />
+        </button>
+        <button
+          className={styles.iconBtn}
+          onClick={onToggleTheme}
+          title="Changer de thème"
+          aria-label="Changer de thème"
+        >
+          {theme === 'dark' ? '☾' : '☀'}
+        </button>
+      </div>
     </div>
   );
 }
