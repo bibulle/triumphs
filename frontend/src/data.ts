@@ -1,3 +1,16 @@
+export type PrioLevel = 0 | 1 | 2 | 4;
+export type GlobalPrio = 0 | 1 | 2 | 3;
+export type FlagKey = 'need' | 'solo' | 'abandon';
+
+export interface PlayerAnnotation {
+  prio: Record<string, PrioLevel>;
+  flags: Record<string, FlagKey>;
+}
+
+export type Annotations = Record<string, PlayerAnnotation>;
+
+export type SortState = 'default' | 'global' | 'flag' | `p:${string}`;
+
 export interface Triumph {
   id: string;
   section?: string;

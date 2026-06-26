@@ -1,4 +1,4 @@
-import type { Triumph, NodeMeta, RecordProgress } from './data'
+import type { Triumph, NodeMeta, RecordProgress, Annotations, PlayerAnnotation } from './data'
 
 export interface PlayerInfo {
   name: string
@@ -27,4 +27,19 @@ export async function fetchProgress(): Promise<Record<string, Record<string, Rec
   const res = await fetch('/api/progress')
   if (!res.ok) throw new Error(`fetchProgress: ${res.status}`)
   return res.json()
+}
+
+export async function fetchAnnotations(): Promise<Annotations> {
+  const res = await fetch('/api/annotations')
+  if (!res.ok) throw new Error(`fetchAnnotations: ${res.status}`)
+  return res.json()
+}
+
+export async function saveAnnotations(player: string, data: PlayerAnnotation): Promise<void> {
+  const res = await fetch(`/api/annotations/${encodeURIComponent(player)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`saveAnnotations: ${res.status}`)
 }

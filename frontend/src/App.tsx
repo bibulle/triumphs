@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppData } from './hooks/useAppData';
 import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
@@ -10,9 +10,9 @@ import { useTheme } from './hooks/useTheme';
 import { useLocaleState } from './hooks/useLocale';
 import { useNavState } from './hooks/useNavState';
 import { LocaleContext, useLocale } from './i18n';
-import type { Player, FilterState } from './data';
+import { saveAnnotations } from './api';
+import type { Player, FilterState, SortState, Annotations, PrioLevel, FlagKey } from './data';
 import { DEFAULT_FILTER } from './data';
-import { useState } from 'react';
 
 import './App.css';
 
@@ -21,10 +21,17 @@ function AppInner() {
   const activeSection = navState.tab;
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER);
+  const [sortState, setSortState] = useState<SortState>('default');
   const { theme, toggle: toggleTheme } = useTheme();
   const { t, locale } = useLocale();
 
-  const { groups, triumphs, players, progress, progressDetail, nodes, sections, loading, error } = useAppData();
+  const { groups, triumphs, players, progress, progressDetail, nodes, annotations: initAnnotations, sections, loading, error } = useAppData();
+  const [annotations, setAnnotations] = useState<Annotations>({});
+
+  // Merge server annotations once loaded
+  useEffect(() => {
+    setAnnotations(initAnnotations);
+  }, [initAnnotations]);
 
   const currentSection = useMemo(
     () => sections.find(s => s.id === activeSection)!,
@@ -41,7 +48,6 @@ function AppInner() {
     [triumphs, activeSection]
   );
 
-  // Derive collapsed Set: all groups except the one currently open
   const openGroup = navState.openGroups[activeSection] ?? null;
   const collapsed = useMemo(() => {
     const all = new Set(sectionGroups.map(g => g.groupKey));
@@ -61,6 +67,19 @@ function AppInner() {
 
   const progressFor = useCallback((player: Player) => progress[player] ?? new Set<string>(), [progress]);
   const progressDetailFor = useCallback((player: Player) => progressDetail[player] ?? {}, [progressDetail]);
+
+  const handleAnnotation = useCallback((player: string, id: string, prio: PrioLevel, flag: FlagKey | null) => {
+    setAnnotations(prev => {
+      const pa = prev[player] ?? { prio: {}, flags: {} };
+      const newPrio = { ...pa.prio };
+      const newFlags = { ...pa.flags };
+      if (prio > 0) newPrio[id] = prio; else delete newPrio[id];
+      if (flag) newFlags[id] = flag; else delete newFlags[id];
+      const updated = { ...prev, [player]: { prio: newPrio, flags: newFlags } };
+      saveAnnotations(player, { prio: newPrio, flags: newFlags }).catch(console.error);
+      return updated;
+    });
+  }, []);
 
   if (loading) return <div className="loading">{t.loading}</div>;
   if (error) return <div className="error">{t.error} : {error}</div>;
@@ -93,6 +112,8 @@ function AppInner() {
             onSearch={setSearch}
             filter={filter}
             onFilterChange={setFilter}
+            sortState={sortState}
+            onSortChange={setSortState}
             players={players}
             onExpandAll={expandAll}
             onCollapseAll={collapseAll}
@@ -107,6 +128,9 @@ function AppInner() {
             onToggleGroup={toggleGroup}
             search={search}
             filter={filter}
+            sortState={sortState}
+            annotations={annotations}
+            onAnnotation={handleAnnotation}
             progressFor={progressFor}
             progressDetailFor={progressDetailFor}
             locale={locale}

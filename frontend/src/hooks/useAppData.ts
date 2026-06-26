@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { fetchTriumphs, fetchProgress, fetchPlayers, fetchNodes } from '../api'
+import { fetchTriumphs, fetchProgress, fetchPlayers, fetchNodes, fetchAnnotations } from '../api'
 import { CAT_FR, SUB_FR, SECTIONS } from '../data'
-import type { Triumph, Group, Player, NodeMeta, RecordProgress } from '../data'
+import type { Triumph, Group, Player, NodeMeta, RecordProgress, Annotations } from '../data'
 
 export type AppData = {
   groups: Group[]
@@ -10,6 +10,7 @@ export type AppData = {
   progress: Record<string, Set<string>>
   progressDetail: Record<string, Record<string, RecordProgress>>
   nodes: NodeMeta[]
+  annotations: Annotations
   sections: typeof SECTIONS
   loading: boolean
   error: string | null
@@ -22,6 +23,7 @@ export function useAppData(): AppData {
   const [progress, setProgress] = useState<Record<string, Set<string>>>({})
   const [progressDetail, setProgressDetail] = useState<Record<string, Record<string, RecordProgress>>>({})
   const [nodes, setNodes] = useState<NodeMeta[]>([])
+  const [annotations, setAnnotations] = useState<Annotations>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,11 +32,12 @@ export function useAppData(): AppData {
 
     async function load() {
       try {
-        const [rawTriumphs, rawProgress, rawPlayers, rawNodes] = await Promise.all([
+        const [rawTriumphs, rawProgress, rawPlayers, rawNodes, rawAnnotations] = await Promise.all([
           fetchTriumphs(),
           fetchProgress(),
           fetchPlayers(),
           fetchNodes(),
+          fetchAnnotations().catch(() => ({} as Annotations)),
         ])
         if (cancelled) return
 
@@ -56,7 +59,6 @@ export function useAppData(): AppData {
 
         const playerNames = rawPlayers.map(p => p.name)
 
-        // Derive Set<string> of completed IDs for quick lookup
         const prog = Object.fromEntries(
           playerNames.map(name => {
             const playerRecs = rawProgress[name] ?? {}
@@ -73,6 +75,7 @@ export function useAppData(): AppData {
         setProgress(prog)
         setProgressDetail(rawProgress)
         setNodes(rawNodes)
+        setAnnotations(rawAnnotations)
         setError(null)
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Erreur de chargement')
@@ -85,5 +88,5 @@ export function useAppData(): AppData {
     return () => { cancelled = true }
   }, [])
 
-  return { groups, triumphs, players, progress, progressDetail, nodes, sections: SECTIONS, loading, error }
+  return { groups, triumphs, players, progress, progressDetail, nodes, annotations, sections: SECTIONS, loading, error }
 }

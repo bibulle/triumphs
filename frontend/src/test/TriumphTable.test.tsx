@@ -23,6 +23,9 @@ function renderTable(overrides: Partial<Parameters<typeof TriumphTable>[0]> = {}
       onToggleGroup={vi.fn()}
       search=""
       filter={DEFAULT_FILTER}
+      sortState="default"
+      annotations={{}}
+      onAnnotation={vi.fn()}
       progressFor={progressFor}
       {...overrides}
     />
@@ -165,6 +168,9 @@ describe('TriumphTable — group allDone and filter behavior', () => {
         onToggleGroup={vi.fn()}
         search=""
         filter={doneFilter}
+        sortState="default"
+        annotations={{}}
+        onAnnotation={vi.fn()}
         progressFor={p => emptyProgress[p as keyof typeof emptyProgress] ?? new Set()}
       />
     );
@@ -189,6 +195,9 @@ describe('TriumphTable — group allDone and filter behavior', () => {
         onToggleGroup={vi.fn()}
         search=""
         filter={doneFilter}
+        sortState="default"
+        annotations={{}}
+        onAnnotation={vi.fn()}
         progressFor={p => allDoneFirstItem[p] ?? new Set()}
       />
     );
@@ -211,6 +220,9 @@ describe('TriumphTable — group allDone and filter behavior', () => {
         onToggleGroup={vi.fn()}
         search=""
         filter={DEFAULT_FILTER}
+        sortState="default"
+        annotations={{}}
+        onAnnotation={vi.fn()}
         progressFor={p => allDoneProgress[p] ?? new Set()}
       />
     );

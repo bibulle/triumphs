@@ -21,6 +21,9 @@
   --c-combat: oklch(0.74 0.13 35);
   --c-teamwork: oklch(0.74 0.11 155);
   --c-competitions: oklch(0.78 0.12 95);
+  --p1: oklch(0.66 0.10 235);
+  --p2: var(--gold-bright);
+  --p3: oklch(0.66 0.19 28);
   --radius: 4px;
   --font-display: 'Chakra Petch', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -43,6 +46,9 @@ html[data-theme="light"] {
   --gold-soft: rgba(156, 117, 38, 0.18);
   --accent: #2f8aa3;
   --accent-soft: rgba(47, 138, 163, 0.14);
+  --p1: oklch(0.50 0.13 235);
+  --p2: var(--gold);
+  --p3: oklch(0.55 0.20 28);
   --c-worlds: oklch(0.52 0.13 235);
   --c-stories: oklch(0.52 0.14 305);
   --c-combat: oklch(0.55 0.16 35);

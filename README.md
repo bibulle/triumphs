@@ -1,6 +1,6 @@
 # Destiny 2 — Triumph Tracker
 
-Tableau de suivi partagé des triomphes Destiny 2 pour un groupe de joueurs. Pour chaque triomphe, l'état « fait / à faire » de chaque joueur est affiché en lecture seule.
+Tableau de suivi partagé des triomphes Destiny 2 pour un groupe de joueurs. Pour chaque triomphe, l'état « fait / à faire » de chaque joueur est affiché, ainsi que les priorités et statuts personnels (persistés en base).
 
 ## Stack
 
@@ -122,6 +122,8 @@ MONGODB_URL=mongodb+srv://... docker compose up
 |---|---|---|
 | `GET /api/triumphs` | Catalogue des triomphes (Bungie API ou mock) | `triumph_catalog` (sans TTL, invalidé sur nouvelle version) |
 | `GET /api/progress` | Progression de chaque joueur | `triumph_progress` (TTL 5 min) |
+| `GET /api/annotations` | Priorités & flags de tous les joueurs | Persisté sans TTL (`triumph_annotations`) |
+| `PUT /api/annotations/:player` | Sauvegarde les annotations d'un joueur | idem |
 
 Les collections MongoDB sont préfixées `triumph_` pour cohabiter avec d'autres applications sur le même cluster.
 
@@ -151,6 +153,9 @@ Variables d'environnement :
   - Color-coding par catégorie
   - Pastille ✓ par joueur, ligne dorée `allDone` + badge COMPLET
   - Groupe marqué et masqué quand tous ses triomphes sont terminés ("Masquer terminés")
+- **Priorités & flags par joueur** : clic sur une cellule joueur ouvre un mini-éditeur (popover fixe) permettant de définir une priorité (0/1/2/4 → aucune/basse/moyenne/haute) et un statut personnel (besoin des autres / faisable seul / abandonné). Persistés en MongoDB via `PUT /api/annotations/:player`.
+  - **Prio globale** : moyenne des prios joueurs, buckétée en 3 niveaux (seuils 1.5 / 2.5), affichée à droite de chaque triomphe avec le pire flag collectif
+  - **Tri** : défaut (par groupe), prio globale (avec flag comme tiebreaker), statut, ou prio par joueur — en mode tri actif, le classement s'applique à tout l'onglet et non groupe par groupe
 - **Recherche** : filtre live FR + EN
 - **Thème** : sombre par défaut, persisté en `localStorage`
 - **Responsive** : adapté ≤ 640 px

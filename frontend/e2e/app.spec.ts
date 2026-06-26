@@ -213,12 +213,12 @@ test.describe('Status badges', () => {
     await expect(allDoneRow.getByText('COMPLETO')).toBeVisible();
   });
 
-  test('status badges are not interactive (no pointer cursor)', async ({ page }) => {
+  test('status badges are inside interactive buttons (pointer cursor)', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Expandir tudo' }).click();
-    const badge = page.locator('[class*="status"]').first();
-    const cursor = await badge.evaluate(el => getComputedStyle(el).cursor);
-    expect(cursor).not.toBe('pointer');
+    const cellBtn = page.locator('[class*="cellEdit"]').first();
+    const cursor = await cellBtn.evaluate(el => getComputedStyle(el).cursor);
+    expect(cursor).toBe('pointer');
   });
 });
 
