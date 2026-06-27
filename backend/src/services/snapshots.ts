@@ -39,7 +39,6 @@ function getSnapshotModel(): Model<SnapshotDoc> {
   return snapshotModel
 }
 
-// Compute counts per (level, nodeKey) for each player from current progress
 function computeCounts(
   progress: Record<string, PlayerProgress>,
   triumphs: Triumph[]
@@ -69,7 +68,6 @@ function computeCounts(
   return result
 }
 
-// Called after each progress fetch — stores a new snapshot only when count changed
 export async function recordSnapshots(
   progress: Record<string, PlayerProgress>,
   triumphs: Triumph[]
@@ -95,14 +93,13 @@ export async function recordSnapshots(
       written++
     }
   }
-  console.log(`[snapshots] recordSnapshots: ${written} upserted (${Object.keys(counts).join(', ')}, triumphs=${triumphs.length})`)
+  if (written > 0) console.log(`[snapshots] ${written} upserted`)
 }
 
 export async function getSnapshots(): Promise<ProgressSnapshot[]> {
   const docs = await getSnapshotModel()
     .find({}, { _id: 0, player: 1, date: 1, level: 1, nodeKey: 1, count: 1 })
     .sort({ date: 1 })
-  console.log(`[snapshots] getSnapshots: ${docs.length} docs found`)
   return docs.map(d => ({
     player: d.player,
     date: d.date,
