@@ -56,6 +56,7 @@ export interface ObjectiveProgress {
 export interface RecordProgress {
   completed: boolean;
   objectives: ObjectiveProgress[];
+  completedAt?: string; // ISO date string YYYY-MM-DD
 }
 
 export interface Group {
@@ -72,6 +73,14 @@ export interface Section {
   id: string;
   label: string;
   hasData: boolean;
+}
+
+export interface ProgressSnapshot {
+  player: string;
+  date: string;       // YYYY-MM-DD
+  level: 0 | 1 | 2;
+  nodeKey: string;
+  count: number;
 }
 
 export const CAT_FR: Record<string, string> = {

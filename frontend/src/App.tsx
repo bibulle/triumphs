@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { useVersionCheck } from './hooks/useVersionCheck';
+import ProgressionModal from './components/ProgressionModal';
 import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
 import Toolbar from './components/Toolbar';
@@ -26,6 +27,7 @@ function AppInner() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { t, locale } = useLocale();
   const updateAvailable = useVersionCheck();
+  const [progressionOpen, setProgressionOpen] = useState(false);
 
   const { groups, triumphs, players, progress, progressDetail, nodes, annotations: initAnnotations, sections, loading, error, refreshProgress, nextRefreshIn } = useAppData();
   const [annotations, setAnnotations] = useState<Annotations>({});
@@ -92,7 +94,7 @@ function AppInner() {
     <div className="wrap">
       {updateAvailable && (
         <div className="updateBanner">
-          Nouvelle version disponible —{' '}
+          Nouvelle version disponible &mdash;{' '}
           <button onClick={() => window.location.reload()}>Recharger</button>
         </div>
       )}
@@ -129,6 +131,7 @@ function AppInner() {
             onToggleTheme={toggleTheme}
             onRefreshProgress={refreshProgress}
             nextRefreshIn={nextRefreshIn}
+            onShowProgression={() => setProgressionOpen(true)}
           />
           <TriumphTable
             groups={sectionGroups}
@@ -151,8 +154,15 @@ function AppInner() {
         <EmptySection label={sectionLabel} />
       )}
 
+      <ProgressionModal
+        open={progressionOpen}
+        onClose={() => setProgressionOpen(false)}
+        players={players}
+        sections={sections}
+      />
+
       <footer className="footer">
-        Monument of Triumph est un contenu du jeu Destiny 2 (Bungie). Noms FR provisoires — descriptions à venir.
+        Monument of Triumph est un contenu du jeu Destiny 2 (Bungie). Noms FR provisoires &mdash; descriptions à venir.
       </footer>
     </div>
   );

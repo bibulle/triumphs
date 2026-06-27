@@ -42,6 +42,7 @@ export interface ObjectiveProgress {
 export interface RecordProgress {
   completed: boolean;
   objectives: ObjectiveProgress[];
+  completedAt?: string; // ISO date string (YYYY-MM-DD)
 }
 
 export type PlayerProgress = Record<string, RecordProgress>;
@@ -263,7 +264,7 @@ const RAW: [string, string, [string, string, boolean][]][] = [
     ['The Light of Dawn',"La lumière de l'aube",false],
   ]],
   ['Teamwork','Raid Challenges',[
-    ['Teamwork: Raid Challenges','Travail d\'équipe : Défis de raid',false],
+    ['Teamwork: Raid Challenges','Travail d\'Equipe : Défis de raid',false],
     ['Under the Rug','Sous le tapis',false],
     ["Editor's Choice: Raid",'Choix de la rédaction : Raid',false],
     ['Eyes, Mouth, Heart','Yeux, bouche, cœur',false],
@@ -280,7 +281,7 @@ const RAW: [string, string, [string, string, boolean][]][] = [
     ['Teamwork: Dungeon Challenges',"Travail d'équipe : Défis de donjon",false],
     ['In Every Corner','Dans chaque coin',false],
     ["Editor's Choice: Dungeon",'Choix de la rédaction : Donjon',false],
-    ["Warlord's Jailbreak",'L\'évasion du seigneur de guerre',false],
+    ["Warlord's Jailbreak",'L\'Evasion du seigneur de guerre',false],
     ['Overbalanced','Déséquilibré',false],
     ['Burden of the Wealthy','Le fardeau des riches',false],
     ['Synchronized Breathing','Respiration synchronisée',false],
@@ -351,14 +352,69 @@ const DONE_BY_BIBULLUS = new Set(
   )
 );
 
-export function getMockProgress(): Record<Player, Record<string, { completed: boolean; objectives: [] }>> {
-  // Demo: first triumph completed by all (to visualise allDone state)
+// Generate a fake ISO date within a range for mock history
+function fakeDate(baseMs: number, spreadDays: number, seed: number): string {
+  const offset = Math.abs(seed * 1_234_567 % (spreadDays * 86_400_000));
+  return new Date(baseMs + offset).toISOString().slice(0, 10);
+}
+
+export function getMockSnapshots(): import('../services/snapshots.js').ProgressSnapshot[] {
+  const progress = getMockProgress()
+  const snapshots: import('../services/snapshots.js').ProgressSnapshot[] = []
+  const now = Date.now()
+  const WEEK = 7 * 86_400_000
+  const WEEKS = 26
+
+  for (const [player, recs] of Object.entries(progress) as [string, Record<string, RecordProgress>][]) {
+    for (let w = 0; w < WEEKS; w++) {
+      const weekDate = new Date(now - (WEEKS - 1 - w) * WEEK).toISOString().slice(0, 10)
+      const c = new Map<string, number>()
+      let idx = 0
+      for (const t of TRIUMPHS) {
+        if (!recs[t.id]?.completed) { idx++; continue }
+        const triumphWeek = Math.floor(Math.abs(idx * 7919 % WEEKS))
+        if (triumphWeek > w) { idx++; continue }
+        const keys: [0 | 1 | 2, string][] = [
+          [0, t.section ?? 'triumphs'],
+          [1, t.cat],
+          [2, t.groupKey],
+        ]
+        for (const [lvl, key] of keys) {
+          const k = `${lvl}:${key}`
+          c.set(k, (c.get(k) ?? 0) + 1)
+        }
+        idx++
+      }
+      for (const [k, count] of c.entries()) {
+        const colon = k.indexOf(':')
+        snapshots.push({
+          player,
+          date: weekDate,
+          level: parseInt(k.slice(0, colon)) as 0 | 1 | 2,
+          nodeKey: k.slice(colon + 1),
+          count,
+        })
+      }
+    }
+  }
+  return snapshots
+}
+
+export function getMockProgress(): Record<Player, Record<string, RecordProgress>> {
   const firstId = TRIUMPHS[0].id;
-  const toRecord = (ids: string[]) =>
-    Object.fromEntries(ids.map(id => [id, { completed: true, objectives: [] as [] }]));
+  const now = Date.now();
+  const SIX_MONTHS = 180 * 86_400_000;
+  const start = now - SIX_MONTHS;
+
+  const toRecord = (ids: string[], playerSeed: number) =>
+    Object.fromEntries(ids.map((id, i) => [
+      id,
+      { completed: true, objectives: [] as ObjectiveProgress[], completedAt: fakeDate(start, 180, playerSeed + i) },
+    ]));
+
   return {
-    Bibullus: toRecord([...DONE_BY_BIBULLUS, firstId]),
-    Vincent: toRecord([firstId]),
-    Guiz: toRecord([firstId]),
+    Bibullus: toRecord([...DONE_BY_BIBULLUS, firstId], 0),
+    Vincent: toRecord([firstId], 100),
+    Guiz: toRecord([firstId], 200),
   };
 }

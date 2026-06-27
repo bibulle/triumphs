@@ -18,6 +18,7 @@ const baseProps = {
   onToggleTheme: vi.fn(),
   onRefreshProgress: vi.fn().mockResolvedValue(undefined),
   nextRefreshIn: 300,
+  onShowProgression: vi.fn(),
 };
 
 describe('Toolbar', () => {
