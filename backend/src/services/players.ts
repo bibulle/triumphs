@@ -103,9 +103,6 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
     if (debugHashes.has(hash)) {
       console.log(`[players:debug] hash=${hash} source=${source} state=${rec.state} (binary:${rec.state.toString(2)}) completed=${completed} redeemed=${redeemed} objectives=${JSON.stringify(rec.objectives ?? [])}`)
     }
-    if (completed && !redeemed) {
-      console.log(`[redeemed-debug] ${player.name} hash=${hash} completed-but-NOT-redeemed state=${rec.state} (binary:${rec.state.toString(2)})`)
-    }
 
     if (source === 'profile') {
       profileStates[hash] = rec.state

@@ -20,10 +20,6 @@ router.get('/', async (req: Request, res: Response) => {
       } else {
         const cached = await getCachedProgress(PROGRESS_KEY)
         if (cached) {
-          const sample = Object.values(cached).flatMap(p => Object.values(p as Record<string, unknown>)).find(Boolean) as Record<string, unknown> | undefined
-          if (sample && !('redeemed' in sample)) {
-            console.log('[redeemed-debug] cached progress lacks "redeemed" field — serving stale cache, do ?force=true to refresh')
-          }
           res.json(cached)
           return
         }
