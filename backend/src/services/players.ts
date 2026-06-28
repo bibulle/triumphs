@@ -96,11 +96,12 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
     const intervalObjectives = mapObjs(rec.intervalObjectives)
     const allObjComplete = objectives.length > 0 && objectives.every(o => o.current >= o.completionValue)
     const allIntervalComplete = intervalObjectives.length > 0 && intervalObjectives.every(o => o.current >= o.completionValue)
-    // bit 2 (4) = ObjectiveNotCompleted, bit 0 (1) = RecordRedeemed (reward claimed = triumph done)
-    const completed = (rec.state & 4) === 0 || (rec.state & 1) !== 0 || allObjComplete || allIntervalComplete
+    // bit 2 (4) = ObjectiveNotCompleted, bit 0 (1) = RecordRedeemed (reward claimed)
+    const redeemed = (rec.state & 1) !== 0
+    const completed = (rec.state & 4) === 0 || redeemed || allObjComplete || allIntervalComplete
 
     if (debugHashes.has(hash)) {
-      console.log(`[players:debug] hash=${hash} source=${source} state=${rec.state} (binary:${rec.state.toString(2)}) completed=${completed} objectives=${JSON.stringify(rec.objectives ?? [])}`)
+      console.log(`[players:debug] hash=${hash} source=${source} state=${rec.state} (binary:${rec.state.toString(2)}) completed=${completed} redeemed=${redeemed} objectives=${JSON.stringify(rec.objectives ?? [])}`)
     }
 
     if (source === 'profile') {
@@ -116,7 +117,7 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
     }
 
     if (!progress[hash] || completed) {
-      progress[hash] = { completed, objectives }
+      progress[hash] = { completed, redeemed, objectives }
     }
   }
 

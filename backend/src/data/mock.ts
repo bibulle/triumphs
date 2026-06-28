@@ -41,6 +41,7 @@ export interface ObjectiveProgress {
 
 export interface RecordProgress {
   completed: boolean;
+  redeemed?: boolean;  // true when reward has been claimed (Bungie RecordRedeemed bit)
   objectives: ObjectiveProgress[];
   completedAt?: string; // ISO date string (YYYY-MM-DD)
 }
@@ -406,15 +407,22 @@ export function getMockProgress(): Record<Player, Record<string, RecordProgress>
   const SIX_MONTHS = 180 * 86_400_000;
   const start = now - SIX_MONTHS;
 
-  const toRecord = (ids: string[], playerSeed: number) =>
+  const toRecord = (ids: string[], playerSeed: number, notRedeemedIds = new Set<string>()) =>
     Object.fromEntries(ids.map((id, i) => [
       id,
-      { completed: true, objectives: [] as ObjectiveProgress[], completedAt: fakeDate(start, 180, playerSeed + i) },
+      {
+        completed: true,
+        redeemed: !notRedeemedIds.has(id),
+        objectives: [] as ObjectiveProgress[],
+        completedAt: fakeDate(start, 180, playerSeed + i),
+      },
     ]));
 
+  // firstId is completed but not yet redeemed to showcase the visual state
+  const notRedeemed = new Set([firstId]);
   return {
-    Bibullus: toRecord([...DONE_BY_BIBULLUS, firstId], 0),
-    Vincent: toRecord([firstId], 100),
-    Guiz: toRecord([firstId], 200),
+    Bibullus: toRecord([...DONE_BY_BIBULLUS, firstId], 0, notRedeemed),
+    Vincent: toRecord([firstId], 100, notRedeemed),
+    Guiz: toRecord([firstId], 200, notRedeemed),
   };
 }

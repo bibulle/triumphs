@@ -55,6 +55,7 @@ export interface ObjectiveProgress {
 
 export interface RecordProgress {
   completed: boolean;
+  redeemed?: boolean;  // true when reward has been claimed (Bungie RecordRedeemed bit)
   objectives: ObjectiveProgress[];
   completedAt?: string; // ISO date string YYYY-MM-DD
 }
