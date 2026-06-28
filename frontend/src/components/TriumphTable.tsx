@@ -233,6 +233,7 @@ export default function TriumphTable({
                       const done = checks[i] || !!detail?.completed || allObjMet;
                       const notRedeemed = done && detail?.redeemed === false;
                       const hasProgress = !done && total > 0;
+                      if (done) console.log(`[redeemed-debug] ${p} / ${item.id} / "${primaryName}" — completed=${detail?.completed} redeemed=${detail?.redeemed} notRedeemed=${notRedeemed}`);
                       const lvl = prioLevel(p, item.id);
                       const fl = flagOf(p, item.id);
                       const isEditingThis = editing?.player === p && editing?.item.id === item.id;
