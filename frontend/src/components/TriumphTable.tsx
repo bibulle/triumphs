@@ -231,6 +231,7 @@ export default function TriumphTable({
                       const total = objectives.reduce((s, o) => s + o.completionValue, 0);
                       const allObjMet = total > 0 && current >= total;
                       const done = checks[i] || !!detail?.completed || allObjMet;
+                      const notRedeemed = done && detail?.redeemed === false;
                       const hasProgress = !done && total > 0;
                       const lvl = prioLevel(p, item.id);
                       const fl = flagOf(p, item.id);
@@ -243,7 +244,11 @@ export default function TriumphTable({
                             aria-label={`${p} — ${primaryName} : modifier priorité et statut`}
                           >
                             {done ? (
-                              <span className={`${styles.status} ${styles.isDone}`} role="img" aria-label={`${p} — ${primaryName} : ${t.done}`} />
+                              <span
+                                className={`${styles.status} ${notRedeemed ? styles.isNotRedeemed : styles.isDone}`}
+                                role="img"
+                                aria-label={`${p} — ${primaryName} : ${notRedeemed ? (t.notRedeemed ?? 'complété, non réclamé') : t.done}`}
+                              />
                             ) : hasProgress ? (
                               <span className={styles.progress} aria-label={`${p} — ${primaryName} : ${current}/${total}`}>
                                 <span className={styles.progressText}>{current}/{total}</span>
