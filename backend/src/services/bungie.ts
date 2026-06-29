@@ -163,10 +163,7 @@ function walkNode(
     } else if (depth === 1) {
       walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, childName, childNameFr, triumphs, nodes, 2)
     } else if (depth === 2) {
-      const sg = cat ? `${cat} - ${childName}` : childName
-      const sgFr = catFr ? `${catFr} - ${childNameFr}` : childNameFr
-      const sgPt = childNamePt ? (cat ? `${cat} - ${childNamePt}` : childNamePt) : undefined
-      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, 3, sg, sgFr, sgPt)
+      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, 3, childName, childNameFr, childNamePt)
     } else {
       walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, depth + 1, subGroup, subGroupFr, subGroupPt)
     }
