@@ -1,0 +1,446 @@
+/* Mobile view — hidden on desktop, shown at ≤760px */
+.mobileView {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .mobileView { display: block; }
+}
+
+/* ---- Player selector bar ---- */
+.mbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  padding: 10px 0;
+  background: linear-gradient(180deg, var(--bg) 70%, transparent);
+}
+
+.mplayers {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mplayers::-webkit-scrollbar { display: none; }
+
+.mplayer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.mplayer:hover { color: var(--text); }
+
+.mplayerActive {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+
+.mplayerActive .mpCount { color: var(--gold); }
+
+.mpCount {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-faint);
+}
+
+.mcompareBtn {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.mcompareBtn:hover { color: var(--text); border-color: var(--gold); }
+
+.mcompareBtn[aria-pressed="true"] {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+
+/* ---- Summary ---- */
+.msummary {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--surface-2), var(--surface));
+  box-shadow: inset 4px 0 0 var(--gold);
+}
+
+.msTop {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.msEmblem {
+  width: 20px;
+  height: 20px;
+  color: var(--gold-bright);
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.msEmblem svg { width: 20px; height: 20px; }
+
+.msTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+.msProg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.msFrac {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--gold-bright);
+}
+
+.msBar {
+  flex: 1;
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.msFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+}
+
+/* ---- Group headers ---- */
+.mgrouphead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  margin: 6px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--surface-2), var(--surface));
+  box-shadow: inset 4px 0 0 var(--gold);
+  position: sticky;
+  top: 56px;
+  z-index: 5;
+}
+
+.mgEmblem {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--gold-bright);
+  display: inline-flex;
+}
+
+.mgEmblem svg { width: 18px; height: 18px; }
+
+.mgIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.mgTitle {
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+.mgFrac {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* ---- Cards ---- */
+.mlist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mcard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 13px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: background 0.1s;
+}
+
+.mcard:active { background: var(--surface-2); }
+
+.mcardAllDone {
+  box-shadow: inset 4px 0 0 var(--gold-bright);
+  background: var(--gold-soft);
+}
+
+.mcardMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mcardTitle {
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.mcardAllDone .mcardTitle { color: var(--gold-bright); }
+
+.mcardSg {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+
+.mcardInd {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+/* ---- Status indicators ---- */
+.mstatus {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mstatusTodo {
+  border: 1.5px solid var(--border);
+  background: var(--bg-soft);
+}
+
+.mstatusDone {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+.mstatusCheck {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1c1306;
+  line-height: 1;
+}
+
+/* ---- Compare mode chips ---- */
+.mcompare {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mchip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 30px;
+}
+
+.mcIni {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  color: var(--text-faint);
+  letter-spacing: 0.03em;
+}
+
+.mcDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mcDotTodo {
+  border: 1.4px solid var(--border);
+  background: var(--bg-soft);
+}
+
+.mcDotDone {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+}
+
+.mcCheck {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #1c1306;
+  line-height: 1;
+}
+
+/* ---- Detail sheet ---- */
+.sheetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: rgba(3, 5, 9, 0.6);
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 86vh;
+  overflow: auto;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+  padding: 10px 18px calc(22px + env(safe-area-inset-bottom));
+  box-shadow: 0 -24px 60px -10px rgba(0, 0, 0, 0.75);
+}
+
+.sheet::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold-bright) 50%, var(--gold) 70%, transparent);
+}
+
+.sheetGrip {
+  width: 38px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin: 4px auto 14px;
+}
+
+.sheetSg {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.sheetTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text);
+  margin: 4px 0 2px;
+  line-height: 1.15;
+}
+
+.sheetEn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+
+.sheetDesc {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin: 13px 0 16px;
+}
+
+.sheetPlayers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.sheetProw {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.sheetProw .mstatus {
+  width: 18px;
+  height: 18px;
+}
+
+.sheetProw .mstatusCheck { font-size: 11px; }
+
+.spName {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13.5px;
+  flex: 1;
+  text-align: left;
+}

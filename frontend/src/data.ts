@@ -1,4 +1,4 @@
-export type PrioLevel = 0 | 1 | 2 | 4;
+export type PrioLevel = 0 | 1 | 2 | 3;
 export type GlobalPrio = 0 | 1 | 2 | 3;
 export type FlagKey = 'need' | 'solo' | 'abandon';
 

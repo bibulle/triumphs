@@ -82,3 +82,21 @@
   padding: 2px 5px;
   text-transform: uppercase;
 }
+
+@media (max-width: 760px) {
+  .sections {
+    flex: 1;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 2px;
+    margin-bottom: 12px;
+  }
+  .sections::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 9px 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+}

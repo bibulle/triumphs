@@ -121,3 +121,21 @@
   text-transform: none;
   letter-spacing: 0;
 }
+
+@media (max-width: 760px) {
+  .popover {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    min-width: auto;
+    max-height: 80vh;
+    overflow: auto;
+    border-radius: 14px 14px 0 0;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+    z-index: 70;
+    box-shadow: 0 -20px 50px -10px rgba(0, 0, 0, 0.7);
+  }
+  .seg { flex-wrap: wrap; }
+}

@@ -6,6 +6,7 @@ import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
 import Toolbar from './components/Toolbar';
 import TriumphTable from './components/TriumphTable';
+import MobileView from './components/MobileView';
 import EmptySection from './components/EmptySection';
 import LangPicker from './components/LangPicker';
 import { useTheme } from './hooks/useTheme';
@@ -147,6 +148,18 @@ function AppInner() {
             progressFor={progressFor}
             progressDetailFor={progressDetailFor}
             locale={locale}
+            nodes={nodes}
+          />
+          <MobileView
+            groups={sectionGroups}
+            triumphs={sectionTriumphs}
+            players={players}
+            search={search}
+            filter={filter}
+            sortState={sortState}
+            annotations={annotations}
+            progressFor={progressFor}
+            progressDetailFor={progressDetailFor}
             nodes={nodes}
           />
         </>

@@ -105,7 +105,7 @@ MONGODB_URL=mongodb+srv://... docker compose up
 | `npm run dev` | Serveur Vite (HMR) |
 | `npm run build` | Build de production |
 | `npm run preview` | Prévisualisation du build |
-| `npm test` | Tests unitaires (67 tests) |
+| `npm test` | Tests unitaires (95 tests) |
 | `npm run test:coverage` | Tests + rapport de couverture |
 | `npm run test:e2e` | Tests E2E Playwright (26 scénarios) |
 | `npm run lint` | Lint Oxlint |
@@ -158,7 +158,7 @@ Variables d'environnement :
   - Color-coding par catégorie
   - Pastille ✓ par joueur, ligne dorée `allDone` + badge COMPLET
   - Groupe marqué et masqué quand tous ses triomphes sont terminés ("Masquer terminés")
-- **Priorités & flags par joueur** : clic sur une cellule joueur ouvre un mini-éditeur (popover fixe) permettant de définir une priorité (0/1/2/4 → aucune/basse/moyenne/haute) et un statut personnel (besoin des autres / faisable seul / abandonné). Persistés en MongoDB via `PUT /api/annotations/:player`.
+- **Priorités & flags par joueur** : clic sur une cellule joueur ouvre un mini-éditeur (popover fixe) permettant de définir une priorité (0/1/2/3 → aucune/basse/moyenne/haute) et un statut personnel (besoin des autres / faisable seul / abandonné). Persistés en MongoDB via `PUT /api/annotations/:player`.
   - **Prio globale** : moyenne des prios joueurs, buckétée en 3 niveaux (seuils 1.5 / 2.5), affichée à droite de chaque triomphe avec le pire flag collectif
   - **Tri** : défaut (par groupe), prio globale (avec flag comme tiebreaker), statut, ou prio par joueur — en mode tri actif, le classement s'applique à tout l'onglet et non groupe par groupe
 - **Modale Progression** : bouton 📈 dans la Toolbar ouvre un graphe SVG de la progression dans le temps — 1 ligne colorée par joueur, bascule cumulé/hebdo, filtre par catégorie, survol avec infobulle. Nécessite `completedAt` dans les données de progression (fourni dans les données mockées)
@@ -166,17 +166,26 @@ Variables d'environnement :
 - **Détection de nouvelle version** : le frontend poll `/api/version` toutes les 5 minutes ; si la version change (nouveau déploiement), un bandeau invite à recharger la page
 - **Recherche** : filtre live sur tous les champs texte — noms FR + EN + PT et descriptions EN + FR
 - **Thème** : sombre par défaut, persisté en `localStorage`
-- **Responsive** : adapté ≤ 640 px
+- **Vue mobile responsive** (≤ 760 px) : bascule automatique du tableau vers une vue en cartes
+  - **Sélecteur de joueur** : barre sticky pour choisir le joueur actif ou passer en mode « Comparer » (4 mini-pastilles par carte)
+  - **Résumé joueur** : fraction et barre de progression globale du joueur sélectionné
+  - **En-têtes de catégorie** : regroupement par catégorie (Mondes, Histoires, Combat…) avec icône et fraction
+  - **Cartes** : titre + sous-groupe + indicateurs prio/flag + pastille statut ; fond doré pour les triomphes `allDone`
+  - **Feuille de détail** (bottom sheet) : tap sur une carte → sous-groupe, titre (FR/EN), description, grille 2 colonnes des joueurs (statut + prio + flag). Fermeture par clic hors feuille ou Échap
+  - **Filtres en bottom sheet** : le popover de filtre passe en `position:fixed` bas d'écran sur mobile
+  - Topbar compacte : onglets en scroll horizontal, drapeaux réduits, hero condensé (classement masqué)
+  - Toute la logique (recherche, filtres, tri, langue, prio/flags) est partagée avec la vue desktop
+- **Responsive** : adapté ≤ 640 px (padding, hero en colonne)
 
 ## Tests
 
-### Frontend — Tests unitaires (84 tests)
+### Frontend — Tests unitaires (95 tests)
 
 ```bash
 cd frontend && npm test
 ```
 
-Couvrent : intégrité des données, hooks (`useTheme`, `useAppData`), les 5 composants (SectionTabs, Hero, Toolbar, EmptySection, TriumphTable), service `api.ts`.
+Couvrent : intégrité des données, hooks (`useTheme`, `useAppData`), les 6 composants (SectionTabs, Hero, Toolbar, EmptySection, TriumphTable, MobileView), service `api.ts`.
 
 ### Frontend — Tests E2E Playwright (26 tests)
 
