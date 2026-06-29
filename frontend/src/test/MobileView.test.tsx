@@ -48,9 +48,9 @@ describe('MobileView', () => {
     expect(screen.getByText('Conquérant')).toBeInTheDocument();
   });
 
-  it('renders group header', () => {
+  it('renders group header with desktop-style label', () => {
     renderMobile();
-    expect(screen.getByText('Mondes')).toBeInTheDocument();
+    expect(screen.getByText('Mondes · Panoramas')).toBeInTheDocument();
   });
 
   it('renders compare button', () => {

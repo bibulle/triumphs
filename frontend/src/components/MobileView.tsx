@@ -46,9 +46,21 @@ export default function MobileView({
     }
   }, [players, activePlayer]);
 
+  const rankIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    nodes.filter(n => n.level === 1 && n.rankIndex !== undefined).forEach(n => map.set(n.catKey!, n.rankIndex!));
+    return map;
+  }, [nodes]);
+
   const catIconMap = useMemo(() => {
     const map = new Map<string, string>();
     nodes.filter(n => n.level === 1 && n.icon).forEach(n => map.set(n.catKey!, `${BUNGIE_CDN}${n.icon}`));
+    return map;
+  }, [nodes]);
+
+  const groupIconMap = useMemo(() => {
+    const map = new Map<string, string>();
+    nodes.filter(n => n.level === 2 && n.icon).forEach(n => map.set(n.groupKey!, `${BUNGIE_CDN}${n.icon}`));
     return map;
   }, [nodes]);
 
@@ -136,16 +148,15 @@ export default function MobileView({
     [players, triumphs, progressFor]
   );
 
-  const catGrouped = useMemo(() => {
-    const map = new Map<string, { catLabel: string; catLabelEn: string; groups: Group[] }>();
-    for (const g of sortedGroups) {
-      if (!map.has(g.cat)) {
-        map.set(g.cat, { catLabel: useFr ? (g.catFr || g.cat) : g.cat, catLabelEn: useFr ? g.cat : (g.catFr || g.cat), groups: [] });
-      }
-      map.get(g.cat)!.groups.push(g);
-    }
-    return [...map.values()];
-  }, [sortedGroups, useFr]);
+  const groupLabel = useCallback((group: Group) => {
+    const sameNameEn = group.cat === group.sub;
+    const sameNameFr = group.catFr === group.subFr;
+    const rankIndex = rankIndexMap.get(`${group.section}|${group.cat}`);
+    const rankPrefix = rankIndex !== undefined ? `${rankIndex + 1} · ` : '';
+    return rankPrefix + (useFr
+      ? (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`)
+      : (sameNameEn ? group.sub : `${group.cat} · ${group.sub}`));
+  }, [useFr, rankIndexMap]);
 
   const playerDone = activePlayer ? totalDone[activePlayer] ?? 0 : 0;
   const total = triumphs.length;
@@ -235,28 +246,24 @@ export default function MobileView({
 
       {/* Card list */}
       <div className={styles.mlist}>
-        {catGrouped.map(({ catLabel, groups: catGroups }) => {
-          const catKey = catGroups[0]?.cat ?? '';
-          const sectionKey = catGroups[0]?.section ?? '';
-          const icon = catIconMap.get(`${sectionKey}|${catKey}`);
-          const catItems = catGroups.flatMap(g => g.items);
-          const catDone = !compareMode ? catItems.filter(it => isDone(it, activePlayer)).length : 0;
-          const catTotal = catItems.length;
+        {sortedGroups.map(group => {
+          const icon = groupIconMap.get(group.groupKey) ?? catIconMap.get(`${group.section}|${group.cat}`);
+          const grpDone = !compareMode ? group.items.filter(it => isDone(it, activePlayer)).length : 0;
+          const grpTotal = group.items.length;
 
           return (
-            <div key={catLabel}>
+            <div key={group.groupKey}>
               <div className={styles.mgrouphead}>
                 <span className={styles.mgEmblem}>
                   {icon ? <img src={icon} alt="" className={styles.mgIcon} /> : <EmblemIcon />}
                 </span>
-                <span className={styles.mgTitle}>{catLabel}</span>
+                <span className={styles.mgTitle}>{groupLabel(group)}</span>
                 {!compareMode && (
-                  <span className={styles.mgFrac}>{catDone}/{catTotal}</span>
+                  <span className={styles.mgFrac}>{grpDone}/{grpTotal}</span>
                 )}
               </div>
 
-              {catGroups.map(group => (
-                group.items.map(item => {
+              {group.items.map(item => {
                   const itemAllDone = allDone(item);
                   const primaryName = nameFor(item);
                   const sg = sgFor(item);
@@ -302,8 +309,7 @@ export default function MobileView({
                       </div>
                     </button>
                   );
-                })
-              ))}
+                })}
             </div>
           );
         })}
