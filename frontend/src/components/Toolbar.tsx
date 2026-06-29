@@ -94,7 +94,7 @@ export default function Toolbar({
       </button>
       <div className={styles.iconGroup}>
         <button
-          className={styles.iconBtn}
+          className={`${styles.iconBtn} ${styles.expandBtn}`}
           onClick={onExpandAll}
           title={t.expandAll}
           aria-label={t.expandAll}
@@ -102,7 +102,7 @@ export default function Toolbar({
           <IconExpand />
         </button>
         <button
-          className={styles.iconBtn}
+          className={`${styles.iconBtn} ${styles.collapseBtn}`}
           onClick={onCollapseAll}
           title={t.collapseAll}
           aria-label={t.collapseAll}

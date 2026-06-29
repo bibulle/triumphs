@@ -40,6 +40,7 @@ export default function DetailSheet({ item, players, progressFor, progressDetail
   return (
     <div className={styles.overlay} data-testid="detail-sheet">
       <div className={styles.sheet} ref={ref} role="dialog" aria-modal="true">
+        <div className={styles.grip} />
         <button className={styles.close} onClick={onClose} aria-label="Close" type="button">&times;</button>
 
         {sgLabel && <div className={styles.sg}>{sgLabel}</div>}
@@ -61,23 +62,19 @@ export default function DetailSheet({ item, players, progressFor, progressDetail
             const fl = (annotations[p]?.flags[item.id] as FlagKey) ?? null;
 
             return (
-              <div key={p} className={styles.playerCard}>
-                <div className={styles.playerName}>{p}</div>
-                <div className={styles.playerStatus}>
-                  {done ? (
-                    <span className={`${styles.status} ${notRedeemed ? styles.statusNotRedeemed : styles.statusDone}`}>
-                      {notRedeemed ? (t.notRedeemed ?? 'non réclamé') : t.done}
-                    </span>
-                  ) : hasProgress ? (
-                    <span className={styles.statusProgress}>{current}/{total}</span>
-                  ) : (
-                    <span className={`${styles.status} ${styles.statusTodo}`}>{t.todo}</span>
-                  )}
-                </div>
-                <div className={styles.playerMeta}>
-                  <PrioMeter level={lvl} />
-                  <FlagIcon flagKey={fl} />
-                </div>
+              <div key={p} className={styles.prow}>
+                <span className={styles.spName}>{p}</span>
+                <PrioMeter level={lvl} />
+                <FlagIcon flagKey={fl} />
+                {done ? (
+                  <span className={`${styles.pstatus} ${notRedeemed ? styles.pstatusNotRedeemed : styles.pstatusDone}`}>
+                    <span className={styles.pstatusCheck}>✓</span>
+                  </span>
+                ) : hasProgress ? (
+                  <span className={styles.pstatusProgress}>{current}/{total}</span>
+                ) : (
+                  <span className={`${styles.pstatus} ${styles.pstatusTodo}`} />
+                )}
               </div>
             );
           })}

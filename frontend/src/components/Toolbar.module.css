@@ -120,6 +120,9 @@
   vertical-align: middle;
 }
 
+.expandBtn {}
+.collapseBtn {}
+
 .refreshBtn {
   font-size: 18px;
   line-height: 1;
@@ -177,7 +180,12 @@
 }
 
 @media (max-width: 760px) {
-  .toolbar { gap: 6px; }
-  .search { min-width: 0; flex-basis: 100%; padding: 9px 12px; font-size: 13px; }
+  .toolbar { gap: 8px; }
+  .search { flex: 1 1 100%; min-width: 0; order: 0; padding: 9px 12px; font-size: 13px; }
+  .filterWrap { order: 1; flex: 1; }
+  .filterWrap .btn { width: 100%; }
   .btn { padding: 8px 12px; font-size: 11px; }
+  .iconGroup { order: 2; margin-left: auto; }
+  .iconBtn.expandBtn,
+  .iconBtn.collapseBtn { display: none; }
 }

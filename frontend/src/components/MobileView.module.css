@@ -4,35 +4,52 @@
   gap: 0;
 }
 
-/* ── Player selector ─────────────────────────────────────────── */
+/* ── Sticky player bar ─────────────────────────────────────── */
+.mbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  padding: 10px 0;
+  background: linear-gradient(180deg, var(--bg) 70%, transparent);
+}
+
 .mplayers {
   display: flex;
-  gap: 6px;
+  gap: 4px;
+  flex: 1;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 0 0 10px;
-  margin-bottom: 6px;
   scrollbar-width: none;
 }
 .mplayers::-webkit-scrollbar { display: none; }
 
 .mplayer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   font-family: var(--font-display);
-  font-weight: 600;
   font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  padding: 7px 14px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface);
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 12px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
 }
 
-.mplayer:hover { color: var(--text); border-color: var(--gold); }
+.mpCount {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-faint);
+}
 
 .mplayerActive {
   color: var(--gold-bright);
@@ -40,214 +57,186 @@
   background: var(--gold-soft);
 }
 
-.mcompare {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  padding: 7px 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-faint);
-  cursor: pointer;
-  margin-left: auto;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.mcompare:hover { color: var(--text); border-color: var(--accent); }
-
-.mcompareActive {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-/* ── Summary ─────────────────────────────────────────────────── */
-.msummary {
-  padding: 10px 0;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-
-.msummaryText {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--text);
-  margin-bottom: 6px;
-}
-
-.msummaryBar {
-  height: 4px;
-  background: var(--surface-3);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.msummaryFill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
-  transition: width 0.3s ease;
-}
-
-/* ── Group header ────────────────────────────────────────────── */
-.mgroupRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px 8px;
-  margin-top: 4px;
-  background: linear-gradient(90deg, var(--surface-2), var(--surface));
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-}
-
-.mgroupRow:active { background: var(--surface-3); }
-
-.mgroupChev {
-  font-size: 10px;
+.mplayerActive .mpCount {
   color: var(--gold);
-  transition: transform 0.15s;
-  flex-shrink: 0;
 }
 
-.mgroupCollapsed .mgroupChev { transform: rotate(-90deg); }
-
-.mgroupIcon {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  opacity: 0.6;
-  flex-shrink: 0;
-}
-
-.mgroupLabel {
+.mcompareBtn {
+  flex: 0 0 auto;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--text);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mgroupFrac {
-  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-dim);
-  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  cursor: pointer;
 }
 
-.mgroupDone {
-  background: var(--gold-soft) !important;
+.mcompareBtnActive {
+  color: var(--gold-bright);
   border-color: var(--gold);
+  background: var(--gold-soft);
 }
 
-.mgroupDone .mgroupLabel { color: var(--gold-bright); }
-.mgroupDone .mgroupChev { color: var(--gold-bright); }
-
-/* ── Cards ───────────────────────────────────────────────────── */
-.mcards {
+/* ── Summary ───────────────────────────────────────────────── */
+.msummary {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 9px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--surface-2), var(--surface));
+  box-shadow: inset 4px 0 0 var(--gold);
 }
 
+.msTop {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.emblem {
+  width: 20px;
+  height: 20px;
+  color: var(--gold-bright);
+  flex-shrink: 0;
+}
+
+.emblemSvg {
+  width: 20px;
+  height: 20px;
+}
+
+.msTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+.msProg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.msFrac {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--gold-bright);
+}
+
+.msLbl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.msBar {
+  flex: 1;
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.msFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+}
+
+/* ── Card list ─────────────────────────────────────────────── */
+.mlist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.msubhead {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 12px 2px 2px;
+}
+
+/* ── Cards ─────────────────────────────────────────────────── */
 .mcard {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 10px 10px 16px;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
   background: var(--surface);
-  border: none;
-  border-bottom: 1px solid var(--border-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 13px;
   cursor: pointer;
   color: inherit;
   font: inherit;
-  text-align: left;
-  width: 100%;
-  transition: background 0.12s;
 }
 
-.mcard:active { background: var(--surface-2); }
+.mcard:active {
+  background: var(--surface-2);
+}
 
 .mcardDone {
+  box-shadow: inset 4px 0 0 var(--gold-bright);
   background: var(--gold-soft);
-  border-left: 3px solid var(--gold);
 }
 
-.mcardLeft {
+.mcardMain {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex: 1;
+  gap: 3px;
 }
 
 .mcardTitle {
   font-weight: 600;
-  font-size: 13.5px;
+  font-size: 14.5px;
   color: var(--text);
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.25;
 }
 
-.mcardDone .mcardTitle { color: var(--gold-bright); }
+.mcardDone .mcardTitle {
+  color: var(--gold-bright);
+}
 
 .mcardSg {
   font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 9px;
+  letter-spacing: 0.05em;
   color: var(--text-faint);
 }
 
-.mcardRight {
+.mcardInd {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-shrink: 0;
 }
 
-.mcardMeta {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* ── Status indicators (single player) ───────────────────────── */
+/* ── Status indicator (single player) ──────────────────────── */
 .mstatus {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-}
-
-.mstatusDone {
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-  box-shadow: 0 0 0 1px var(--gold), 0 0 8px var(--gold-soft);
-}
-
-.mstatusNotRedeemed {
-  background: linear-gradient(180deg, #a8c8e8, #6a9fc0);
-  box-shadow: 0 0 0 1px #6a9fc0;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  position: relative;
 }
 
 .mstatusTodo {
@@ -255,35 +244,72 @@
   background: var(--bg-soft);
 }
 
-.mstatusProgress {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-dim);
-  letter-spacing: 0.04em;
+.mstatusDone {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  box-shadow: 0 0 0 1px var(--gold);
 }
 
-/* ── Compare mode chips ──────────────────────────────────────── */
-.mchips {
+.mstatusNotRedeemed {
+  background: linear-gradient(180deg, #a8c8e8, #6a9fc0);
+  box-shadow: 0 0 0 1px #6a9fc0;
+}
+
+.mstatusCheck {
+  position: absolute;
+  inset: 0;
   display: flex;
-  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1c1306;
+}
+
+/* ── Compare mode chips ────────────────────────────────────── */
+.mcompare {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .mchip {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 30px;
 }
 
-.mchipDone {
+.mcIni {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  color: var(--text-faint);
+  letter-spacing: 0.03em;
+}
+
+.mcDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  position: relative;
+}
+
+.mcDotTodo {
+  border: 1.4px solid var(--border);
+  background: var(--bg-soft);
+}
+
+.mcDotDone {
   background: linear-gradient(180deg, var(--gold-bright), var(--gold));
 }
 
-.mchipNotRedeemed {
-  background: linear-gradient(180deg, #a8c8e8, #6a9fc0);
-}
-
-.mchipTodo {
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
+.mcCheck {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #1c1306;
 }
