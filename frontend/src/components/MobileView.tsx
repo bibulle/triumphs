@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import type { Group, Triumph, Player, FilterState, SortState, Annotations, PrioLevel, FlagKey, RecordProgress, NodeMeta, GlobalPrio } from '../data';
+import type { Group, Triumph, Player, FilterState, SortState, Annotations, PrioLevel, FlagKey, RecordProgress, NodeMeta } from '../data';
 import type { Locale } from '../i18n';
 import { useLocale } from '../i18n';
 import { PrioMeter, FlagIcon } from './CellEditor';

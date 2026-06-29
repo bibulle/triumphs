@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function DetailSheet({ item, players, progressFor, progressDetailFor, annotations, onClose }: Props) {
-  const { t, locale } = useLocale();
+  const { locale } = useLocale();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
