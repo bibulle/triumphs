@@ -272,6 +272,16 @@
   flex-shrink: 0;
 }
 
+.sgTag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  opacity: 0.8;
+  margin-top: -1px;
+}
+
 .desc {
   font-size: 11.5px;
   color: var(--text-faint);

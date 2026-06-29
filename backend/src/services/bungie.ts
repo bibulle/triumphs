@@ -78,7 +78,8 @@ function walkNode(
   sub: string, subFr: string,
   triumphs: Triumph[],
   nodes: NodeMeta[],
-  depth: number
+  depth: number,
+  subGroup = '', subGroupFr = '', subGroupPt = ''
 ): void {
   const nodeEn = nodesEn[nodeHash]
   if (!nodeEn) return
@@ -128,6 +129,7 @@ function walkNode(
       sub: effectiveSub,
       subFr: effectiveSubFr,
       groupKey: `${section}|${effectiveCat}|${effectiveSub}`,
+      ...(subGroup ? { subGroup, subGroupFr: subGroupFr || subGroup, subGroupPt: subGroupPt || undefined } : {}),
       en: recEn.displayProperties.name,
       fr: recFr?.displayProperties.name ?? recEn.displayProperties.name,
       pt: recPt?.displayProperties.name,
@@ -151,15 +153,26 @@ function walkNode(
   for (const { presentationNodeHash: childHash } of nodeEn.children?.presentationNodes ?? []) {
     const childEn = nodesEn[childHash]
     const childFr = nodesFr[childHash]
+    const childPt = nodesPt[childHash]
     const childName = childEn?.displayProperties.name ?? ''
     const childNameFr = childFr?.displayProperties.name ?? childName
+    const childNamePt = childPt?.displayProperties.name
 
     if (depth === 0) {
       walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, childName, childNameFr, '', '', triumphs, nodes, 1)
     } else if (depth === 1) {
       walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, childName, childNameFr, triumphs, nodes, 2)
+    } else if (depth === 2) {
+      // depth-3 name stored as interim subGroup, will be compounded at depth-3→4
+      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, 3, childName, childNameFr, childNamePt)
+    } else if (depth === 3) {
+      // subGroup = "depth3Name - depth4Name" (e.g. "Mondes - Paysages")
+      const sg = subGroup ? `${subGroup} - ${childName}` : childName
+      const sgFr = subGroupFr ? `${subGroupFr} - ${childNameFr}` : childNameFr
+      const sgPt = subGroupPt && childNamePt ? `${subGroupPt} - ${childNamePt}` : (childNamePt ?? subGroupPt)
+      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, 4, sg, sgFr, sgPt)
     } else {
-      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, depth + 1)
+      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, depth + 1, subGroup, subGroupFr, subGroupPt)
     }
   }
 }

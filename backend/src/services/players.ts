@@ -82,7 +82,6 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
   const profileStates: Record<string, number> = {}
 
   const debugHashes = new Set([
-    '3241995275', // Voie de la Puissance
     ...(process.env.DEBUG_RECORD_HASHES ?? '').split(',').filter(Boolean),
   ])
 
@@ -106,12 +105,9 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
 
     if (source === 'profile') {
       profileStates[hash] = rec.state
-      if (completed && rec.state === 0 && objectives.length === 0) {
-        console.log(`[players:debug] ${player.name} profile state=0, no objectives → completed=true: hash=${hash}`)
-      }
     } else {
       const prev = progress[hash]
-      if (completed && prev && !prev.completed && hash in profileStates) {
+      if (debugHashes.has(hash) && completed && prev && !prev.completed && hash in profileStates) {
         console.log(`[players:debug] ${player.name} character PROMOTES hash=${hash} profile_state=${profileStates[hash]} char_state=${rec.state} char_completed=${completed}`)
       }
     }

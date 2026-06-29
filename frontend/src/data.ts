@@ -19,6 +19,9 @@ export interface Triumph {
   sub: string;
   subFr?: string;
   groupKey: string;
+  subGroup?: string;
+  subGroupFr?: string;
+  subGroupPt?: string;
   en: string;
   fr: string;
   pt?: string;
