@@ -258,25 +258,25 @@ test.describe('Mobile view (≤ 760px)', () => {
 
   test('renders group headers', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('[class*="mgroupRow"]').first()).toBeVisible();
+    await expect(page.getByTestId('mgroup-row').first()).toBeVisible();
   });
 
   test('tapping a group expands it and shows cards', async ({ page }) => {
     await page.goto('/');
-    await page.locator('[class*="mgroupRow"]').first().click();
+    await page.getByTestId('mgroup-row').first().click();
     await expect(page.locator('[class*="mcard"]').first()).toBeVisible();
   });
 
   test('tapping a card opens detail sheet', async ({ page }) => {
     await page.goto('/');
-    await page.locator('[class*="mgroupRow"]').first().click();
+    await page.getByTestId('mgroup-row').first().click();
     await page.locator('[class*="mcard"]').first().click();
     await expect(page.getByTestId('detail-sheet')).toBeVisible();
   });
 
   test('detail sheet shows all players and closes on X', async ({ page }) => {
     await page.goto('/');
-    await page.locator('[class*="mgroupRow"]').first().click();
+    await page.getByTestId('mgroup-row').first().click();
     await page.locator('[class*="mcard"]').first().click();
     const sheet = page.getByTestId('detail-sheet');
     await expect(sheet.getByText('Bibullus')).toBeVisible();
@@ -300,7 +300,7 @@ test.describe('Mobile view (≤ 760px)', () => {
   test('search works on mobile', async ({ page }) => {
     await page.goto('/');
     await page.getByPlaceholder(/Pesquisar/i).fill('Le Monument');
-    await page.locator('[class*="mgroupRow"]').first().click();
+    await page.getByTestId('mgroup-row').first().click();
     await expect(page.locator('[class*="mcard"]').first()).toBeVisible();
   });
 

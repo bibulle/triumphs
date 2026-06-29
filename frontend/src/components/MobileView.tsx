@@ -256,24 +256,27 @@ export default function MobileView({
       <div className={styles.mlist}>
         {visibleGroups.map(group => {
           const isCollapsed = collapsed?.has(group.groupKey) ?? false;
-          const groupDone = group.items.length > 0 && group.items.every(item =>
-            players.length > 0 && players.every(p => progressFor(p).has(item.id))
-          );
-          const groupSubLabel = useFr ? group.subFr : group.sub;
-          const doneCount = group.items.filter(item =>
-            players.length > 0 && players.every(p => progressFor(p).has(item.id))
-          ).length;
+          const groupAllDone = group.items.length > 0 && players.length > 0 &&
+            group.items.every(item => players.every(p => progressFor(p).has(item.id)));
+          const sameLabel = useFr ? group.catFr === group.subFr : group.cat === group.sub;
+          const groupLabel2 = useFr
+            ? (sameLabel ? group.subFr : `${group.catFr} · ${group.subFr}`)
+            : (sameLabel ? group.sub : `${group.cat} · ${group.sub}`);
+          const playerDone = compareMode
+            ? group.items.filter(item => players.every(p => progressFor(p).has(item.id))).length
+            : group.items.filter(item => progressFor(activePlayer).has(item.id)).length;
 
           return (
             <div key={group.groupKey}>
               <button
-                className={`${styles.mgroupRow} ${isCollapsed ? styles.mgroupCollapsed : ''} ${groupDone ? styles.mgroupDone : ''}`}
+                className={`${styles.mgroupRow} ${isCollapsed ? styles.mgroupCollapsed : ''} ${groupAllDone ? styles.mgroupDone : ''}`}
                 onClick={() => onToggleGroup?.(group.groupKey)}
+                data-testid="mgroup-row"
                 type="button"
               >
                 <span className={styles.mgroupChev}>▾</span>
-                <span className={styles.mgroupLabel}>{groupSubLabel}</span>
-                <span className={styles.mgroupFrac}>{doneCount}/{group.items.length}</span>
+                <span className={styles.mgroupLabel}>{groupLabel2}</span>
+                <span className={styles.mgroupFrac}>{playerDone}/{group.items.length}</span>
               </button>
               {!isCollapsed && (
                 <div className={styles.mcards}>
