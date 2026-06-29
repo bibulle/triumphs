@@ -126,7 +126,7 @@ export default function TriumphTable({
           <tbody>
             {(() => {
               const filterItem = (item: Triumph) => {
-                const matchSearch = !q || [item.en, item.fr, item.pt, item.descEn, item.descFr].filter(Boolean).join(' ').toLowerCase().includes(q);
+                const matchSearch = !q || [item.en, item.fr, item.pt, item.descEn, item.descFr, item.subGroup, item.subGroupFr].filter(Boolean).join(' ').toLowerCase().includes(q);
                 if (!matchSearch) return false;
                 const doneCount = players.filter(p => progressFor(p).has(item.id)).length;
                 const n = players.length;
@@ -194,6 +194,7 @@ export default function TriumphTable({
                 const localeName = locale === 'fr' ? item.fr : locale === 'pt' ? item.pt : undefined;
                 const primaryName = localeName || item.en;
                 const secondaryName = useFr ? item.en : item.fr;
+                const sgLabel = locale === 'pt' ? (item.subGroupPt || item.subGroup) : locale === 'fr' ? item.subGroupFr : item.subGroup;
                 const gp = globalPrio(item.id);
                 const wf = worstFlagKey(item.id);
                 return (
@@ -211,6 +212,7 @@ export default function TriumphTable({
                               <span className={styles.titleEn}>{secondaryName}</span>
                             )}
                           </div>
+                          {sgLabel && <span className={styles.sgTag}>{sgLabel}</span>}
                           {(item.descFr || item.descEn)
                             ? <span className={styles.desc}>{useFr ? (item.descFr || item.descEn) : (item.descEn || item.descFr)}</span>
                             : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
