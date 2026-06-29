@@ -33,7 +33,7 @@ function EmblemIcon() {
 }
 
 export default function MobileView({
-  groups, triumphs, players, search, filter,
+  groups, triumphs, players, collapsed, onToggleGroup, search, filter,
   sortState, annotations,
   progressFor, progressDetailFor,
 }: Props) {
@@ -92,21 +92,27 @@ export default function MobileView({
     return { done, notRedeemed };
   };
 
-  const visibleItems = useMemo(() => {
-    const flat = groups.flatMap(group => group.items.filter(filterItem));
-    if (sortState !== 'default') {
-      flat.sort((a, b) => {
-        const ka = sortState === 'global' ? globalPrioRaw(a.id) * 10 + worstFlagWeight(a.id) / 10
-                 : sortState === 'flag' ? worstFlagWeight(a.id)
-                 : prioLevel(sortState.slice(2), a.id);
-        const kb = sortState === 'global' ? globalPrioRaw(b.id) * 10 + worstFlagWeight(b.id) / 10
-                 : sortState === 'flag' ? worstFlagWeight(b.id)
-                 : prioLevel(sortState.slice(2), b.id);
-        return kb - ka;
-      });
-    }
-    return flat;
+  const visibleGroups = useMemo(() => {
+    return groups.map(group => {
+      const items = group.items.filter(filterItem);
+      if (sortState !== 'default') {
+        items.sort((a, b) => {
+          const ka = sortState === 'global' ? globalPrioRaw(a.id) * 10 + worstFlagWeight(a.id) / 10
+                   : sortState === 'flag' ? worstFlagWeight(a.id)
+                   : prioLevel(sortState.slice(2), a.id);
+          const kb = sortState === 'global' ? globalPrioRaw(b.id) * 10 + worstFlagWeight(b.id) / 10
+                   : sortState === 'flag' ? worstFlagWeight(b.id)
+                   : prioLevel(sortState.slice(2), b.id);
+          return kb - ka;
+        });
+      }
+      return { ...group, items };
+    }).filter(g => g.items.length > 0);
   }, [groups, filterItem, sortState]);
+
+  const visibleItemCount = useMemo(() =>
+    visibleGroups.reduce((s, g) => s + g.items.length, 0),
+  [visibleGroups]);
 
   const totalDoneFor = useCallback((p: Player) =>
     triumphs.filter(d => progressFor(p).has(d.id)).length,
@@ -229,7 +235,7 @@ export default function MobileView({
         {compareMode ? (
           <div className={styles.msProg}>
             <span className={styles.msLbl}>
-              {locale === 'fr' ? 'Comparaison' : locale === 'pt' ? 'Comparação' : 'Comparison'} · {visibleItems.length} {t.itemsLabel}
+              {locale === 'fr' ? 'Comparaison' : locale === 'pt' ? 'Comparação' : 'Comparison'} · {visibleItemCount} {t.itemsLabel}
             </span>
           </div>
         ) : (
@@ -246,9 +252,37 @@ export default function MobileView({
         )}
       </div>
 
-      {/* Flat list of cards */}
+      {/* Groups with collapsible headers */}
       <div className={styles.mlist}>
-        {visibleItems.map(renderCard)}
+        {visibleGroups.map(group => {
+          const isCollapsed = collapsed?.has(group.groupKey) ?? false;
+          const groupDone = group.items.length > 0 && group.items.every(item =>
+            players.length > 0 && players.every(p => progressFor(p).has(item.id))
+          );
+          const groupSubLabel = useFr ? group.subFr : group.sub;
+          const doneCount = group.items.filter(item =>
+            players.length > 0 && players.every(p => progressFor(p).has(item.id))
+          ).length;
+
+          return (
+            <div key={group.groupKey}>
+              <button
+                className={`${styles.mgroupRow} ${isCollapsed ? styles.mgroupCollapsed : ''} ${groupDone ? styles.mgroupDone : ''}`}
+                onClick={() => onToggleGroup?.(group.groupKey)}
+                type="button"
+              >
+                <span className={styles.mgroupChev}>▾</span>
+                <span className={styles.mgroupLabel}>{groupSubLabel}</span>
+                <span className={styles.mgroupFrac}>{doneCount}/{group.items.length}</span>
+              </button>
+              {!isCollapsed && (
+                <div className={styles.mcards}>
+                  {group.items.map(renderCard)}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Detail sheet */}

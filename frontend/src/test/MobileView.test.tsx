@@ -60,14 +60,33 @@ describe('MobileView', () => {
     expect(summary).toHaveTextContent('Bibullus');
   });
 
-  it('renders triumph cards in flat list', () => {
+  it('renders group headers', () => {
     renderMobile();
+    expect(screen.getAllByText('▾').length).toBeGreaterThan(0);
+  });
+
+  it('renders triumph cards when group is expanded', () => {
+    renderMobile({ collapsed: new Set() });
     const firstItem = GROUPS[0].items[0];
     expect(screen.getByText(firstItem.fr)).toBeInTheDocument();
   });
 
+  it('hides triumph cards when group is collapsed', () => {
+    renderMobile({ collapsed: new Set([GROUPS[0].groupKey]) });
+    const firstItem = GROUPS[0].items[0];
+    expect(screen.queryByText(firstItem.fr)).not.toBeInTheDocument();
+  });
+
+  it('calls onToggleGroup when group header is clicked', async () => {
+    const onToggleGroup = vi.fn();
+    renderMobile({ onToggleGroup });
+    const chevrons = screen.getAllByText('▾');
+    await userEvent.click(chevrons[0]);
+    expect(onToggleGroup).toHaveBeenCalledWith(GROUPS[0].groupKey);
+  });
+
   it('filters cards by search query', () => {
-    renderMobile({ search: 'Monument' });
+    renderMobile({ search: 'Monument', collapsed: new Set() });
     expect(screen.getByText('Le Monument')).toBeInTheDocument();
   });
 
@@ -94,14 +113,14 @@ describe('MobileView', () => {
   });
 
   it('tapping a card opens the detail sheet', async () => {
-    renderMobile();
+    renderMobile({ collapsed: new Set() });
     const firstItem = GROUPS[0].items[0];
     await userEvent.click(screen.getByText(firstItem.fr));
     expect(screen.getByTestId('detail-sheet')).toBeInTheDocument();
   });
 
   it('detail sheet shows all players', async () => {
-    renderMobile();
+    renderMobile({ collapsed: new Set() });
     const firstItem = GROUPS[0].items[0];
     await userEvent.click(screen.getByText(firstItem.fr));
     const sheet = screen.getByTestId('detail-sheet');
@@ -111,7 +130,7 @@ describe('MobileView', () => {
   });
 
   it('detail sheet closes on close button click', async () => {
-    renderMobile();
+    renderMobile({ collapsed: new Set() });
     const firstItem = GROUPS[0].items[0];
     await userEvent.click(screen.getByText(firstItem.fr));
     expect(screen.getByTestId('detail-sheet')).toBeInTheDocument();
