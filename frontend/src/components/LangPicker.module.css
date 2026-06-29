@@ -24,3 +24,8 @@
   opacity: 1;
   border-color: var(--gold);
 }
+
+@media (max-width: 760px) {
+  .picker { gap: 3px; }
+  .btn { font-size: 17px; padding: 3px; }
+}

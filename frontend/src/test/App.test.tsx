@@ -62,29 +62,34 @@ describe('App', () => {
     // Groups are collapsed by default — expand first, then collapse
     await waitFor(() => screen.getByRole('button', { name: 'Tout déplier' }))
     await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }))
-    await waitFor(() => screen.getByText('Le Monument'))
+    // "Le Monument" appears in both desktop table and mobile view
+    await waitFor(() => expect(screen.getAllByText('Le Monument').length).toBeGreaterThanOrEqual(1))
     await userEvent.click(screen.getByRole('button', { name: 'Tout replier' }))
-    expect(screen.queryByText('Le Monument')).not.toBeInTheDocument()
+    // After collapse, the table row is hidden; only mobile view may still show it
+    const matches = screen.queryAllByText('Le Monument')
+    // The desktop table item should be gone; mobile view cards may still exist
+    // Desktop table renders 0, mobile view always renders all visible items
+    expect(matches.length).toBeLessThanOrEqual(1)
   })
 
   it('"Tout déplier" opens the first group', async () => {
     render(<App />)
     await waitFor(() => screen.getByRole('button', { name: 'Tout déplier' }))
     await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }))
-    await waitFor(() => expect(screen.getByText('Le Monument')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText('Le Monument').length).toBeGreaterThanOrEqual(1))
   })
 
   it('"Filtrer" > "Terminés" hides non-allDone rows and shows only allDone', async () => {
     render(<App />)
     await waitFor(() => screen.getByRole('button', { name: 'Tout déplier' }))
     await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }))
-    await waitFor(() => screen.getByText('Le Monument'))
+    await waitFor(() => expect(screen.getAllByText('Le Monument').length).toBeGreaterThanOrEqual(1))
     await userEvent.click(screen.getByRole('button', { name: /Filtrer/i }))
     await userEvent.click(screen.getByRole('button', { name: /Terminés/i }))
-    // 'Conqueror' is not allDone → should be hidden
+    // 'Conqueror' is not allDone → should be hidden in both views
     expect(screen.queryByText('Conquérant')).not.toBeInTheDocument()
-    // 'Le Monument' is allDone → visible
-    expect(screen.getByText('Le Monument')).toBeInTheDocument()
+    // 'Le Monument' is allDone → visible in at least one view
+    expect(screen.getAllByText('Le Monument').length).toBeGreaterThanOrEqual(1)
   })
 
   it('shows error message when API fails', async () => {

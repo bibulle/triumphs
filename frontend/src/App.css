@@ -21,8 +21,13 @@
   line-height: 1.7;
 }
 
+@media (max-width: 760px) {
+  .wrap { padding: 16px 12px 48px; }
+  .topbar { gap: 8px; align-items: center; }
+}
+
 @media (max-width: 640px) {
-  .wrap { padding: 24px 14px 56px; }
+  .wrap { padding: 16px 12px 48px; }
 }
 
 .updateBanner {

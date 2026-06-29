@@ -175,3 +175,11 @@
 .refreshBtn:hover::after {
   opacity: 1;
 }
+
+@media (max-width: 760px) {
+  .toolbar { gap: 8px; }
+  .search { flex: 1 1 100%; min-width: 0; order: 0; }
+  .filterWrap { order: 1; flex: 1; }
+  .filterWrap .btn { width: 100%; }
+  .iconGroup { order: 3; margin-left: auto; }
+}

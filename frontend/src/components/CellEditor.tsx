@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { PrioLevel, GlobalPrio, FlagKey } from '../data';
 import styles from './CellEditor.module.css';
 
-const PRIO_LABELS: Record<PrioLevel, string> = { 0: 'Aucune', 1: 'Basse', 2: 'Moyenne', 4: 'Haute' };
+const PRIO_LABELS: Record<PrioLevel, string> = { 0: 'Aucune', 1: 'Basse', 2: 'Moyenne', 3: 'Haute' };
 const FLAG_LABELS: Record<FlagKey | '', string> = { need: 'Besoin des autres', solo: 'Faisable seul', abandon: 'Abandonné', '': 'Aucun' };
 
 function IconNeed() {
@@ -73,7 +73,7 @@ export default function CellEditor({ player, triumphName, prio, flag, anchor, on
   let top = anchor.bottom + 8 + editorH > vh - 8 ? anchor.top - editorH - 8 : anchor.bottom + 8;
   top = Math.max(8, top);
 
-  const prioLevels: PrioLevel[] = [4, 2, 1, 0];
+  const prioLevels: PrioLevel[] = [3, 2, 1, 0];
   const flagKeys: (FlagKey | '')[] = ['need', 'solo', 'abandon', ''];
 
   return (

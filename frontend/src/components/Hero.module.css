@@ -189,9 +189,17 @@
   text-align: right;
 }
 
-@media (max-width: 640px) {
-  .hero { padding: 24px 18px; }
-  .grid { gap: 22px; }
+@media (max-width: 760px) {
+  .hero { padding: 18px 16px 16px; margin-bottom: 14px; }
+  .h1 { font-size: 26px; }
+  .leaderboard { display: none; }
+  .grid { gap: 0; }
   .stat { border-right: none; padding-right: 0; }
-  .leaderboard { min-width: 100%; }
+  .num { font-size: 34px; }
+}
+
+@media (max-width: 640px) {
+  .hero { padding: 18px 16px 16px; }
+  .grid { gap: 0; }
+  .stat { border-right: none; padding-right: 0; }
 }
