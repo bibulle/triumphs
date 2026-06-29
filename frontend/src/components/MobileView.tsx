@@ -336,12 +336,12 @@ export default function MobileView({
                 const fl = flagOf(p, detailItem.id);
                 return (
                   <div key={p} className={styles.sheetProw}>
-                    <span className={`${styles.mstatus} ${done ? styles.mstatusDone : styles.mstatusTodo}`}>
-                      {done && <span className={styles.mstatusCheck}>✓</span>}
-                    </span>
                     <span className={styles.spName}>{p}</span>
                     {pl > 0 && <PrioMeter level={pl} />}
                     {fl && <FlagIcon flagKey={fl} />}
+                    <span className={`${styles.mstatus} ${done ? styles.mstatusDone : styles.mstatusTodo}`}>
+                      {done && <span className={styles.mstatusCheck}>✓</span>}
+                    </span>
                   </div>
                 );
               })}
