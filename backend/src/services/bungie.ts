@@ -163,7 +163,14 @@ function walkNode(
     } else if (depth === 1) {
       walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, childName, childNameFr, triumphs, nodes, 2)
     } else if (depth === 2) {
+      // depth-3 name stored as interim subGroup, will be compounded at depth-3→4
       walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, 3, childName, childNameFr, childNamePt)
+    } else if (depth === 3) {
+      // subGroup = "depth3Name - depth4Name" (e.g. "Mondes - Paysages")
+      const sg = subGroup ? `${subGroup} - ${childName}` : childName
+      const sgFr = subGroupFr ? `${subGroupFr} - ${childNameFr}` : childNameFr
+      const sgPt = subGroupPt && childNamePt ? `${subGroupPt} - ${childNamePt}` : (childNamePt ?? subGroupPt)
+      walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, 4, sg, sgFr, sgPt)
     } else {
       walkNode(childHash, nodesEn, nodesFr, nodesPt, recordsEn, recordsFr, recordsPt, section, cat, catFr, sub, subFr, triumphs, nodes, depth + 1, subGroup, subGroupFr, subGroupPt)
     }
