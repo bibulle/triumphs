@@ -230,3 +230,85 @@ test.describe('Responsive layout', () => {
     await expect(page.getByPlaceholder(/Pesquisar/i)).toBeVisible();
   });
 });
+
+test.describe('Mobile view (≤ 760px)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+  });
+
+  test('shows mobile view instead of table at 375px', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByTestId('mobile-view')).toBeVisible();
+    await expect(page.locator('[class*="tablewrap"]')).not.toBeVisible();
+  });
+
+  test('shows player selector with all players', async ({ page }) => {
+    await page.goto('/');
+    const players = page.getByTestId('mobile-players');
+    await expect(players.getByText('Bibullus')).toBeVisible();
+    await expect(players.getByText('Vincent')).toBeVisible();
+    await expect(players.getByText('Guiz')).toBeVisible();
+  });
+
+  test('shows summary header with player name', async ({ page }) => {
+    await page.goto('/');
+    const summary = page.getByTestId('mobile-summary');
+    await expect(summary).toContainText('Bibullus');
+  });
+
+  test('renders group headers', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('[class*="mgroupRow"]').first()).toBeVisible();
+  });
+
+  test('tapping a group expands it and shows cards', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('[class*="mgroupRow"]').first().click();
+    await expect(page.locator('[class*="mcard"]').first()).toBeVisible();
+  });
+
+  test('tapping a card opens detail sheet', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('[class*="mgroupRow"]').first().click();
+    await page.locator('[class*="mcard"]').first().click();
+    await expect(page.getByTestId('detail-sheet')).toBeVisible();
+  });
+
+  test('detail sheet shows all players and closes on X', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('[class*="mgroupRow"]').first().click();
+    await page.locator('[class*="mcard"]').first().click();
+    const sheet = page.getByTestId('detail-sheet');
+    await expect(sheet.getByText('Bibullus')).toBeVisible();
+    await expect(sheet.getByText('Vincent')).toBeVisible();
+    await sheet.getByRole('button', { name: 'Close' }).click();
+    await expect(page.getByTestId('detail-sheet')).not.toBeVisible();
+  });
+
+  test('switching player updates summary', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('mobile-players').getByText('Vincent').click();
+    await expect(page.getByTestId('mobile-summary')).toContainText('Vincent');
+  });
+
+  test('compare mode shows all-player count', async ({ page }) => {
+    await page.goto('/');
+    await page.getByText('Comparar').click();
+    await expect(page.getByTestId('mobile-summary')).toContainText('triunfos');
+  });
+
+  test('search works on mobile', async ({ page }) => {
+    await page.goto('/');
+    await page.getByPlaceholder(/Pesquisar/i).fill('Le Monument');
+    await page.locator('[class*="mgroupRow"]').first().click();
+    await expect(page.locator('[class*="mcard"]').first()).toBeVisible();
+  });
+
+  test('section tabs scroll horizontally on mobile', async ({ page }) => {
+    await page.goto('/');
+    const tabs = page.locator('nav');
+    await expect(tabs).toBeVisible();
+    const overflow = await tabs.evaluate(el => getComputedStyle(el).overflowX);
+    expect(overflow).toBe('auto');
+  });
+});

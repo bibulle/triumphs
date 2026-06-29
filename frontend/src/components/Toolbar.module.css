@@ -175,3 +175,9 @@
 .refreshBtn:hover::after {
   opacity: 1;
 }
+
+@media (max-width: 760px) {
+  .toolbar { gap: 6px; }
+  .search { min-width: 0; flex-basis: 100%; padding: 9px 12px; font-size: 13px; }
+  .btn { padding: 8px 12px; font-size: 11px; }
+}

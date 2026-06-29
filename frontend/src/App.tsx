@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppData } from './hooks/useAppData';
 import { useVersionCheck } from './hooks/useVersionCheck';
+import { useMobile } from './hooks/useMobile';
 import ProgressionModal from './components/ProgressionModal';
 import SectionTabs from './components/SectionTabs';
 import Hero from './components/Hero';
 import Toolbar from './components/Toolbar';
 import TriumphTable from './components/TriumphTable';
+import MobileView from './components/MobileView';
 import EmptySection from './components/EmptySection';
 import LangPicker from './components/LangPicker';
 import { useTheme } from './hooks/useTheme';
@@ -28,6 +30,7 @@ function AppInner() {
   const { t, locale } = useLocale();
   const updateAvailable = useVersionCheck();
   const [progressionOpen, setProgressionOpen] = useState(false);
+  const isMobile = useMobile();
 
   const { groups, triumphs, players, progress, progressDetail, nodes, annotations: initAnnotations, sections, loading, error, refreshProgress, nextRefreshIn } = useAppData();
   const [annotations, setAnnotations] = useState<Annotations>({});
@@ -133,22 +136,41 @@ function AppInner() {
             nextRefreshIn={nextRefreshIn}
             onShowProgression={() => setProgressionOpen(true)}
           />
-          <TriumphTable
-            groups={sectionGroups}
-            triumphs={sectionTriumphs}
-            players={players}
-            collapsed={collapsed}
-            onToggleGroup={toggleGroup}
-            search={search}
-            filter={filter}
-            sortState={sortState}
-            annotations={annotations}
-            onAnnotation={handleAnnotation}
-            progressFor={progressFor}
-            progressDetailFor={progressDetailFor}
-            locale={locale}
-            nodes={nodes}
-          />
+          {isMobile ? (
+            <MobileView
+              groups={sectionGroups}
+              triumphs={sectionTriumphs}
+              players={players}
+              collapsed={collapsed}
+              onToggleGroup={toggleGroup}
+              search={search}
+              filter={filter}
+              sortState={sortState}
+              annotations={annotations}
+              onAnnotation={handleAnnotation}
+              progressFor={progressFor}
+              progressDetailFor={progressDetailFor}
+              locale={locale}
+              nodes={nodes}
+            />
+          ) : (
+            <TriumphTable
+              groups={sectionGroups}
+              triumphs={sectionTriumphs}
+              players={players}
+              collapsed={collapsed}
+              onToggleGroup={toggleGroup}
+              search={search}
+              filter={filter}
+              sortState={sortState}
+              annotations={annotations}
+              onAnnotation={handleAnnotation}
+              progressFor={progressFor}
+              progressDetailFor={progressDetailFor}
+              locale={locale}
+              nodes={nodes}
+            />
+          )}
         </>
       ) : (
         <EmptySection label={sectionLabel} />
