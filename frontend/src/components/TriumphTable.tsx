@@ -141,7 +141,7 @@ export default function TriumphTable({
                 return true;
               };
 
-              const renderGroupRow = (group: Group, isCollapsed: boolean) => {
+              const renderGroupRow = (group: Group, isCollapsed: boolean, keySuffix = '') => {
                 const catClass = CAT_CLASS[group.cat] ?? '';
                 const groupAllDone = players.length > 0 &&
                   group.items.every(item => players.every(p => progressFor(p).has(item.id)));
@@ -157,7 +157,7 @@ export default function TriumphTable({
                   : (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`);
                 return (
                   <tr
-                    key={`g-${group.groupKey}`}
+                    key={`g-${group.groupKey}${keySuffix}`}
                     className={`${styles.groupRow} ${catClass} ${isCollapsed ? styles.collapsed : ''} ${groupAllDone ? styles.allDone : ''}`}
                     onClick={() => onToggleGroup(group.groupKey)}
                   >
@@ -282,24 +282,29 @@ export default function TriumphTable({
                 });
               }
 
-              const sortKey = (id: string): number => {
-                if (sortState === 'global') return globalPrioRaw(id) * 10 + worstFlagWeight(id) / 10;
-                if (sortState === 'flag') return worstFlagWeight(id);
-                return prioLevel(sortState.slice(2), id);
-              };
-
-              const sortedEntries = groups
-                .map(group => ({
-                  group,
-                  items: group.items.filter(filterItem).sort((a, b) => sortKey(b.id) - sortKey(a.id)),
-                }))
-                .filter(e => e.items.length > 0)
-                .sort((a, b) => sortKey(b.items[0].id) - sortKey(a.items[0].id));
-
+              const flat = groups.flatMap(group =>
+                group.items.filter(filterItem).map(item => ({ group, item }))
+              );
+              flat.sort((a, b) => {
+                const ka = sortState === 'global' ? globalPrioRaw(a.item.id) * 10 + worstFlagWeight(a.item.id) / 10
+                         : sortState === 'flag' ? worstFlagWeight(a.item.id)
+                         : prioLevel(sortState.slice(2), a.item.id);
+                const kb = sortState === 'global' ? globalPrioRaw(b.item.id) * 10 + worstFlagWeight(b.item.id) / 10
+                         : sortState === 'flag' ? worstFlagWeight(b.item.id)
+                         : prioLevel(sortState.slice(2), b.item.id);
+                return kb - ka;
+              });
               const rows: React.ReactNode[] = [];
-              for (const { group, items } of sortedEntries) {
-                rows.push(renderGroupRow(group, false));
-                items.forEach(item => rows.push(renderItemRow(item)));
+              let lastGroupKey = '';
+              const groupOccurrence: Record<string, number> = {};
+              for (const { group, item } of flat) {
+                if (group.groupKey !== lastGroupKey) {
+                  groupOccurrence[group.groupKey] = (groupOccurrence[group.groupKey] ?? 0) + 1;
+                  const suffix = groupOccurrence[group.groupKey] > 1 ? `-${groupOccurrence[group.groupKey]}` : '';
+                  rows.push(renderGroupRow(group, false, suffix));
+                  lastGroupKey = group.groupKey;
+                }
+                rows.push(renderItemRow(item));
               }
               return rows;
             })()}
