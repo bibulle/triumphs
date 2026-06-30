@@ -7,6 +7,11 @@ services:
       - "3001:3001"
     environment:
       - MONGODB_URL=${MONGODB_URL:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
 
   frontend:

@@ -12,6 +12,7 @@ import playersRouter from './routes/players.js'
 import annotationsRouter from './routes/annotations.js'
 import versionRouter from './routes/version.js'
 import snapshotsRouter from './routes/snapshots.js'
+import healthRouter from './routes/health.js'
 
 // Catch-all for unhandled async rejections / uncaught exceptions so the process
 // logs something useful before crashing (or staying alive with a bad state).
@@ -44,6 +45,7 @@ app.use('/api/players', playersRouter)
 app.use('/api/annotations', annotationsRouter)
 app.use('/api/version', versionRouter)
 app.use('/api/snapshots', snapshotsRouter)
+app.use('/api/health', healthRouter)
 
 // Unhandled error middleware
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
