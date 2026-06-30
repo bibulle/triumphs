@@ -21,10 +21,6 @@ test.describe('Page load', () => {
     await expect(leaderboard.getByText('Guiz')).toBeVisible();
   });
 
-  test('footer is visible', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByText(/Bungie/)).toBeVisible();
-  });
 });
 
   test('shows the app version in the eyebrow', async ({ page }) => {

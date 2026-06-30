@@ -174,10 +174,6 @@ function AppInner() {
         players={players}
         sections={sections}
       />
-
-      <footer className="footer">
-        {t.footer}
-      </footer>
     </div>
   );
 }
