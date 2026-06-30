@@ -95,8 +95,8 @@ function AppInner() {
     <div className="wrap">
       {updateAvailable && (
         <div className="updateBanner">
-          Nouvelle version disponible &mdash;{' '}
-          <button onClick={() => window.location.reload()}>Recharger</button>
+          {t.updateAvailable} &mdash;{' '}
+          <button onClick={() => window.location.reload()}>{t.reload}</button>
         </div>
       )}
       <div className="topbar">
@@ -176,7 +176,7 @@ function AppInner() {
       />
 
       <footer className="footer">
-        Monument of Triumph est un contenu du jeu Destiny 2 (Bungie). Noms FR provisoires &mdash; descriptions à venir.
+        {t.footer}
       </footer>
     </div>
   );

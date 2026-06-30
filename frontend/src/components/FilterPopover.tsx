@@ -51,16 +51,16 @@ export default function FilterPopover({ open, onClose, filter, onChange, players
 
   const isActive = isFilterActive(filter) || sortState !== 'default';
   const sortOptions: { key: SortState; label: string }[] = [
-    { key: 'default', label: 'Défaut' },
-    { key: 'global', label: 'Prio. globale' },
-    { key: 'flag', label: 'Statut' },
+    { key: 'default', label: t.sortDefault },
+    { key: 'global', label: t.sortGlobalPrio },
+    { key: 'flag', label: t.sortFlag },
     ...players.map(p => ({ key: `p:${p}` as SortState, label: p })),
   ];
 
   return (
     <div className={styles.popover} ref={ref} role="dialog" aria-modal="false">
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>{t.filterAll === 'Tous' ? 'Avancement' : 'Progress'}</div>
+        <div className={styles.sectionLabel}>{t.progressLabel}</div>
         <div className={styles.seg}>
           {STATUS_KEYS.map(s => (
             <button
@@ -92,7 +92,7 @@ export default function FilterPopover({ open, onClose, filter, onChange, players
       )}
 
       <div className={styles.section}>
-        <div className={styles.sectionLabel}>Trier <span className={styles.hint}>(dans chaque groupe)</span></div>
+        <div className={styles.sectionLabel}>{t.sortLabel} <span className={styles.hint}>{t.sortHint}</span></div>
         <div className={styles.seg}>
           {sortOptions.map(({ key, label }) => (
             <button

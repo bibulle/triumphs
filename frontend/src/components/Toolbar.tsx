@@ -91,7 +91,7 @@ export default function Toolbar({
         />
       </div>
       <button className={styles.btn} onClick={onShowProgression}>
-        Progression
+        {t.progression}
       </button>
       <div className={styles.iconGroup}>
         <button
@@ -114,7 +114,7 @@ export default function Toolbar({
           className={`${styles.iconBtn} ${styles.refreshBtn} ${refreshing ? styles.refreshing : ''} ${syncError ? styles.syncError : ''}`}
           onClick={handleRefresh}
           disabled={refreshing}
-          aria-label={syncError ? t.syncError : 'Actualiser la progression'}
+          aria-label={syncError ? t.syncError : t.refreshProgress}
           title={syncError ? t.syncError : undefined}
           data-label={refreshing ? '…' : syncError ? '!' : formatCountdown(nextRefreshIn)}
         >
@@ -127,8 +127,9 @@ export default function Toolbar({
         <button
           className={styles.iconBtn}
           onClick={onToggleTheme}
-          title="Changer de thème"
-          aria-label="Changer de thème"
+          title={t.toggleTheme}
+          aria-label={t.toggleTheme}
+          data-testid="theme-toggle"
         >
           {theme === 'dark' ? '☾' : '☀'}
         </button>

@@ -26,7 +26,7 @@ interface DataPoint {
   counts: number[];
 }
 
-const FR_MONTHS = ['jan', 'fév', 'mar', 'avr', 'mai', 'jun', 'jul', 'aoû', 'sep', 'oct', 'nov', 'déc'];
+let MONTHS = ['jan', 'fév', 'mar', 'avr', 'mai', 'jun', 'jul', 'aoû', 'sep', 'oct', 'nov', 'déc'];
 
 function toDateStr(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -40,7 +40,7 @@ function addDays(d: Date, n: number): Date {
 
 function dayLabel(dateStr: string): string {
   const d = new Date(dateStr);
-  return `${d.getUTCDate()} ${FR_MONTHS[d.getUTCMonth()]}`;
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
 }
 
 function weekLabel(dateStr: string): string {
@@ -48,12 +48,12 @@ function weekLabel(dateStr: string): string {
   const day = d.getUTCDay();
   const monday = new Date(d);
   monday.setUTCDate(d.getUTCDate() - ((day + 6) % 7));
-  return `${monday.getUTCDate()} ${FR_MONTHS[monday.getUTCMonth()]}`;
+  return `${monday.getUTCDate()} ${MONTHS[monday.getUTCMonth()]}`;
 }
 
 function monthLabel(dateStr: string): string {
   const d = new Date(dateStr);
-  return `${FR_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 function niceMax(v: number): number {
@@ -141,14 +141,14 @@ interface SectionDropdownProps {
   sections: Section[];
   value: string | null;
   onChange: (v: string | null) => void;
-  t: { sections: Record<string, string> };
+  t: { sections: Record<string, string>; allSections: string };
 }
 
 function SectionDropdown({ sections, value, onChange, t }: SectionDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
-  const label = value ? (t.sections[value] ?? value) : 'Toutes sections';
+  const label = value ? (t.sections[value] ?? value) : t.allSections;
 
   useEffect(() => {
     if (!open) return;
@@ -176,7 +176,7 @@ function SectionDropdown({ sections, value, onChange, t }: SectionDropdownProps)
       </button>
       {open && (
         <ul className={styles.ddMenu} role="listbox" id={id}>
-          {[{ id: '', label: 'Toutes sections' }, ...sections.map(s => ({ id: s.id, label: t.sections[s.id] ?? s.label }))].map(s => {
+          {[{ id: '', label: t.allSections }, ...sections.map(s => ({ id: s.id, label: t.sections[s.id] ?? s.label }))].map(s => {
             const active = (s.id === '' ? null : s.id) === value;
             return (
               <li key={s.id} role="option" aria-selected={active}>
@@ -210,6 +210,7 @@ const PAD = { top: 16, right: 24, bottom: 36, left: 44 };
 
 export default function ProgressionModal({ open, onClose, players, sections }: Props) {
   const { t } = useLocale();
+  MONTHS = t.months;
   const [metric, setMetric] = useState<Metric>('cumul');
   const [filterSection, setFilterSection] = useState<string | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -318,10 +319,10 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
 
         <div className={styles.head}>
           <div>
-            <div className={styles.eyebrow}>Progression</div>
-            <h2 className={styles.title}>{t.progressionTitle ?? 'Triomphes dans le temps'}</h2>
+            <div className={styles.eyebrow}>{t.progression}</div>
+            <h2 className={styles.title}>{t.progressionTitle}</h2>
           </div>
-          <button className={styles.close} onClick={onClose} aria-label="Fermer">✕</button>
+          <button className={styles.close} onClick={onClose} aria-label={t.close}>✕</button>
         </div>
 
         <div className={styles.controls}>
@@ -329,11 +330,11 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
             <button
               className={`${styles.segBtn} ${metric === 'cumul' ? styles.segActive : ''}`}
               onClick={() => setMetric('cumul')}
-            >Cumulé</button>
+            >{t.cumulative}</button>
             <button
               className={`${styles.segBtn} ${metric === 'weekly' ? styles.segActive : ''}`}
               onClick={() => setMetric('weekly')}
-            >Hebdo</button>
+            >{t.weekly}</button>
           </div>
           <SectionDropdown sections={sections} value={filterSection} onChange={setFilterSection} t={t} />
 
@@ -350,7 +351,7 @@ export default function ProgressionModal({ open, onClose, players, sections }: P
 
         <div className={styles.chartWrap} ref={wrapRef} onMouseLeave={() => setHoverIdx(null)}>
           {series.length === 0 ? (
-            <div className={styles.noData}>Aucune donnée de progression disponible</div>
+            <div className={styles.noData}>{t.noProgressData}</div>
           ) : (
             <svg
               ref={chartRef}

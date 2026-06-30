@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { PrioLevel, GlobalPrio, FlagKey } from '../data';
+import { useLocale } from '../i18n';
 import styles from './CellEditor.module.css';
-
-const PRIO_LABELS: Record<PrioLevel, string> = { 0: 'Aucune', 1: 'Basse', 2: 'Moyenne', 3: 'Haute' };
-const FLAG_LABELS: Record<FlagKey | '', string> = { need: 'Besoin des autres', solo: 'Faisable seul', abandon: 'Abandonné', '': 'Aucun' };
 
 function IconNeed() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><circle cx="5.5" cy="6" r="2"/><circle cx="10.8" cy="6.8" r="1.7"/><path d="M2 13c0-1.9 1.5-3 3.5-3s3.5 1.1 3.5 3"/><path d="M9.5 12.6c.1-1.5 1.1-2.3 2.6-2.3 1.4 0 2.4.8 2.4 2.3"/></svg>;
@@ -49,7 +47,10 @@ interface Props {
 }
 
 export default function CellEditor({ player, triumphName, prio, flag, anchor, onPrioChange, onFlagChange, onClose }: Props) {
+  const { t } = useLocale();
   const ref = useRef<HTMLDivElement>(null);
+  const PRIO_LABELS: Record<PrioLevel, string> = { 0: t.prioNone, 1: t.prioLow, 2: t.prioMedium, 3: t.prioHigh };
+  const FLAG_LABELS: Record<FlagKey | '', string> = { need: t.flagNeed, solo: t.flagSolo, abandon: t.flagAbandon, '': t.flagNone };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -89,7 +90,7 @@ export default function CellEditor({ player, triumphName, prio, flag, anchor, on
       </div>
 
       <div className={styles.section}>
-        <div className={styles.label}>Priorité</div>
+        <div className={styles.label}>{t.priority}</div>
         <div className={styles.seg}>
           {prioLevels.map(lvl => (
             <button
@@ -106,7 +107,7 @@ export default function CellEditor({ player, triumphName, prio, flag, anchor, on
       </div>
 
       <div className={styles.section}>
-        <div className={styles.label}>Statut personnel</div>
+        <div className={styles.label}>{t.personalStatus}</div>
         <div className={styles.seg}>
           {flagKeys.map(k => (
             <button

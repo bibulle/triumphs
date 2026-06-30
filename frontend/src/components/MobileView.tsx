@@ -224,7 +224,7 @@ export default function MobileView({
           aria-pressed={compareMode}
           onClick={() => setCompareMode(m => !m)}
         >
-          {t.filterAll === 'Tous' ? 'Comparer' : 'Compare'}
+          {t.compare}
         </button>
       </div>
 
@@ -327,7 +327,7 @@ export default function MobileView({
             <div className={styles.sheetTitle}>{nameFor(detailItem)}</div>
             <div className={styles.sheetEn}>{useFr ? detailItem.en : detailItem.fr}</div>
             <div className={styles.sheetDesc}>
-              {descFor(detailItem) || (useFr ? 'Description à venir' : 'Description coming soon')}
+              {descFor(detailItem) || t.descComingSoon}
             </div>
             <div className={styles.sheetPlayers}>
               {players.map(p => {
