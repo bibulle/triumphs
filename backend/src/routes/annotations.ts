@@ -1,6 +1,12 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
+import { z } from 'zod'
 import { getAllAnnotations, setPlayerAnnotations } from '../services/cache.js'
+
+const annotationBody = z.object({
+  prio: z.record(z.string(), z.number().int().min(0).max(3)).default({}),
+  flags: z.record(z.string(), z.enum(['need', 'solo', 'abandon'])).default({}),
+})
 
 const router = Router()
 
@@ -20,10 +26,12 @@ router.get('/', async (_req: Request, res: Response) => {
 
 router.put('/:player', async (req: Request<{ player: string }>, res: Response) => {
   const { player } = req.params
-  const { prio = {}, flags = {} } = req.body as {
-    prio?: Record<string, number>
-    flags?: Record<string, string>
+  const parsed = annotationBody.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid annotations', details: parsed.error.issues })
+    return
   }
+  const { prio, flags } = parsed.data
 
   try {
     if (hasMongo()) {
