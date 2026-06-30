@@ -39,6 +39,7 @@ interface Props {
   onToggleTheme: () => void;
   onRefreshProgress: (force?: boolean) => Promise<void>;
   nextRefreshIn: number;
+  syncError?: boolean;
   onShowProgression: () => void;
 }
 
@@ -50,7 +51,7 @@ function formatCountdown(seconds: number): string {
 
 export default function Toolbar({
   search, onSearch, filter, onFilterChange, sortState, onSortChange, players,
-  onExpandAll, onCollapseAll, theme, onToggleTheme, onRefreshProgress, nextRefreshIn, onShowProgression
+  onExpandAll, onCollapseAll, theme, onToggleTheme, onRefreshProgress, nextRefreshIn, syncError, onShowProgression
 }: Props) {
   const { t } = useLocale();
   const [filterOpen, setFilterOpen] = useState(false);
@@ -110,11 +111,12 @@ export default function Toolbar({
           <IconCollapse />
         </button>
         <button
-          className={`${styles.iconBtn} ${styles.refreshBtn} ${refreshing ? styles.refreshing : ''}`}
+          className={`${styles.iconBtn} ${styles.refreshBtn} ${refreshing ? styles.refreshing : ''} ${syncError ? styles.syncError : ''}`}
           onClick={handleRefresh}
           disabled={refreshing}
-          aria-label="Actualiser la progression"
-          data-label={refreshing ? '…' : formatCountdown(nextRefreshIn)}
+          aria-label={syncError ? t.syncError : 'Actualiser la progression'}
+          title={syncError ? t.syncError : undefined}
+          data-label={refreshing ? '…' : syncError ? '!' : formatCountdown(nextRefreshIn)}
         >
           ↻
           <span

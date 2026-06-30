@@ -16,6 +16,7 @@ export type AppData = {
   sections: typeof SECTIONS
   loading: boolean
   error: string | null
+  syncError: boolean
   refreshProgress: (force?: boolean) => Promise<void>
   nextRefreshIn: number
 }
@@ -45,10 +46,12 @@ export function useAppData(): AppData {
   const [annotations, setAnnotations] = useState<Annotations>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [syncError, setSyncError] = useState(false)
   const [nextRefreshIn, setNextRefreshIn] = useState(PROGRESS_INTERVAL / 1000)
 
   const nextRefreshAt = useRef<number>(Date.now() + PROGRESS_INTERVAL)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const consecutiveErrors = useRef(0)
 
   const applyProgress = useCallback((rawProgress: Record<string, Record<string, RecordProgress>>) => {
     setProgressDetail(rawProgress)
@@ -61,8 +64,11 @@ export function useAppData(): AppData {
     intervalRef.current = setInterval(async () => {
       try {
         applyProgress(await fetchProgress())
+        consecutiveErrors.current = 0
+        setSyncError(false)
       } catch {
-        // silently ignore polling errors
+        consecutiveErrors.current++
+        if (consecutiveErrors.current >= 2) setSyncError(true)
       }
       scheduleNextRefresh()
     }, PROGRESS_INTERVAL)
@@ -71,9 +77,12 @@ export function useAppData(): AppData {
   const refreshProgress = useCallback(async (force = false) => {
     try {
       applyProgress(await fetchProgress(force))
+      consecutiveErrors.current = 0
+      setSyncError(false)
       scheduleNextRefresh()
     } catch {
-      // silently ignore
+      consecutiveErrors.current++
+      if (consecutiveErrors.current >= 2) setSyncError(true)
     }
   }, [applyProgress, scheduleNextRefresh])
 
@@ -142,5 +151,5 @@ export function useAppData(): AppData {
     return () => clearInterval(id)
   }, [])
 
-  return { groups, triumphs, players, progress, progressDetail, nodes, annotations, sections: SECTIONS, loading, error, refreshProgress, nextRefreshIn }
+  return { groups, triumphs, players, progress, progressDetail, nodes, annotations, sections: SECTIONS, loading, error, syncError, refreshProgress, nextRefreshIn }
 }

@@ -30,7 +30,7 @@ function AppInner() {
   const updateAvailable = useVersionCheck();
   const [progressionOpen, setProgressionOpen] = useState(false);
 
-  const { groups, triumphs, players, progress, progressDetail, nodes, annotations: initAnnotations, sections, loading, error, refreshProgress, nextRefreshIn } = useAppData();
+  const { groups, triumphs, players, progress, progressDetail, nodes, annotations: initAnnotations, sections, loading, error, syncError, refreshProgress, nextRefreshIn } = useAppData();
   const [annotations, setAnnotations] = useState<Annotations>({});
 
   // Merge server annotations once loaded
@@ -132,6 +132,7 @@ function AppInner() {
             onToggleTheme={toggleTheme}
             onRefreshProgress={refreshProgress}
             nextRefreshIn={nextRefreshIn}
+            syncError={syncError}
             onShowProgression={() => setProgressionOpen(true)}
           />
           <TriumphTable

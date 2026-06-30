@@ -130,6 +130,16 @@
   cursor: default;
 }
 
+.syncError {
+  color: #e8a735;
+  border-color: #e8a735;
+}
+
+.syncError::after {
+  opacity: 1;
+  color: #e8a735;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
