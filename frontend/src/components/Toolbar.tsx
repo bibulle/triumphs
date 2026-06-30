@@ -129,6 +129,7 @@ export default function Toolbar({
           onClick={onToggleTheme}
           title={t.toggleTheme}
           aria-label={t.toggleTheme}
+          data-testid="theme-toggle"
         >
           {theme === 'dark' ? '☾' : '☀'}
         </button>
