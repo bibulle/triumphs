@@ -11,16 +11,6 @@
   padding: 40px 24px 72px;
 }
 
-.footer {
-  margin-top: 22px;
-  font-size: 11px;
-  color: var(--text-faint);
-  text-align: center;
-  font-family: var(--font-mono);
-  letter-spacing: 0.04em;
-  line-height: 1.7;
-}
-
 @media (max-width: 760px) {
   .wrap { padding: 16px 12px 48px; }
   .topbar { gap: 8px; align-items: center; }
