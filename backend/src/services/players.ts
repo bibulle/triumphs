@@ -1,4 +1,5 @@
 import type { PlayerProgress } from '../data/mock.js'
+import { fetchWithRetry } from './fetchRetry.js'
 
 const BASE_URL = 'https://www.bungie.net'
 
@@ -31,7 +32,7 @@ export async function resolvePlayer(config: PlayerConfig): Promise<ResolvedPlaye
   const displayName = config.tag.slice(0, hash)
   const displayNameCode = parseInt(config.tag.slice(hash + 1), 10)
 
-  const res = await fetch(`${BASE_URL}/Platform/Destiny2/SearchDestinyPlayerByBungieName/-1/`, {
+  const res = await fetchWithRetry(`${BASE_URL}/Platform/Destiny2/SearchDestinyPlayerByBungieName/-1/`, {
     method: 'POST',
     headers: {
       'X-API-Key': process.env.BUNGIE_API_KEY!,
@@ -59,7 +60,7 @@ export async function resolvePlayer(config: PlayerConfig): Promise<ResolvedPlaye
 }
 
 export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<PlayerProgress> {
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `${BASE_URL}/Platform/Destiny2/${player.membershipType}/Profile/${player.membershipId}/?components=900`,
     { headers: { 'X-API-Key': process.env.BUNGIE_API_KEY! } }
   )

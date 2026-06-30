@@ -1,4 +1,5 @@
 import type { Triumph, NodeMeta } from '../data/mock.js'
+import { fetchWithRetry } from './fetchRetry.js'
 
 const BASE_URL = 'https://www.bungie.net'
 
@@ -40,7 +41,7 @@ function apiHeaders(): HeadersInit {
 
 async function bungieGet(path: string): Promise<unknown> {
   console.log(`[bungie] GET ${path}`)
-  const res = await fetch(`${BASE_URL}${path}`, { headers: apiHeaders() })
+  const res = await fetchWithRetry(`${BASE_URL}${path}`, { headers: apiHeaders() })
   if (!res.ok) throw new Error(`Bungie API ${res.status}: ${path}`)
   return res.json()
 }
@@ -49,7 +50,7 @@ async function fetchDefinitions<T>(path: string): Promise<Record<string, T>> {
   const url = `${BASE_URL}${path}`
   console.log(`[bungie] downloading definitions: ${url}`)
   const start = Date.now()
-  const res = await fetch(url)
+  const res = await fetchWithRetry(url, { timeoutMs: 30_000 })
   if (!res.ok) throw new Error(`Bungie definitions ${res.status}: ${path}`)
   const data = await res.json() as Record<string, T>
   console.log(`[bungie] downloaded ${Object.keys(data).length} entries in ${Date.now() - start}ms`)
