@@ -53,7 +53,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 console.log(`[STARTUP] BUNGIE_API_KEY: ${process.env.BUNGIE_API_KEY ? 'set' : 'NOT SET'}`)
 console.log(`[STARTUP] MONGODB_URL:    ${process.env.MONGODB_URL ? 'set' : 'NOT SET'}`)
-console.log(`[STARTUP] PLAYERS:        ${process.env.PLAYERS ?? 'NOT SET (using mock players)'}`)
+console.log(`[STARTUP] PLAYERS:        ${process.env.PLAYERS ? `set (${process.env.PLAYERS.split(',').length} configured)` : 'NOT SET (using mock players)'}`)
 
 if (process.env.MONGODB_URL) {
   connectMongo(process.env.MONGODB_URL)
