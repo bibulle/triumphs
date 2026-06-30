@@ -41,6 +41,21 @@ describe('GET /api/annotations', () => {
     delete process.env.MONGODB_URL
   })
 
+  it('clamps legacy prio values above 3 in GET response', async () => {
+    process.env.MONGODB_URL = 'mongodb://fake'
+    const mockData = { Alice: { prio: { '1': 4, '2': 2 }, flags: { '3': 'need' } } }
+    vi.mocked(cache.getAllAnnotations).mockResolvedValue(mockData)
+
+    const { port, close } = await startServer(buildApp())
+    const res = await fetch(`http://localhost:${port}/api/annotations`)
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.Alice.prio['1']).toBe(3)
+    expect(json.Alice.prio['2']).toBe(2)
+    await close()
+    delete process.env.MONGODB_URL
+  })
+
   it('returns empty object when no MongoDB', async () => {
     delete process.env.MONGODB_URL
     const { port, close } = await startServer(buildApp())
@@ -80,17 +95,18 @@ describe('PUT /api/annotations/:player', () => {
     await close()
   })
 
-  it('rejects prio value out of range', async () => {
+  it('clamps prio values above 3 to 3 (legacy data)', async () => {
+    process.env.MONGODB_URL = 'mongodb://fake'
     const { port, close } = await startServer(buildApp())
     const res = await fetch(`http://localhost:${port}/api/annotations/Alice`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prio: { '1001': 5 } }),
     })
-    expect(res.status).toBe(400)
-    const json = await res.json()
-    expect(json.error).toBe('Invalid annotations')
+    expect(res.status).toBe(200)
+    expect(cache.setPlayerAnnotations).toHaveBeenCalledWith('Alice', { '1001': 3 }, {})
     await close()
+    delete process.env.MONGODB_URL
   })
 
   it('rejects negative prio value', async () => {

@@ -1,4 +1,4 @@
-import type { Triumph, NodeMeta, RecordProgress, Annotations, PlayerAnnotation, ProgressSnapshot } from './data'
+import type { Triumph, NodeMeta, RecordProgress, Annotations, PlayerAnnotation, PrioLevel, ProgressSnapshot } from './data'
 
 export interface PlayerInfo {
   name: string
@@ -33,7 +33,13 @@ export async function fetchProgress(force = false): Promise<Record<string, Recor
 export async function fetchAnnotations(): Promise<Annotations> {
   const res = await fetch('/api/annotations')
   if (!res.ok) throw new Error(`fetchAnnotations: ${res.status}`)
-  return res.json()
+  const raw: Annotations = await res.json()
+  for (const ann of Object.values(raw)) {
+    for (const [k, v] of Object.entries(ann.prio)) {
+      if (v > 3) ann.prio[k] = 3 as PrioLevel
+    }
+  }
+  return raw
 }
 
 export async function fetchVersion(): Promise<string> {
