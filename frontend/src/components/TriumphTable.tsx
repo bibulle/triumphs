@@ -6,7 +6,7 @@ import CellEditor, { PrioMeter, FlagIcon } from './CellEditor';
 import styles from './TriumphTable.module.css';
 
 const BUNGIE_CDN = 'https://www.bungie.net';
-const GLOBAL_PRIO_LABELS = ['Aucune', 'Basse', 'Moyenne', 'Haute'];
+const GLOBAL_PRIO_LABELS_KEY = ['prioNone', 'prioLow', 'prioMedium', 'prioHigh'] as const;
 
 interface CellEditState {
   player: string;
@@ -215,12 +215,12 @@ export default function TriumphTable({
                           {sgLabel && <span className={styles.sgTag}>{sgLabel}</span>}
                           {(item.descFr || item.descEn)
                             ? <span className={styles.desc}>{useFr ? (item.descFr || item.descEn) : (item.descEn || item.descFr)}</span>
-                            : <span className={styles.descPlaceholder}>Description à venir / coming soon</span>
+                            : <span className={styles.descPlaceholder}>{t.descComingSoon}</span>
                           }
                         </div>
                         {(gp > 0 || wf !== null) && (
                           <span className={styles.prioGlobal}>
-                            {gp > 0 && <PrioMeter level={gp} title={`Priorité globale : ${GLOBAL_PRIO_LABELS[gp]}`} />}
+                            {gp > 0 && <PrioMeter level={gp} title={`${t.globalPriority} : ${t[GLOBAL_PRIO_LABELS_KEY[gp]]}`} />}
                             {wf !== null && <FlagIcon flagKey={wf} />}
                           </span>
                         )}
@@ -243,7 +243,7 @@ export default function TriumphTable({
                           <button
                             className={`${styles.cellEdit} ${isEditingThis ? styles.cellEditOpen : ''}`}
                             onClick={e => { e.stopPropagation(); setEditing({ player: p, item, anchor: e.currentTarget.getBoundingClientRect() }); }}
-                            aria-label={`${p} — ${primaryName} : modifier priorité et statut`}
+                            aria-label={`${p} — ${primaryName} : ${t.editPrioStatus}`}
                           >
                             {done ? (
                               <span
