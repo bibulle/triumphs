@@ -132,9 +132,12 @@ export default function MobileView({
     const result: Group[] = [];
     let lastGroupKey = '';
     let currentGroup: Group | null = null;
+    const groupOccurrence: Record<string, number> = {};
     for (const { group, item } of flat) {
       if (group.groupKey !== lastGroupKey) {
-        currentGroup = { ...group, items: [] };
+        groupOccurrence[group.groupKey] = (groupOccurrence[group.groupKey] ?? 0) + 1;
+        const suffix = groupOccurrence[group.groupKey] > 1 ? `-${groupOccurrence[group.groupKey]}` : '';
+        currentGroup = { ...group, groupKey: group.groupKey + suffix, items: [] };
         result.push(currentGroup);
         lastGroupKey = group.groupKey;
       }

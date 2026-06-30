@@ -141,7 +141,7 @@ export default function TriumphTable({
                 return true;
               };
 
-              const renderGroupRow = (group: Group, isCollapsed: boolean) => {
+              const renderGroupRow = (group: Group, isCollapsed: boolean, keySuffix = '') => {
                 const catClass = CAT_CLASS[group.cat] ?? '';
                 const groupAllDone = players.length > 0 &&
                   group.items.every(item => players.every(p => progressFor(p).has(item.id)));
@@ -157,7 +157,7 @@ export default function TriumphTable({
                   : (sameNameFr ? group.subFr : `${group.catFr} · ${group.subFr}`);
                 return (
                   <tr
-                    key={`g-${group.groupKey}`}
+                    key={`g-${group.groupKey}${keySuffix}`}
                     className={`${styles.groupRow} ${catClass} ${isCollapsed ? styles.collapsed : ''} ${groupAllDone ? styles.allDone : ''}`}
                     onClick={() => onToggleGroup(group.groupKey)}
                   >
@@ -282,7 +282,6 @@ export default function TriumphTable({
                 });
               }
 
-              // global sort: flatten all visible items, sort, then render with group headers as dividers
               const flat = groups.flatMap(group =>
                 group.items.filter(filterItem).map(item => ({ group, item }))
               );
@@ -297,9 +296,12 @@ export default function TriumphTable({
               });
               const rows: React.ReactNode[] = [];
               let lastGroupKey = '';
+              const groupOccurrence: Record<string, number> = {};
               for (const { group, item } of flat) {
                 if (group.groupKey !== lastGroupKey) {
-                  rows.push(renderGroupRow(group, false));
+                  groupOccurrence[group.groupKey] = (groupOccurrence[group.groupKey] ?? 0) + 1;
+                  const suffix = groupOccurrence[group.groupKey] > 1 ? `-${groupOccurrence[group.groupKey]}` : '';
+                  rows.push(renderGroupRow(group, false, suffix));
                   lastGroupKey = group.groupKey;
                 }
                 rows.push(renderItemRow(item));
