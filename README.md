@@ -117,7 +117,7 @@ MONGODB_URL=mongodb+srv://... docker compose up
 | `npm run dev` | Serveur Express avec hot-reload (`tsx watch`) |
 | `npm run build` | Compilation TypeScript → `dist/` |
 | `npm start` | Démarre le serveur compilé |
-| `npm test` | Tests unitaires (28 tests) |
+| `npm test` | Tests unitaires (123 tests) |
 
 ## API Backend
 
@@ -196,13 +196,13 @@ cd frontend && npm run build && npm run test:e2e
 Scénarios : chargement, navigation, recherche, collapse/expand, masquer terminés, thème, badges, responsive 640 px, version affichée.  
 Les tests mockent `/api/triumphs` et `/api/progress` via `page.route()` (fixture automatique dans `e2e/fixtures.ts`).
 
-### Backend — Tests unitaires (29 tests)
+### Backend — Tests unitaires (123 tests)
 
 ```bash
 cd backend && npm test
 ```
 
-Couvrent : intégrité des données mock (`mock.test.ts`), service Bungie (`bungie.test.ts`) avec fetch mocké, route `/api/triumphs` avec toutes les branches (window cache, version check, re-fetch, fallback), route `/api/progress`, route `/api/version`.
+Couvrent : intégrité des données mock (`mock.test.ts`), service Bungie (`bungie.test.ts`) avec fetch mocké, services `cache.ts` (mongoose mocké), `players.ts` (résolution Bungie + parsing cross-save + merge profil/personnage), `snapshots.ts` (calcul des compteurs de complétion), `warmup.ts` (flux de démarrage), routes `/api/triumphs` avec toutes les branches (window cache, version check, re-fetch, fallback), `/api/progress`, `/api/version`, `/api/annotations`, `/api/health`, `/api/nodes`.
 
 ## CI/CD
 
