@@ -282,27 +282,24 @@ export default function TriumphTable({
                 });
               }
 
-              // global sort: flatten all visible items, sort, then render with group headers as dividers
-              const flat = groups.flatMap(group =>
-                group.items.filter(filterItem).map(item => ({ group, item }))
-              );
-              flat.sort((a, b) => {
-                const ka = sortState === 'global' ? globalPrioRaw(a.item.id) * 10 + worstFlagWeight(a.item.id) / 10
-                         : sortState === 'flag' ? worstFlagWeight(a.item.id)
-                         : prioLevel(sortState.slice(2), a.item.id);
-                const kb = sortState === 'global' ? globalPrioRaw(b.item.id) * 10 + worstFlagWeight(b.item.id) / 10
-                         : sortState === 'flag' ? worstFlagWeight(b.item.id)
-                         : prioLevel(sortState.slice(2), b.item.id);
-                return kb - ka;
-              });
+              const sortKey = (id: string): number => {
+                if (sortState === 'global') return globalPrioRaw(id) * 10 + worstFlagWeight(id) / 10;
+                if (sortState === 'flag') return worstFlagWeight(id);
+                return prioLevel(sortState.slice(2), id);
+              };
+
+              const sortedEntries = groups
+                .map(group => ({
+                  group,
+                  items: group.items.filter(filterItem).sort((a, b) => sortKey(b.id) - sortKey(a.id)),
+                }))
+                .filter(e => e.items.length > 0)
+                .sort((a, b) => sortKey(b.items[0].id) - sortKey(a.items[0].id));
+
               const rows: React.ReactNode[] = [];
-              let lastGroupKey = '';
-              for (const { group, item } of flat) {
-                if (group.groupKey !== lastGroupKey) {
-                  rows.push(renderGroupRow(group, false));
-                  lastGroupKey = group.groupKey;
-                }
-                rows.push(renderItemRow(item));
+              for (const { group, items } of sortedEntries) {
+                rows.push(renderGroupRow(group, false));
+                items.forEach(item => rows.push(renderItemRow(item)));
               }
               return rows;
             })()}

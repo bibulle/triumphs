@@ -116,31 +116,19 @@ export default function MobileView({
       })).filter(g => g.items.length > 0);
     }
 
-    const flat = groups.flatMap(g =>
-      g.items.filter(filterItem).map(item => ({ group: g, item }))
-    );
-    flat.sort((a, b) => {
-      const ka = sortState === 'global' ? globalPrioRaw(a.item.id) * 10 + worstFlagWeight(a.item.id) / 10
-               : sortState === 'flag' ? worstFlagWeight(a.item.id)
-               : prioLevel(sortState.slice(2), a.item.id);
-      const kb = sortState === 'global' ? globalPrioRaw(b.item.id) * 10 + worstFlagWeight(b.item.id) / 10
-               : sortState === 'flag' ? worstFlagWeight(b.item.id)
-               : prioLevel(sortState.slice(2), b.item.id);
-      return kb - ka;
-    });
+    const sortKey = (id: string): number => {
+      if (sortState === 'global') return globalPrioRaw(id) * 10 + worstFlagWeight(id) / 10;
+      if (sortState === 'flag') return worstFlagWeight(id);
+      return prioLevel(sortState.slice(2), id);
+    };
 
-    const result: Group[] = [];
-    let lastGroupKey = '';
-    let currentGroup: Group | null = null;
-    for (const { group, item } of flat) {
-      if (group.groupKey !== lastGroupKey) {
-        currentGroup = { ...group, items: [] };
-        result.push(currentGroup);
-        lastGroupKey = group.groupKey;
-      }
-      currentGroup!.items.push(item);
-    }
-    return result;
+    return groups
+      .map(g => ({
+        ...g,
+        items: g.items.filter(filterItem).sort((a, b) => sortKey(b.id) - sortKey(a.id)),
+      }))
+      .filter(g => g.items.length > 0)
+      .sort((a, b) => sortKey(b.items[0].id) - sortKey(a.items[0].id));
   }, [groups, filterItem, sortState, globalPrioRaw, worstFlagWeight, prioLevel]);
 
   const totalDone = useMemo(
