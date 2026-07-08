@@ -379,12 +379,13 @@ export type FilterStatus = 'all' | 'none' | 'partial' | 'done';
 export interface FilterState {
   status: FilterStatus;
   missing: Set<Player>;
+  notAbandonedBy: Set<Player>;
 }
 
-export const DEFAULT_FILTER: FilterState = { status: 'all', missing: new Set() };
+export const DEFAULT_FILTER: FilterState = { status: 'all', missing: new Set(), notAbandonedBy: new Set() };
 
 export function isFilterActive(f: FilterState): boolean {
-  return f.status !== 'all' || f.missing.size > 0;
+  return f.status !== 'all' || f.missing.size > 0 || f.notAbandonedBy.size > 0;
 }
 
 export const SECTIONS: Section[] = [

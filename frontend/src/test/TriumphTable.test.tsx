@@ -147,10 +147,40 @@ describe('TriumphTable', () => {
   });
 
   it('hides non-allDone rows when filter.status is "done"', () => {
-    const doneFilter: FilterState = { status: 'done', missing: new Set() };
+    const doneFilter: FilterState = { status: 'done', missing: new Set(), notAbandonedBy: new Set() };
     renderTable({ filter: doneFilter });
     // DATA[0] is allDone (all players have it), DATA[1] is not
     expect(screen.queryByText(DATA[1].fr)).not.toBeInTheDocument();
+  });
+
+  it('hides rows flagged "abandon" by a player selected in filter.notAbandonedBy', () => {
+    const abandonedItem = DATA[2];
+    const untouchedItem = DATA[3];
+    const notAbandonedFilter: FilterState = {
+      status: 'all',
+      missing: new Set(),
+      notAbandonedBy: new Set(['Bibullus']),
+    };
+    renderTable({
+      filter: notAbandonedFilter,
+      annotations: { Bibullus: { prio: {}, flags: { [abandonedItem.id]: 'abandon' } } },
+    });
+    expect(screen.queryByText(abandonedItem.fr)).not.toBeInTheDocument();
+    expect(screen.getByText(untouchedItem.fr)).toBeInTheDocument();
+  });
+
+  it('does not hide a row abandoned by a player not selected in filter.notAbandonedBy', () => {
+    const abandonedItem = DATA[2];
+    const notAbandonedFilter: FilterState = {
+      status: 'all',
+      missing: new Set(),
+      notAbandonedBy: new Set(['Vincent']),
+    };
+    renderTable({
+      filter: notAbandonedFilter,
+      annotations: { Bibullus: { prio: {}, flags: { [abandonedItem.id]: 'abandon' } } },
+    });
+    expect(screen.getByText(abandonedItem.fr)).toBeInTheDocument();
   });
 
   it('shows done/todo status badges for each player on each item', () => {
@@ -221,7 +251,7 @@ describe('TriumphTable — group allDone and filter behavior', () => {
     // With filter=done, only items where ALL players completed show. If we use a progress
     // where nobody completed anything, the group should disappear.
     const emptyProgress = { Bibullus: new Set<string>(), Vincent: new Set<string>(), Guiz: new Set<string>() };
-    const doneFilter: FilterState = { status: 'done', missing: new Set() };
+    const doneFilter: FilterState = { status: 'done', missing: new Set(), notAbandonedBy: new Set() };
     const { container } = render(
       <TriumphTable
         groups={[firstGroup]}
@@ -248,7 +278,7 @@ describe('TriumphTable — group allDone and filter behavior', () => {
       Vincent: new Set([firstGroup.items[0].id]),
       Guiz: new Set([firstGroup.items[0].id]),
     };
-    const doneFilter: FilterState = { status: 'done', missing: new Set() };
+    const doneFilter: FilterState = { status: 'done', missing: new Set(), notAbandonedBy: new Set() };
     const { container } = render(
       <TriumphTable
         groups={[firstGroup]}

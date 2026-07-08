@@ -99,7 +99,16 @@ describe('MobileView', () => {
   });
 
   it('filters triumphs by done status', () => {
-    renderMobile({ filter: { status: 'done', missing: new Set() } });
+    renderMobile({ filter: { status: 'done', missing: new Set(), notAbandonedBy: new Set() } });
+    expect(screen.getByText('Le Monument')).toBeInTheDocument();
+    expect(screen.queryByText('Conquérant')).not.toBeInTheDocument();
+  });
+
+  it('hides triumphs flagged "abandon" by a player selected in filter.notAbandonedBy', () => {
+    renderMobile({
+      filter: { status: 'all', missing: new Set(), notAbandonedBy: new Set(['Bibulle']) },
+      annotations: { Bibulle: { prio: {}, flags: { t1: 'abandon' } } },
+    });
     expect(screen.getByText('Le Monument')).toBeInTheDocument();
     expect(screen.queryByText('Conquérant')).not.toBeInTheDocument();
   });

@@ -105,8 +105,13 @@ export default function MobileView({
         if (progressFor(mp).has(item.id)) return false;
       }
     }
+    if (filter.notAbandonedBy.size > 0) {
+      for (const np of filter.notAbandonedBy) {
+        if (flagOf(np, item.id) === 'abandon') return false;
+      }
+    }
     return true;
-  }, [q, players, progressFor, filter]);
+  }, [q, players, progressFor, filter, flagOf]);
 
   const sortedGroups = useMemo(() => {
     if (sortState === 'default') {

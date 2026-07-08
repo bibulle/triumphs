@@ -49,6 +49,12 @@ export default function FilterPopover({ open, onClose, filter, onChange, players
     onChange({ ...filter, missing: next });
   };
 
+  const toggleNotAbandonedBy = (p: Player) => {
+    const next = new Set(filter.notAbandonedBy);
+    if (next.has(p)) next.delete(p); else next.add(p);
+    onChange({ ...filter, notAbandonedBy: next });
+  };
+
   const isActive = isFilterActive(filter) || sortState !== 'default';
   const sortOptions: { key: SortState; label: string }[] = [
     { key: 'default', label: t.sortDefault },
@@ -83,6 +89,23 @@ export default function FilterPopover({ open, onClose, filter, onChange, players
                 key={p}
                 className={`${styles.chip} ${filter.missing.has(p) ? styles.chipActive : ''}`}
                 onClick={() => toggleMissing(p)}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {players.length > 0 && (
+        <div className={styles.section}>
+          <div className={styles.sectionLabel}>{t.filterNotAbandoned}</div>
+          <div className={styles.chips}>
+            {players.map(p => (
+              <button
+                key={p}
+                className={`${styles.chip} ${filter.notAbandonedBy.has(p) ? styles.chipActive : ''}`}
+                onClick={() => toggleNotAbandonedBy(p)}
               >
                 {p}
               </button>
