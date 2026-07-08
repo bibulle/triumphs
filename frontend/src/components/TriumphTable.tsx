@@ -138,6 +138,11 @@ export default function TriumphTable({
                     if (progressFor(mp).has(item.id)) return false;
                   }
                 }
+                if (filter.notAbandonedBy.size > 0) {
+                  for (const np of filter.notAbandonedBy) {
+                    if (flagOf(np, item.id) === 'abandon') return false;
+                  }
+                }
                 return true;
               };
 

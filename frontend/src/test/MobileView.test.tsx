@@ -99,7 +99,7 @@ describe('MobileView', () => {
   });
 
   it('filters triumphs by done status', () => {
-    renderMobile({ filter: { status: 'done', missing: new Set() } });
+    renderMobile({ filter: { status: 'done', missing: new Set(), notAbandonedBy: new Set() } });
     expect(screen.getByText('Le Monument')).toBeInTheDocument();
     expect(screen.queryByText('Conquérant')).not.toBeInTheDocument();
   });
