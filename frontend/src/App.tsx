@@ -12,10 +12,10 @@ import LangPicker from './components/LangPicker';
 import { useTheme } from './hooks/useTheme';
 import { useLocaleState } from './hooks/useLocale';
 import { useNavState } from './hooks/useNavState';
+import { useFilterState } from './hooks/useFilterState';
 import { LocaleContext, useLocale } from './i18n';
 import { saveAnnotations } from './api';
-import type { Player, FilterState, SortState, Annotations, PrioLevel, FlagKey } from './data';
-import { DEFAULT_FILTER } from './data';
+import type { Player, Annotations, PrioLevel, FlagKey } from './data';
 
 import './App.css';
 
@@ -23,8 +23,7 @@ function AppInner() {
   const { navState, setTab, toggleGroup: navToggleGroup, closeAll, openFirst } = useNavState();
   const activeSection = navState.tab;
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER);
-  const [sortState, setSortState] = useState<SortState>('default');
+  const { filter, setFilter, sortState, setSortState } = useFilterState();
   const { theme, toggle: toggleTheme } = useTheme();
   const { t, locale } = useLocale();
   const updateAvailable = useVersionCheck();
