@@ -144,6 +144,7 @@
   height: 14px;
 }
 
+.flag_trio  { color: oklch(0.7 0.14 300); }
 .flag_need  { color: var(--accent); }
 .flag_solo  { color: oklch(0.72 0.13 152); }
 .flag_abandon { color: oklch(0.64 0.13 25); }

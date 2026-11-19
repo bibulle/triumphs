@@ -1,6 +1,6 @@
 export type PrioLevel = 0 | 1 | 2 | 3;
 export type GlobalPrio = 0 | 1 | 2 | 3;
-export type FlagKey = 'need' | 'solo' | 'abandon';
+export type FlagKey = 'trio' | 'need' | 'solo' | 'abandon';
 
 export interface PlayerAnnotation {
   prio: Record<string, PrioLevel>;

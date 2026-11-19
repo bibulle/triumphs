@@ -6,6 +6,9 @@ import styles from './CellEditor.module.css';
 function IconNeed() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><circle cx="5.5" cy="6" r="2"/><circle cx="10.8" cy="6.8" r="1.7"/><path d="M2 13c0-1.9 1.5-3 3.5-3s3.5 1.1 3.5 3"/><path d="M9.5 12.6c.1-1.5 1.1-2.3 2.6-2.3 1.4 0 2.4.8 2.4 2.3"/></svg>;
 }
+function IconTrio() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="4.6" r="1.8"/><circle cx="3.8" cy="7.4" r="1.5"/><circle cx="12.2" cy="7.4" r="1.5"/><path d="M5 13.2c0-1.9 1.3-3 3-3s3 1.1 3 3"/><path d="M1.2 13c0-1.5.9-2.5 2.6-2.5"/><path d="M14.8 13c0-1.5-.9-2.5-2.6-2.5"/></svg>;
+}
 function IconSolo() {
   return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="5.5" r="2.5"/><path d="M3.5 13c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/></svg>;
 }
@@ -20,7 +23,7 @@ export function FlagIcon({ flagKey }: { flagKey: FlagKey | null }) {
   const cls = `${styles.flagIco} ${flagKey ? styles[`flag_${flagKey}`] : styles.flagNone}`;
   return (
     <span className={cls}>
-      {flagKey === 'need' ? <IconNeed /> : flagKey === 'solo' ? <IconSolo /> : flagKey === 'abandon' ? <IconAbandon /> : <IconNone />}
+      {flagKey === 'trio' ? <IconTrio /> : flagKey === 'need' ? <IconNeed /> : flagKey === 'solo' ? <IconSolo /> : flagKey === 'abandon' ? <IconAbandon /> : <IconNone />}
     </span>
   );
 }
@@ -50,7 +53,7 @@ export default function CellEditor({ player, triumphName, prio, flag, anchor, on
   const { t } = useLocale();
   const ref = useRef<HTMLDivElement>(null);
   const PRIO_LABELS: Record<PrioLevel, string> = { 0: t.prioNone, 1: t.prioLow, 2: t.prioMedium, 3: t.prioHigh };
-  const FLAG_LABELS: Record<FlagKey | '', string> = { need: t.flagNeed, solo: t.flagSolo, abandon: t.flagAbandon, '': t.flagNone };
+  const FLAG_LABELS: Record<FlagKey | '', string> = { trio: t.flagTrio, need: t.flagNeed, solo: t.flagSolo, abandon: t.flagAbandon, '': t.flagNone };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -67,7 +70,7 @@ export default function CellEditor({ player, triumphName, prio, flag, anchor, on
 
   // Position: centered below anchor, flip up if needed
   const editorW = 236;
-  const editorH = 280; // approximate
+  const editorH = 315; // approximate
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   let left = Math.max(8, Math.min(anchor.left + anchor.width / 2 - editorW / 2, vw - editorW - 8));
@@ -75,7 +78,7 @@ export default function CellEditor({ player, triumphName, prio, flag, anchor, on
   top = Math.max(8, top);
 
   const prioLevels: PrioLevel[] = [3, 2, 1, 0];
-  const flagKeys: (FlagKey | '')[] = ['need', 'solo', 'abandon', ''];
+  const flagKeys: (FlagKey | '')[] = ['trio', 'need', 'solo', 'abandon', ''];
 
   return (
     <div
