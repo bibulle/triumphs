@@ -91,7 +91,7 @@ export default function TriumphTable({
   const globalPrioRaw = (id: string): number =>
     players.length ? players.reduce((s, p) => s + prioLevel(p, id), 0) / players.length : 0;
 
-  const FLAG_WEIGHT: Record<string, number> = { need: 3, solo: 2, abandon: 0 };
+  const FLAG_WEIGHT: Record<string, number> = { trio: 4, need: 3, solo: 2, abandon: 0 };
   const worstFlagWeight = (id: string): number => {
     if (!players.length) return 1;
     return Math.max(...players.map(p => {

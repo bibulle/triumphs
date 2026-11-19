@@ -5,7 +5,7 @@ import { getAllAnnotations, setPlayerAnnotations } from '../services/cache.js'
 
 const annotationBody = z.object({
   prio: z.record(z.string(), z.number().int().min(0).transform(v => Math.min(v, 3))).default({}),
-  flags: z.record(z.string(), z.enum(['need', 'solo', 'abandon'])).default({}),
+  flags: z.record(z.string(), z.enum(['trio', 'need', 'solo', 'abandon'])).default({}),
 })
 
 const router = Router()

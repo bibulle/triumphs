@@ -167,6 +167,20 @@ describe('PUT /api/annotations/:player', () => {
     delete process.env.MONGODB_URL
   })
 
+  it('accepts the "trio" flag', async () => {
+    process.env.MONGODB_URL = 'mongodb://fake'
+    const { port, close } = await startServer(buildApp())
+    const res = await fetch(`http://localhost:${port}/api/annotations/Alice`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prio: {}, flags: { '1003': 'trio' } }),
+    })
+    expect(res.status).toBe(200)
+    expect(cache.setPlayerAnnotations).toHaveBeenCalledWith('Alice', {}, { '1003': 'trio' })
+    await close()
+    delete process.env.MONGODB_URL
+  })
+
   it('returns error details on validation failure', async () => {
     const { port, close } = await startServer(buildApp())
     const res = await fetch(`http://localhost:${port}/api/annotations/Alice`, {

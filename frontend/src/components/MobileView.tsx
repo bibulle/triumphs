@@ -70,7 +70,7 @@ export default function MobileView({
   const flagOf = useCallback((player: string, id: string): FlagKey | null =>
     (annotations[player]?.flags[id] as FlagKey) ?? null, [annotations]);
 
-  const FLAG_WEIGHT: Record<string, number> = useMemo(() => ({ need: 3, solo: 2, abandon: 0 }), []);
+  const FLAG_WEIGHT: Record<string, number> = useMemo(() => ({ trio: 4, need: 3, solo: 2, abandon: 0 }), []);
 
   const globalPrio = useCallback((id: string): GlobalPrio => {
     if (!players.length) return 0;
