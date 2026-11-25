@@ -196,6 +196,18 @@ describe('fetchPlayerProgress', () => {
     expect(progress['1'].objectives).toEqual([{ current: 5, completionValue: 5 }])
   })
 
+  it('keeps raw progress when it overshoots the completion value', async () => {
+    mockFetch.mockResolvedValue(jsonResponse({
+      Response: {
+        profileRecords: {
+          data: { records: { '1': { state: 0, objectives: [{ objectiveHash: 9, progress: 12, completionValue: 1, complete: true }] } } },
+        },
+      },
+    }))
+    const progress = await fetchPlayerProgress(player)
+    expect(progress['1'].objectives).toEqual([{ hash: 9, current: 1, completionValue: 1, raw: 12 }])
+  })
+
   it('merges character records on top of profile records', async () => {
     mockFetch.mockResolvedValue(jsonResponse({
       Response: {

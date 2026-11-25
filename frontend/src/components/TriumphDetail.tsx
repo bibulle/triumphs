@@ -6,7 +6,6 @@ import { fetchRecordDetail } from '../api';
 import styles from './TriumphDetail.module.css';
 
 const BUNGIE_CDN = 'https://www.bungie.net';
-const STYLE_CHECKBOX = 2;
 const STYLE_PERCENTAGE = 3;
 
 type DetailState = { data: RecordDetail | null; loading: boolean; error: boolean };
@@ -42,8 +41,8 @@ function progressAt(list: ObjectiveProgress[] | undefined, def: { hash?: number 
   return list[index];
 }
 
-function formatValue(current: number, total: number, style?: number): string | null {
-  if (style === STYLE_CHECKBOX || (total <= 1 && style !== STYLE_PERCENTAGE)) return null;
+/** Always shows where the player stands (e.g. "0/1", "12/1"), like Braytech. */
+function formatValue(current: number, total: number, style?: number): string {
   if (style === STYLE_PERCENTAGE) return `${Math.min(100, Math.round(current / (total || 1) * 100))}%`;
   return `${current.toLocaleString()}/${total.toLocaleString()}`;
 }
@@ -96,9 +95,6 @@ export function TriumphObjectives({ item, players, progressDetailFor, progressFo
         <li key={row.key} className={styles.obj}>
           <div className={styles.objLabel}>
             {row.label}
-            {row.completionValue > 1 && row.style !== STYLE_CHECKBOX && (
-              <span className={styles.objTarget}>{row.completionValue.toLocaleString()}</span>
-            )}
           </div>
           <div className={styles.objPlayers}>
             {players.map(p => {
@@ -109,14 +105,14 @@ export function TriumphObjectives({ item, players, progressDetailFor, progressFo
               const current = prog ? prog.current : (recordDone && kind === 'objectives' ? total : 0);
               const done = total > 0 ? current >= total : recordDone;
               const pct = total > 0 ? Math.min(100, Math.round(current / total * 100)) : (done ? 100 : 0);
-              const value = formatValue(current, total, row.style);
+              const value = formatValue(prog?.raw ?? current, total, row.style);
               return (
                 <div key={p} className={`${styles.objBar} ${done ? styles.objBarDone : ''}`}>
                   <span className={`${styles.check} ${done ? styles.checkDone : ''}`} aria-hidden="true" />
                   <span className={styles.objFill} style={{ width: `${pct}%` }} />
                   <span className={styles.objPlayer}>{p}</span>
-                  <span className={styles.objValue} aria-label={`${p} — ${row.label} : ${done ? t.done : (value ?? t.todo)}`}>
-                    {value ?? (done ? '✓' : '')}
+                  <span className={styles.objValue} aria-label={`${p} — ${row.label} : ${value}${done ? ` (${t.done})` : ''}`}>
+                    {value}
                   </span>
                 </div>
               );

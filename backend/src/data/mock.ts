@@ -41,6 +41,7 @@ export interface ObjectiveProgress {
   hash?: number;       // Bungie objectiveHash (absent in older cached progress)
   current: number;
   completionValue: number;
+  raw?: number;        // raw progress when above completionValue (e.g. 12/1)
 }
 
 export interface RecordProgress {
