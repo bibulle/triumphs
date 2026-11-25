@@ -3,6 +3,7 @@ import type { Group, Triumph, Player, FilterState, NodeMeta, RecordProgress, Sor
 import type { Locale } from '../i18n';
 import { useLocale } from '../i18n';
 import CellEditor, { PrioMeter, FlagIcon } from './CellEditor';
+import TriumphDetailModal from './TriumphDetail';
 import styles from './TriumphTable.module.css';
 
 const BUNGIE_CDN = 'https://www.bungie.net';
@@ -49,6 +50,7 @@ export default function TriumphTable({
   const useFr = locale === 'fr';
 
   const [editing, setEditing] = useState<CellEditState | null>(null);
+  const [detailItem, setDetailItem] = useState<Triumph | null>(null);
 
   const rankIndexMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -204,7 +206,14 @@ export default function TriumphTable({
                 const wf = worstFlagKey(item.id);
                 return (
                   <tr key={item.id} className={`${styles.itemRow} ${allDone ? styles.allDone : ''}`}>
-                    <td className={`${styles.td} ${styles.colTitle} ${styles.itemColTitle}`}>
+                    <td
+                      className={`${styles.td} ${styles.colTitle} ${styles.itemColTitle} ${styles.clickableTitle}`}
+                      onClick={() => setDetailItem(item)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailItem(item); } }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${primaryName} : ${t.showDetail}`}
+                    >
                       <div className={styles.titleCell}>
                         <span className={`${styles.bullet} ${allDone ? styles.bulletDone : ''}`} />
                         <div className={styles.titleText}>
@@ -316,6 +325,16 @@ export default function TriumphTable({
           </tbody>
         </table>
       </div>
+
+      {detailItem && (
+        <TriumphDetailModal
+          item={detailItem}
+          players={players}
+          progressFor={progressFor}
+          progressDetailFor={progressDetailFor}
+          onClose={() => setDetailItem(null)}
+        />
+      )}
 
       {editing && (
         <CellEditor

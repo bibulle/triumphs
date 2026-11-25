@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import type { Group, Triumph, Player, FilterState, NodeMeta, RecordProgress, SortState, Annotations, PrioLevel, GlobalPrio, FlagKey } from '../data';
 import { useLocale } from '../i18n';
 import { PrioMeter, FlagIcon } from './CellEditor';
+import { TriumphObjectives } from './TriumphDetail';
 import styles from './MobileView.module.css';
 
 const BUNGIE_CDN = 'https://www.bungie.net';
@@ -353,6 +354,14 @@ export default function MobileView({
                   </div>
                 );
               })}
+            </div>
+            <div className={styles.sheetObjectives}>
+              <TriumphObjectives
+                item={detailItem}
+                players={players}
+                progressFor={progressFor}
+                progressDetailFor={progressDetailFor}
+              />
             </div>
           </div>
         </div>

@@ -38,6 +38,7 @@ export interface NodeMeta {
 }
 
 export interface ObjectiveProgress {
+  hash?: number;       // Bungie objectiveHash (absent in older cached progress)
   current: number;
   completionValue: number;
 }
@@ -46,6 +47,7 @@ export interface RecordProgress {
   completed: boolean;
   redeemed?: boolean;  // true when reward has been claimed (Bungie RecordRedeemed bit)
   objectives: ObjectiveProgress[];
+  intervalObjectives?: ObjectiveProgress[];
   completedAt?: string; // ISO date string (YYYY-MM-DD)
 }
 

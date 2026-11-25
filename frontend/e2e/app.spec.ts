@@ -226,3 +226,27 @@ test.describe('Responsive layout', () => {
     await expect(page.getByPlaceholder(/Pesquisar/i)).toBeVisible();
   });
 });
+
+test.describe('Triumph detail', () => {
+  test('clicking a triumph title opens its detail with objectives and rewards', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('[class*="groupRow"]').first().click();
+    await page.locator('tr[class*="itemRow"] td[role="button"]').first().click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText('Travessia')).toBeVisible();
+    await expect(dialog.getByText('Missão exótica')).toBeVisible();
+    await expect(dialog.getByText('Escudo lendário')).toBeVisible();
+    // one progress bar per player per objective
+    await expect(dialog.locator('[class*="objBar"]')).toHaveCount(2 * 3);
+  });
+
+  test('Escape closes the detail', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('[class*="groupRow"]').first().click();
+    await page.locator('tr[class*="itemRow"] td[role="button"]').first().click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+});

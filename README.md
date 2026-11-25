@@ -124,6 +124,7 @@ MONGODB_URL=mongodb+srv://... docker compose up
 | Endpoint | Description | Cache MongoDB |
 |---|---|---|
 | `GET /api/triumphs` | Catalogue des triomphes (Bungie API ou mock) | `triumph_catalog` (sans TTL, invalidé sur nouvelle version) |
+| `GET /api/triumphs/:id/detail` | Objectifs nommés (FR/EN/PT), paliers et récompenses d'un triomphe — chargé à la demande depuis le manifest Bungie | `triumph_catalog` (clé `record_detail_v1:<id>`, TTL 24 h) + mémoire |
 | `GET /api/progress` | Progression de chaque joueur | `triumph_progress` (TTL 5 min) |
 | `GET /api/annotations` | Priorités & flags de tous les joueurs | Persisté sans TTL (`triumph_annotations`) |
 | `PUT /api/annotations/:player` | Sauvegarde les annotations d'un joueur | idem |

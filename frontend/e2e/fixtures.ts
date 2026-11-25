@@ -5,6 +5,21 @@ async function mockApi(page: Page) {
   await page.route('/api/triumphs', route =>
     route.fulfill({ contentType: 'application/json', body: JSON.stringify(TRIUMPHS) })
   );
+  await page.route('/api/triumphs/*/detail', route => {
+    const id = route.request().url().split('/').slice(-2)[0];
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id,
+        objectives: [
+          { hash: 1, descEn: 'Traversal', descFr: 'Traversée', descPt: 'Travessia', completionValue: 1 },
+          { hash: 2, descEn: 'Exotic Mission', descFr: 'Mission exotique', descPt: 'Missão exótica', completionValue: 12 },
+        ],
+        intervals: [],
+        rewards: [{ hash: 50, nameEn: 'Legendary Shield', nameFr: 'Écu légendaire', namePt: 'Escudo lendário', quantity: 1 }],
+      }),
+    });
+  });
   await page.route('/api/nodes', route =>
     route.fulfill({ contentType: 'application/json', body: '[]' })
   );

@@ -136,3 +136,25 @@ describe('GET /api/triumphs', () => {
     await close()
   })
 })
+
+describe('GET /api/triumphs/:id/detail', () => {
+  beforeEach(() => {
+    delete process.env.BUNGIE_API_KEY
+    delete process.env.MONGODB_URL
+  })
+
+  it('rejects non-numeric ids', async () => {
+    const { port, close } = await startServer(buildApp())
+    const res = await fetch(`http://localhost:${port}/api/triumphs/abc/detail`)
+    expect(res.status).toBe(400)
+    await close()
+  })
+
+  it('returns an empty detail without Bungie API key', async () => {
+    const { port, close } = await startServer(buildApp())
+    const res = await fetch(`http://localhost:${port}/api/triumphs/123/detail`)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ id: '123', objectives: [], intervals: [], rewards: [] })
+    await close()
+  })
+})

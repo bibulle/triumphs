@@ -207,6 +207,9 @@
   padding-left: 34px !important;
 }
 
+.clickableTitle { cursor: pointer; }
+.clickableTitle:focus-visible { outline: 1px solid var(--gold); outline-offset: -1px; }
+
 .titleCell {
   display: flex;
   gap: 11px;

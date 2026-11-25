@@ -3,6 +3,7 @@ import { TRIUMPHS } from '../data/mock.js'
 import { getCachedCatalog, setCachedCatalog, getManifestCheck, setManifestCheck } from '../services/cache.js'
 import { fetchManifestVersion, fetchTriumphCatalog } from '../services/bungie.js'
 import type { Triumph, NodeMeta } from '../data/mock.js'
+import { getRecordDetail } from '../services/recordDetail.js'
 
 const router = Router()
 
@@ -98,6 +99,21 @@ router.get('/', async (_req: Request, res: Response) => {
     console.warn('[triumphs] Failed to store mock in cache:', (e as Error).message)
   )
   res.json(TRIUMPHS)
+})
+
+router.get('/:id/detail', async (req: Request, res: Response) => {
+  const id = String(req.params.id)
+  if (!/^\d{1,10}$/.test(id)) {
+    res.status(400).json({ error: 'Invalid record id' })
+    return
+  }
+  try {
+    const detail = await getRecordDetail(id)
+    res.json(detail ?? { id, objectives: [], intervals: [], rewards: [] })
+  } catch (err) {
+    console.error('[triumphs] detail error:', (err as Error).message)
+    res.status(502).json({ error: 'Failed to fetch record detail' })
+  }
 })
 
 export { CATALOG_KEY, MANIFEST_CHECK_KEY }

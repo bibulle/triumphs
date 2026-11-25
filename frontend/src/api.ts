@@ -1,4 +1,4 @@
-import type { Triumph, NodeMeta, RecordProgress, Annotations, PlayerAnnotation, PrioLevel, ProgressSnapshot } from './data'
+import type { Triumph, NodeMeta, RecordProgress, Annotations, PlayerAnnotation, PrioLevel, ProgressSnapshot, RecordDetail } from './data'
 
 export interface PlayerInfo {
   name: string
@@ -62,4 +62,18 @@ export async function saveAnnotations(player: string, data: PlayerAnnotation): P
     body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error(`saveAnnotations: ${res.status}`)
+}
+
+const detailCache = new Map<string, Promise<RecordDetail>>()
+
+export function fetchRecordDetail(id: string): Promise<RecordDetail> {
+  const hit = detailCache.get(id)
+  if (hit) return hit
+  const p = fetch(`/api/triumphs/${encodeURIComponent(id)}/detail`).then(async res => {
+    if (!res.ok) throw new Error(`fetchRecordDetail: ${res.status}`)
+    return res.json() as Promise<RecordDetail>
+  })
+  detailCache.set(id, p)
+  p.catch(() => detailCache.delete(id))
+  return p
 }

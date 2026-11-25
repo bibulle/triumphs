@@ -66,7 +66,7 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
   )
   if (!res.ok) throw new Error(`Profile fetch for ${player.name}: ${res.status}`)
 
-  type RecordObj = { progress: number; completionValue: number; complete?: boolean }
+  type RecordObj = { objectiveHash?: number; progress: number; completionValue: number; complete?: boolean }
   type RecordEntry = {
     state: number
     objectives?: RecordObj[]
@@ -89,6 +89,7 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
   const mergeRecord = (hash: string, rec: RecordEntry, source: 'profile' | 'character') => {
     const mapObjs = (arr?: RecordObj[]) =>
       (arr ?? []).map(o => ({
+        ...(o.objectiveHash !== undefined ? { hash: o.objectiveHash } : {}),
         current: o.complete ? o.completionValue : (o.progress ?? 0),
         completionValue: o.completionValue,
       }))
@@ -114,7 +115,10 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
     }
 
     if (!progress[hash] || completed) {
-      progress[hash] = { completed, redeemed, objectives }
+      progress[hash] = {
+        completed, redeemed, objectives,
+        ...(intervalObjectives.length > 0 ? { intervalObjectives } : {}),
+      }
     }
   }
 
