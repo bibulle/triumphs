@@ -66,7 +66,7 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
   )
   if (!res.ok) throw new Error(`Profile fetch for ${player.name}: ${res.status}`)
 
-  type RecordObj = { progress: number; completionValue: number; complete?: boolean }
+  type RecordObj = { objectiveHash?: number; progress: number; completionValue: number; complete?: boolean }
   type RecordEntry = {
     state: number
     objectives?: RecordObj[]
@@ -88,10 +88,16 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
 
   const mergeRecord = (hash: string, rec: RecordEntry, source: 'profile' | 'character') => {
     const mapObjs = (arr?: RecordObj[]) =>
-      (arr ?? []).map(o => ({
-        current: o.complete ? o.completionValue : (o.progress ?? 0),
-        completionValue: o.completionValue,
-      }))
+      (arr ?? []).map(o => {
+        const current = o.complete ? o.completionValue : (o.progress ?? 0)
+        return {
+          ...(o.objectiveHash !== undefined ? { hash: o.objectiveHash } : {}),
+          current,
+          completionValue: o.completionValue,
+          // raw Bungie progress when it overshoots the target (e.g. 12/1), shown in the detail view
+          ...((o.progress ?? 0) > current ? { raw: o.progress } : {}),
+        }
+      })
     const objectives = mapObjs(rec.objectives)
     const intervalObjectives = mapObjs(rec.intervalObjectives)
     const allObjComplete = objectives.length > 0 && objectives.every(o => o.current >= o.completionValue)
@@ -114,7 +120,10 @@ export async function fetchPlayerProgress(player: ResolvedPlayer): Promise<Playe
     }
 
     if (!progress[hash] || completed) {
-      progress[hash] = { completed, redeemed, objectives }
+      progress[hash] = {
+        completed, redeemed, objectives,
+        ...(intervalObjectives.length > 0 ? { intervalObjectives } : {}),
+      }
     }
   }
 

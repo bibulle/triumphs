@@ -52,15 +52,44 @@ export interface NodeMeta {
 }
 
 export interface ObjectiveProgress {
+  hash?: number;       // Bungie objectiveHash (absent in older cached progress)
   current: number;
   completionValue: number;
+  raw?: number;        // raw progress when above completionValue (e.g. 12/1)
 }
 
 export interface RecordProgress {
   completed: boolean;
   redeemed?: boolean;  // true when reward has been claimed (Bungie RecordRedeemed bit)
   objectives: ObjectiveProgress[];
+  intervalObjectives?: ObjectiveProgress[];
   completedAt?: string; // ISO date string YYYY-MM-DD
+}
+
+export interface ObjectiveDetail {
+  hash: number;
+  descEn: string;
+  descFr: string;
+  descPt?: string;
+  completionValue: number;
+  valueStyle?: number;   // DestinyUnlockValueUIStyle (2 = checkbox, 3 = percentage)
+  scoreValue?: number;
+}
+
+export interface RewardDetail {
+  hash: number;
+  nameEn: string;
+  nameFr: string;
+  namePt?: string;
+  icon?: string;
+  quantity: number;
+}
+
+export interface RecordDetail {
+  id: string;
+  objectives: ObjectiveDetail[];
+  intervals: ObjectiveDetail[];
+  rewards: RewardDetail[];
 }
 
 export interface Group {
